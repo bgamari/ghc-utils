@@ -11,10 +11,10 @@ parser.add_argument('--version', required=True)
 args = parser.parse_args()
 flavor="i386-unknown-linux-deb7"
 
-dest = args.dest
-check_call(['sudo', 'mkdir', '-p', dest])
+dest = os.path.join(args.dest, args.version)
+check_call(['sudo', 'mkdir', '-p', args.dest])
 user = check_output(['whoami']).strip()
-check_call(['sudo', 'chown', user, dest])
+check_call(['sudo', 'chown', user, args.dest])
 
 url = "https://www.haskell.org/ghc/dist/{ver}/ghc-{ver}-{flavor}.tar.xz".format(ver=args.version, flavor=flavor)
 
