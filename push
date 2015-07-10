@@ -1,0 +1,25 @@
+#!/bin/bash -e
+
+branch=$1
+if [ "x$branch" == "x" ]; then
+        branch=$(git rev-parse --abbrev-ref HEAD)
+fi
+
+git remote update origin
+#git rebase --onto origin/$branch $branch
+
+echo "Here are the commits that would be pushed to the upstream $branch branch,"
+echo
+git log origin/$branch..$branch
+echo
+git diff --stat origin/$branch..$branch
+echo 
+echo -n "Push the above commits upstream? [no,yes] "
+read res
+if [ "x$res" == "xyes" ]; then
+        git push origin-push $branch
+        echo "Pushed."
+else
+        echo "Not pushing."
+fi
+

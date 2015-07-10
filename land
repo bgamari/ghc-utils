@@ -1,0 +1,15 @@
+#!/bin/bash -e
+
+branch=$(git rev-parse --abbrev-ref HEAD)
+for i in $@; do
+        git reset --hard
+        git clean -f
+        arc patch --skip-dependencies --nobranch $i
+        git filter-branch -f --msg-filter "grep -v 'Summary:' | fold -s -w72" $branch^..$branch
+
+        echo
+        echo "Landed $i"
+        git diff --stat $branch^..$branch 
+done
+
+

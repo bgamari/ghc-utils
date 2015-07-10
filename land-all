@@ -1,0 +1,14 @@
+#!/bin/bash -e
+
+#cd ghc-landing
+git remote update origin
+git checkout master
+git reset --hard origin/master
+git submodule update
+../land $@
+
+echo
+echo "It seems that things applied."
+echo
+../push
+
