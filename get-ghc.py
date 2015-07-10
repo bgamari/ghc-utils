@@ -29,4 +29,5 @@ check_call(['make', 'install'])
 with open(os.path.join(dest, args.version, 'env.sh'), 'w') as f:
     f.write("""PATH={dest}/bin:$PATH
 LD_LIBRARY_PATH={dest}/lib:$LD_LIBRARY_PATH
-echo "Using GHC {ver}""".format(dest=dest, ver=args.version))
+echo "Using GHC {ver}"
+""".format(dest=dest, ver=args.version))
