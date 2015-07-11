@@ -6,10 +6,11 @@
 ARCH=amd64
 DEST=deb7-$ARCH
 REAL_DEST=$(realpath $DEST)
+user=$(id -un)
 
 mkdir $DEST
 sudo debootstrap --arch=$ARCH wheezy $DEST http://http.debian.net/debian/
-sudo chown `id -un` $DEST
+sudo chown $user $DEST
 
 cat >$DEST/activate <<EOF
 #!/bin/bash
@@ -32,18 +33,19 @@ sudo umount \$MY_CHROOT/sys
 EOF
 chmod ugo+rx $DEST/stop
 
-$DEST/activate adduser --uid=`id -u` `id -un`
+$DEST/activate adduser --uid=`id -u` $user
 $DEST/activate bash -e <<EOF
 apt-get update
 apt-get install -y build-essential vim bash-completion bash locales autoconf libncurses-dev git python sudo curl console-data locales-all libgmp-dev cabal-install
-adduser `id -un` sudo
-mkdir /opt/exp/ghc
-chown `id -un` /opt/exp/ghc
+adduser $user sudo
+mkdir -p /opt/ghc
+chown $user /opt/ghc
 EOF
 
-$DEST/activate sudo -u `id -un` -- bash -e <<EOF
-git clone https://github.com:bgamari/ghc-utils.git
-ghc-utils/get-ghc.sh --version=7.8.4
+$DEST/activate sudo -u $user -- bash -e <<EOF
+cd
+git clone https://bgamari@github.com/bgamari/ghc-utils.git
+ghc-utils/get-ghc --version=7.8.4 --arch=$ARCH
 echo "PATH=$HOME/.cabal/bin:\$PATH" >>.bashrc
 echo "source /opt/ghc/7.8.4/env" >>.bashrc
 echo "PS1=\"$DEST \$PS1\"" >>.bashrc
@@ -53,7 +55,8 @@ git config --global user.name "Ben Gamari"
 git config --global user.email "ben@well-typed.com"
 EOF
 
-$DEST/activate sudo -u `id -un` -- bash -e <<EOF
+$DEST/activate sudo -u $user -- bash -e <<EOF
+cd
 git clone git://git.haskell.org/ghc
 git remote add bgamari https://bgamari@github.com/bgamari/ghc
 cd ghc
@@ -61,3 +64,5 @@ git submodule update --init
 ./boot
 ./configure --prefix=/opt/ghc/root-ghc-head
 EOF
+
+#$DEST/activate apt-get install dblatex docbook-xsl

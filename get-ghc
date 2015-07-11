@@ -8,8 +8,9 @@ import os
 parser = argparse.ArgumentParser()
 parser.add_argument('--dest', default='/opt/ghc')
 parser.add_argument('--version', required=True)
+parser.add_argument('--arch', required=True)
 args = parser.parse_args()
-flavor="i386-unknown-linux-deb7"
+flavor="{arch}-unknown-linux-deb7".format(arch=args.arch)
 
 dest = os.path.join(args.dest, args.version)
 check_call(['sudo', 'mkdir', '-p', args.dest])
