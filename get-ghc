@@ -30,7 +30,6 @@ untar = Popen(['tar', '-Jx'], stdin=download.stdout)
 untar.wait()
 
 os.chdir('ghc-'+args.version)
-check_call(['./boot'])
 check_call(['./configure', '--prefix={dest}/{ver}'.format(dest=dest, ver=args.version)])
 check_call(['make', 'install'])
 
