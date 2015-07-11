@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Functions for transitioning a tree between old-style and submodule libraries/*
 ghc79_libs="base ghc-prim integer-gmp integer-simple template-haskell"
 
 function to_ghc79() {
