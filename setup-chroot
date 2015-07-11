@@ -47,7 +47,7 @@ cd
 git clone https://bgamari@github.com/bgamari/ghc-utils.git
 ghc-utils/get-ghc --version=7.8.4 --arch=$ARCH
 echo "PATH=$HOME/.cabal/bin:\$PATH" >>.bashrc
-echo "source /opt/ghc/7.8.4/env" >>.bashrc
+echo "source /opt/ghc/7.8.4/env.sh" >>.bashrc
 echo "PS1=\"$DEST \$PS1\"" >>.bashrc
 cabal update
 cabal install happy alex
