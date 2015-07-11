@@ -36,7 +36,7 @@ chmod ugo+rx $DEST/stop
 $DEST/activate adduser --uid=`id -u` $user
 $DEST/activate bash -e <<EOF
 apt-get update
-apt-get install -y build-essential vim bash-completion bash locales autoconf libncurses-dev git python sudo curl console-data locales-all libgmp-dev cabal-install
+apt-get install -y build-essential vim bash-completion bash locales autoconf libncurses-dev git python sudo curl console-data locales-all libgmp-dev cabal-install zlib1g-dev
 adduser $user sudo
 mkdir -p /opt/ghc
 chown $user /opt/ghc
@@ -58,8 +58,8 @@ EOF
 $DEST/activate sudo -u $user -- bash -e <<EOF
 cd
 git clone git://git.haskell.org/ghc
-git remote add bgamari https://bgamari@github.com/bgamari/ghc
 cd ghc
+git remote add bgamari https://bgamari@github.com/bgamari/ghc
 git submodule update --init
 ./boot
 ./configure --prefix=/opt/ghc/root-ghc-head
