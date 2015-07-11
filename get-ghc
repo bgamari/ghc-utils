@@ -33,7 +33,7 @@ os.chdir('ghc-'+args.version)
 check_call(['./configure', '--prefix={dest}'.format(dest=dest)])
 check_call(['make', 'install'])
 
-with open(os.path.join(dest, args.version, 'env.sh'), 'w') as f:
+with open(os.path.join(dest, 'env.sh'), 'w') as f:
     f.write("""PATH={dest}/bin:$PATH
 LD_LIBRARY_PATH={dest}/lib:$LD_LIBRARY_PATH
 echo "Using GHC {ver}"
