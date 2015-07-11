@@ -1,0 +1,46 @@
+#!/bin/bash -e
+
+# setup a debootstrap-based debian chroot
+
+#ARCH=i386
+ARCH=amd64
+DEST=deb7-$ARCH
+REAL_DEST=$(realpath $DEST)
+
+mkdir $DEST
+sudo debootstrap --arch=$ARCH wheezy $DEST http://http.debian.net/debian/
+
+cat >$DEST/activate <<EOF
+#!/bin/bash
+MY_CHROOT=$REAL_DEST
+
+sudo mount proc $MY_CHROOT/proc -t proc
+sudo mount sysfs $MY_CHROOT/sys -t sysfs
+sudo cp /etc/hosts $MY_CHROOT/etc/hosts
+sudo cp /proc/mounts $MY_CHROOT/etc/mtab
+sudo chroot $MY_CHROOT $$@
+EOF
+chmod ugo+rx $DEST/activate
+
+$DEST/activate apt-get update
+$DEST/activate apt-get install build-essential vim bash-completion bash locales autoconf libncurses-dev git python sudo curl console-data locales-all libgmp-dev cabal-install
+$DEST/activate adduser --uid=`id -u` `id -un`
+$DEST/activate adduser `id -un` sudo
+$DEST/activate mkdir /opt/exp/ghc
+$DEST/activate chown `id -un` /opt/exp/ghc
+$DEST/activate sudo -u `id -un` -i <<EOF
+git clone https://github.com:bgamari/ghc-utils.git
+ghc-utils/get-ghc.sh --version=7.8.4
+echo "PATH=$HOME/.cabal/bin:\$PATH" >>.bashrc
+echo "source /opt/ghc/7.8.4/env" >>.bashrc
+cabal update
+cabal install happy alex
+EOF
+$DEST/activate sudo -u `id -un` -i <<EOF
+git clone git://git.haskell.org/ghc
+cd ghc
+git submodule update --init
+./boot
+./configure --prefix=/opt/ghc/root-ghc-head
+EOF
+
