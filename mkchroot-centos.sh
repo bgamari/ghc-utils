@@ -29,8 +29,6 @@ user=$(id -un)
 
 mkdir $dest $dest/tmp
 rpm --root=$dest --rebuilddb
-sudo chown $user $dest
-sudo chmod u+rwx $dest
 
 curl $centos_release > $dest/tmp/centos-release.rpm
 sudo rpm --root=$dest --nodeps --install $dest/tmp/centos-release.rpm
@@ -39,6 +37,8 @@ sudo sed -i -e 's/gpgcheck=1/gpgcheck=0/' $dest/etc/yum.repos.d/CentOS-Base.repo
 sudo yum --installroot=$dest update
 sudo yum --installroot=$dest -y install yum
 
+sudo chown $user $dest
+sudo chmod u+rwx $dest
 cat >$dest/activate <<EOF
 #!/bin/bash
 MY_CHROOT=$dest
@@ -68,7 +68,8 @@ rpm --rebuilddb
 rpm --nodeps -i /tmp/centos-release.rpm
 yum install -y yum file git sudo
 
-adduser $user sudo
+adduser --uid=`id -u` -G sudo,wheel $user
+echo "%wheel ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 mkdir -p /opt/ghc
 chown $user /opt/ghc
 EOF
