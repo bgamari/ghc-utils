@@ -32,35 +32,18 @@ rpm --root=$dest --rebuilddb
 
 curl $centos_release > $dest/tmp/centos-release.rpm
 sudo rpm --root=$dest --nodeps --install $dest/tmp/centos-release.rpm
-sudo sed -i -e 's/gpgcheck=1/gpgcheck=0/' $dest/etc/yum.repos.d/CentOS-Base.repo
 
-sudo yum --installroot=$dest update
-sudo yum --installroot=$dest -y install yum
+sudo yum --installroot=$dest --nogpg update
+sudo yum --installroot=$dest --nogpg -y install yum
 
 sudo chown $user $dest
 sudo chmod u+rwx $dest
 cat >$dest/activate <<EOF
 #!/bin/bash
 MY_CHROOT=$dest
-
-sudo mount proc \$MY_CHROOT/proc -t proc
-sudo mount sysfs \$MY_CHROOT/sys -t sysfs
-sudo mount devpts \$MY_CHROOT/dev/pts -t devpts
-sudo cp /etc/hosts \$MY_CHROOT/etc/hosts
-sudo cp /proc/mounts \$MY_CHROOT/etc/mtab
-sudo chroot \$MY_CHROOT \$@
+sudo systemd-nspawn -D\$MY_CHROOT \$@
 EOF
 chmod ugo+rx $dest/activate
-
-cat >$dest/stop <<EOF
-#!/bin/bash
-MY_CHROOT=$dest
-
-sudo umount \$MY_CHROOT/proc
-sudo umount \$MY_CHROOT/sys
-sudo umount \$MY_CHROOT/dev/pts
-EOF
-chmod ugo+rx $dest/stop
 
 # RPM installed by Debian may not be the same version wanted by CentOS
 # Rebuild the package database with the CentOS RPM
