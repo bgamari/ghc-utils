@@ -9,6 +9,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--dest', default='/opt/ghc')
 parser.add_argument('--version', required=True)
 parser.add_argument('--arch', required=True)
+parser.add_argument('--dist')
 args = parser.parse_args()
 
 arch = {
@@ -16,7 +17,21 @@ arch = {
         'i386': 'i386',
         'x32': 'i386',
 }[args.arch]
-flavor="{arch}-unknown-linux-deb7".format(arch=arch)
+
+def detect_dist():
+    a = open('/etc/issue').read()
+    if a.startswith('Ubuntu'):
+        return 'deb7'
+    if a.startswith('Debian'):
+        return 'deb7'
+    if a.startswith('CentOS'):
+        return 'centos65'
+
+dist = args.dist
+if dist is None:
+    dist = detect_dist()
+
+flavor="{arch}-unknown-linux-{dist}".format(arch=arch, dist=dist)
 
 dest = os.path.join(args.dest, args.version)
 check_call(['sudo', 'mkdir', '-p', args.dest])
