@@ -62,13 +62,13 @@ chmod ugo+rx $dest/stop
 
 # RPM installed by Debian may not be the same version wanted by CentOS
 # Rebuild the package database with the CentOS RPM
-$dest/activate  <<EOF
+$dest/activate bash -e <<EOF
 rm -rf /var/lib/rpm
 rpm --rebuilddb
 rpm --nodeps -i /tmp/centos-release.rpm
 yum install -y yum file git sudo
 
-adduser --uid=`id -u` -G sudo,wheel $user
+adduser --uid=`id -u` -G wheel $user
 echo "%wheel ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 mkdir -p /opt/ghc
 chown $user /opt/ghc
