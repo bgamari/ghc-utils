@@ -78,7 +78,7 @@ chown $user /opt/ghc
 EOF
 rm $dest/tmp/centos-release.rpm
 
-$DEST/activate sudo -u $user -- bash -e <<EOF
+$dest/activate sudo -u $user -- bash -e <<EOF
 cd
 git clone https://bgamari@github.com/bgamari/ghc-utils.git
 cd ghc-utils
