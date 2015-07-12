@@ -12,11 +12,21 @@ parser.add_argument('--arch', required=True)
 parser.add_argument('--dist')
 args = parser.parse_args()
 
+def detect_arch():
+    out = check_output(['file', '/bin/bash'])
+    kind = out.split(':')[1].strip()
+    if kind.startswith('ELF 32-bit'):
+        return 'i386'
+    elif kind.startswith('ELF 64-bit'):
+        return 'amd64'
+
 arch = {
         'amd64': 'x86_64',
         'i386': 'i386',
         'x32': 'i386',
-}[args.arch]
+}.get(args.arch)
+if arch is None:
+    arch = detect_arch()
 
 def detect_dist():
     a = open('/etc/issue').read()
