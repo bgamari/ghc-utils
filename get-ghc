@@ -8,7 +8,7 @@ import os
 parser = argparse.ArgumentParser()
 parser.add_argument('--dest', default='/opt/ghc')
 parser.add_argument('--version', required=True)
-parser.add_argument('--arch', required=True)
+parser.add_argument('--arch')
 parser.add_argument('--dist')
 args = parser.parse_args()
 
