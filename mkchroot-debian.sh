@@ -37,7 +37,11 @@ $DEST/activate adduser --uid=`id -u` $user
 $DEST/activate bash -e <<EOF
 apt-get update
 apt-get install -y build-essential vim bash-completion bash locales autoconf libncurses-dev git python sudo curl console-data locales-all libgmp-dev cabal-install zlib1g-dev
+
+sed -i '/^%sudo/d' /etc/sudoers
+echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 adduser $user sudo
+
 mkdir -p /opt/ghc
 chown $user /opt/ghc
 EOF
