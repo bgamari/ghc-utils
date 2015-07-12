@@ -71,6 +71,7 @@ rpm --nodeps -i /tmp/centos-release.rpm
 yum install -y yum file git sudo
 
 adduser --uid=`id -u` -G wheel $user
+sed -i '/requiretty/d' /etc/sudoers
 echo "%wheel ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 mkdir -p /opt/ghc
 chown $user /opt/ghc
