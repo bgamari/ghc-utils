@@ -5,22 +5,27 @@
 # Needs,
 #    sudo apt-get install yum rpm
 
-arch=i386
+function usage() {
+    echo "Usage: ARCH=[i386|amd64] $0 [dest]"
+}
+
+arch=$ARCH
 case $arch in
     amd64|x86_64)
         centos_release="http://mirror.centos.org/centos/6/os/x86_64/Packages/centos-release-6-6.el6.centos.12.2.x86_64.rpm "
         ;;
     i386)
-        centos_release="http://mirror.centos.org/centos/6/os/x86_64/Packages/centos-release-6-6.el6.centos.12.2.x86_64.rpm "
+        centos_release="http://mirror.centos.org/centos/6/os/i386/Packages/centos-release-6-6.el6.centos.12.2.i686.rpm"
         ;;
     *)
         echo "Unknown architecture $arch"
+        usage
         exit 1
         ;;
 esac
 
 if [ -z "$1" ]; then
-    echo "Usage: $0 [dest]"
+    usage
     exit 1
 fi
 
