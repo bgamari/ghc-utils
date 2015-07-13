@@ -2,14 +2,30 @@
 
 # setup a debootstrap-based debian chroot
 
-ARCH=i386
-#ARCH=amd64
-dest=deb7-$ARCH
+function usage() {
+    echo "Usage: ARCH=[i386|amd64] $0 [dest]"
+}
+
+case $ARCH in
+    amd64|x86_64)
+        arch=amd64
+        ;;
+    i386)
+        arch=i386
+        ;;
+    *)
+        echo "Unknown architecture $arch"
+        usage
+        exit 1
+        ;;
+esac
+
+dest=deb7-$arch
 real_dest=$(realpath $dest)
 user=$(id -un)
 
-mkdir $dest $dest/dev $dest/dev/pts
-sudo debootstrap --arch=$ARCH wheezy $dest http://http.debian.net/debian/
+mkdir $dest
+sudo debootstrap --arch=$arch wheezy $dest http://http.debian.net/debian/
 sudo chown $user $dest
 
 cat >$dest/activate <<EOF
