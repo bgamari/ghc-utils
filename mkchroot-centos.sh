@@ -32,11 +32,11 @@ fi
 dest=$(realpath $1)
 user=$(id -un)
 
-mkdir $dest $dest/tmp $dest/dev $dest/dev/pts
+mkdir $dest
 rpm --root=$dest --rebuilddb
 
-curl $centos_release > $dest/tmp/centos-release.rpm
-sudo rpm --root=$dest --nodeps --install $dest/tmp/centos-release.rpm
+curl $centos_release > $dest/centos-release.rpm
+sudo rpm --root=$dest --nodeps --install $dest/centos-release.rpm
 
 sudo yum --installroot=$dest --nogpg update
 sudo yum --installroot=$dest --nogpg -y install yum
@@ -55,7 +55,8 @@ chmod ugo+rx $dest/activate
 $dest/activate bash -e <<EOF
 rm -rf /var/lib/rpm
 rpm --rebuilddb
-rpm --nodeps -i /tmp/centos-release.rpm
+rpm --nodeps -i /centos-release.rpm
+rm /centos-release.rpm
 yum install -y yum file git sudo
 
 adduser --uid=`id -u` -G wheel $user
@@ -64,7 +65,6 @@ echo "%wheel ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 mkdir -p /opt/ghc
 chown $user /opt/ghc
 EOF
-rm $dest/tmp/centos-release.rpm
 
 $dest/activate sudo -u $user -- bash -e <<EOF
 cd
