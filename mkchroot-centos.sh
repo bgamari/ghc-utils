@@ -9,13 +9,14 @@ function usage() {
     echo "Usage: ARCH=[i386|amd64] $0 [dest]"
 }
 
-arch=$ARCH
-case $arch in
+case $ARCH in
     amd64|x86_64)
         centos_release="http://mirror.centos.org/centos/6/os/x86_64/Packages/centos-release-6-6.el6.centos.12.2.x86_64.rpm "
+        arch=amd64
         ;;
     i386)
         centos_release="http://mirror.centos.org/centos/6/os/i386/Packages/centos-release-6-6.el6.centos.12.2.i686.rpm"
+        arch=i386
         ;;
     *)
         echo "Unknown architecture $arch"
