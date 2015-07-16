@@ -9,9 +9,11 @@ function usage() {
 case $ARCH in
     amd64|x86_64)
         arch=amd64
+        personality=x86-64
         ;;
     i386)
         arch=i386
+        personality=x86
         ;;
     *)
         echo "Unknown architecture $arch"
@@ -31,7 +33,7 @@ sudo chown $user $dest
 cat >$dest/activate <<EOF
 #!/bin/bash
 MY_CHROOT=$real_dest
-sudo systemd-nspawn -D \$MY_CHROOT \$@
+sudo systemd-nspawn --personality=$personality -D \$MY_CHROOT \$@
 EOF
 chmod ugo+rx $dest/activate
 
