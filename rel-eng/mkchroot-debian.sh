@@ -38,7 +38,7 @@ EOF
 
 cat >$dest/activate <<EOF
 #!/bin/bash
-$dest/activate-root sudo -u $user -- $@
+$dest/activate-root sudo -u $user -- \$@
 EOF
 
 chmod ugo+rx $dest/activate-root $dest/activate
