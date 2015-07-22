@@ -46,7 +46,7 @@ chmod ugo+rx $dest/activate-root $dest/activate
 $dest/activate-root adduser --uid=`id -u` $user
 $dest/activate-root apt-get update
 $dest/activate-root apt-get install -y \
-                    build-essential vim bash-completion bash locales autoconf \
+                    build-essential realpath vim bash-completion bash locales autoconf \
                     libncurses-dev git python sudo curl \
                     console-data locales-all libgmp-dev zlib1g-dev
 
