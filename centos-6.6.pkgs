@@ -1,0 +1,15 @@
+openssh
+git vim
+xz
+curl wget
+
+gcc gcc-c++
+patch
+autoconf automake
+
+ncurses-devel
+gmp-devel
+
+git vim
+
+libxslt docbook-dtds docbook-utils docbook-style-xsl
