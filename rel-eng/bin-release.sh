@@ -51,8 +51,12 @@ BUILD_DOCBOOK_PS=YES
 BeConservative=YES
 EOF
 
+if [ -z "$NTHREADS" ]; then
+    NTHREADS=1
+fi
+
 ./configure      2>&1 | tee ../conf.log
-make             2>&1 | tee ../make.log
+make -j$NTHREADS 2>&1 | tee ../make.log
 make binary-dist 2>&1 | tee ../binary-dist.log
 
 cd ..
