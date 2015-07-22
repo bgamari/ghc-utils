@@ -2,15 +2,15 @@
 
 import subprocess
 from subprocess import check_call, check_output, Popen, PIPE
-import argparse
+import optparse
 import os
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--dest', default='/opt/ghc')
-parser.add_argument('--version', required=True)
-parser.add_argument('--arch')
-parser.add_argument('--dist')
-args = parser.parse_args()
+parser = optparse.OptionParser()
+parser.add_option('--dest', default='/opt/ghc')
+parser.add_option('--version')
+parser.add_option('--arch')
+parser.add_option('--dist')
+opts,_ = parser.parse_args()
 
 def detect_arch():
     out = check_output(['file', '/bin/bash'])
@@ -24,7 +24,7 @@ arch = {
         'amd64': 'x86_64',
         'i386': 'i386',
         'x32': 'i386',
-}.get(args.arch)
+}.get(opts.arch)
 if arch is None:
     arch = detect_arch()
 
@@ -37,24 +37,24 @@ def detect_dist():
     if a.startswith('CentOS'):
         return 'centos65'
 
-dist = args.dist
+dist = opts.dist
 if dist is None:
     dist = detect_dist()
 
 flavor="{arch}-unknown-linux-{dist}".format(arch=arch, dist=dist)
 
-dest = os.path.join(args.dest, args.version)
-check_call(['sudo', 'mkdir', '-p', args.dest])
+dest = os.path.join(opts.dest, opts.version)
+check_call(['sudo', 'mkdir', '-p', opts.dest])
 user = check_output(['whoami']).strip()
-check_call(['sudo', 'chown', user, args.dest])
+check_call(['sudo', 'chown', user, opts.dest])
 
-url = "https://www.haskell.org/ghc/dist/{ver}/ghc-{ver}-{flavor}.tar.xz".format(ver=args.version, flavor=flavor)
+url = "https://www.haskell.org/ghc/dist/{ver}/ghc-{ver}-{flavor}.tar.xz".format(ver=opts.version, flavor=flavor)
 
 download = Popen(['curl', '-L', url], stdout=subprocess.PIPE)
 untar = Popen(['tar', '-Jx'], stdin=download.stdout)
 untar.wait()
 
-os.chdir('ghc-'+args.version)
+os.chdir('ghc-'+opts.version)
 check_call(['./configure', '--prefix={dest}'.format(dest=dest)])
 check_call(['make', 'install'])
 
@@ -62,4 +62,4 @@ with open(os.path.join(dest, 'env.sh'), 'w') as f:
     f.write("""PATH={dest}/bin:$PATH
 LD_LIBRARY_PATH={dest}/lib:$LD_LIBRARY_PATH
 echo "Using GHC {ver}"
-""".format(dest=dest, ver=args.version))
+""".format(dest=dest, ver=opts.version))
