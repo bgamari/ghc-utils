@@ -1,10 +1,12 @@
 #!/bin/bash -e
 
-./get-ghc --version=7.8.4
+bootstrap=7.8.4
+
+./get-ghc --version=$bootstrap
 
 cd
 echo "PATH=$HOME/.cabal/bin:\$PATH" >>.bashrc
-echo "source /opt/ghc/7.8.4/env.sh" >>.bashrc
+echo "source /opt/ghc/$bootstrap/env.sh" >>.bashrc
 cabal update
 cabal install cabal-install happy alex hscolour
 git config --global user.name "Ben Gamari"
