@@ -6,7 +6,7 @@ cd
 echo "PATH=$HOME/.cabal/bin:\$PATH" >>.bashrc
 echo "source /opt/ghc/7.8.4/env.sh" >>.bashrc
 cabal update
-cabal install cabal-install happy alex
+cabal install cabal-install happy alex hscolour
 git config --global user.name "Ben Gamari"
 git config --global user.email "ben@well-typed.com"
 
