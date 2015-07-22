@@ -51,10 +51,15 @@ HADDOCK_DOCS=YES
 LATEX_DOCS=YES
 HSCOLOUR_SRCS=YES
 BUILD_DOCBOOK_HTML=YES
-BUILD_DOCBOOK_PDF=YES
-BUILD_DOCBOOK_PS=YES
 BeConservative=YES
 EOF
+    if ! which dblatex; then
+        # dblatex is unavailable on CentOS yet GHC is quite bad at realizing this
+        cat >> mk/build.mk <<EOF
+BUILD_DOCBOOK_PDF=YES
+BUILD_DOCBOOK_PS=YES
+EOF
+    fi
 
     ./configure      2>&1 | tee ../conf.log
     make -j$NTHREADS 2>&1 | tee ../make.log
