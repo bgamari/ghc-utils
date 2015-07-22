@@ -2,9 +2,10 @@
 
 bootstrap=7.8.4
 
-ghc_utils=$(dirname "$(realpath $0)")
-$ghc_utils/get-ghc --version=$bootstrap
-$ghc_utils/get-cabal
+utils=$(dirname "$(realpath $0)")
+$utils/get-ghc --version=$bootstrap
+source /opt/ghc/$bootstrap/env.sh
+$utils/get-cabal
 
 cd
 echo "PATH=$HOME/.cabal/bin:\$PATH" >>.bashrc
