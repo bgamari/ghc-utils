@@ -30,21 +30,27 @@ mkdir $dest
 sudo debootstrap --arch=$arch wheezy $dest http://http.debian.net/debian/
 sudo chown $user $dest
 
-cat >$dest/activate <<EOF
+cat >$dest/activate-root <<EOF
 #!/bin/bash
 MY_CHROOT=$real_dest
 sudo systemd-nspawn --personality=$personality -D \$MY_CHROOT \$@
 EOF
-chmod ugo+rx $dest/activate
 
-$dest/activate adduser --uid=`id -u` $user
-$dest/activate apt-get update
-$dest/activate apt-get install -y \
-               build-essential vim bash-completion bash locales autoconf \
-               libncurses-dev git python sudo curl \
-               console-data locales-all libgmp-dev cabal-install zlib1g-dev
+cat >$dest/activate <<EOF
+#!/bin/bash
+$dest/activate-root sudo -u $user -- $@
+EOF
 
-$dest/activate bash -e <<EOF
+chmod ugo+rx $dest/activate-root $dest/activate
+
+$dest/activate-root adduser --uid=`id -u` $user
+$dest/activate-root apt-get update
+$dest/activate-root apt-get install -y \
+                    build-essential vim bash-completion bash locales autoconf \
+                    libncurses-dev git python sudo curl \
+                    console-data locales-all libgmp-dev zlib1g-dev
+
+$dest/activate-root bash -e <<EOF
 sed -i '/^%sudo/d' /etc/sudoers
 echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 adduser $user sudo
@@ -53,10 +59,7 @@ mkdir -p /opt/ghc
 chown $user /opt/ghc
 EOF
 
-# When building binary releases
-#$dest/activate apt-get install dblatex docbook-xsl
-
-$dest/activate sudo -u $user -- bash -e <<EOF
+$dest/activate bash -e <<EOF
 cd
 git clone https://bgamari@github.com/bgamari/ghc-utils.git
 ghc-utils/rel-eng/setup-chroot
