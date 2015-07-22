@@ -1,8 +1,9 @@
 #!/bin/bash -e
 
-src_url="https://www.haskell.org/cabal/release/cabal-install-latest/cabal-install-1.22.0.0.tar.gz"
+fname="cabal-install-1.22.0.0.tar.gz"
+src_url="https://www.haskell.org/cabal/release/cabal-install-latest/$fname"
 wget $src_url
-tar -zxf ${src_url##/*/}
+tar -zxf $fname
 cd $(basename ${src_url##/*/} .tar.gz)
 ./bootstrap.sh
 
