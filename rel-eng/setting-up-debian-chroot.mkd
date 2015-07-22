@@ -10,6 +10,9 @@ environment with,
 ```
 ARCH=i386 ghc-utils/rel-eng/mkchroot-debian.sh deb7-i386
 sudo deb7-i386/activate sudo -u ben -i 
+
+# When building binary releases
+apt-get install dblatex docbook-xsl
 ```
 
 In this environment we can run the build,
