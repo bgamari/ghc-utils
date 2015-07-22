@@ -9,12 +9,18 @@ Using `virt-manager` on Debian sid
    
  * `dhclient eth0` when VM comes up, verify that network is available
 
-Some basic setup,
+Now some basic setup,
+
 ```
 adduser ben
 passwd ben
-vi /etc/group # add ben to wheel
-visudo`, Enable password-less access to `wheel
+
+vi /etc/group
+# add ben to wheel
+
+visudo
+# Enable password-less access to `wheel
+```
 
  * Install packages listed in `centos-6.6.pkgs` (e.g. `xargs yum install -y`)
 
@@ -28,10 +34,9 @@ ghc-utils/rel-eng/get-cabal
 
 ## Do the build
 
-
 ```
 export ver="7.10.2"
 wget http://downloads.haskell.org/~ghc/$ver/ghc-$ver-src.tar.bz2
 wget http://downloads.haskell.org/~ghc/$ver/ghc-$ver-testsuite.tar.bz2
-bash ghc-utils/rel-eng/bin-release.sh
+NTHREADS=4 bash ghc-utils/rel-eng/bin-release.sh
 ```
