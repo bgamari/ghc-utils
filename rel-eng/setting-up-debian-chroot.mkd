@@ -1,0 +1,26 @@
+# Building Debian binary release of GHC
+
+Instead of using a full-blown VM as I do with CentOS (due to the extraordinary
+brokenness of `yum` and friends), Debian builds are easily done in a lightweight
+container. For this I use `systemd-nspawn` antrapd `debootstrap`.
+
+Take the example of the i386 build. We can quickly setup a i386 build
+environment with,
+
+```
+ARCH=i386 ghc-utils/rel-eng/mkchroot-debian.sh deb7-i386
+sudo deb7-i386/activate sudo -u ben -i 
+```
+
+In this environment we can run the build,
+```
+git clone https://bgamari@github.com/bgamari/ghc-utils
+ghc-utils/rel-eng/get-ghc --version=7.8.4
+source /opt/ghc/7.8.4/env.sh
+ghc-utils/rel-eng/get-cabal
+
+export ver="7.10.2"
+wget http://downloads.haskell.org/~ghc/$ver/ghc-$ver-src.tar.bz2
+wget http://downloads.haskell.org/~ghc/$ver/ghc-$ver-testsuite.tar.bz2
+NTHREADS=4 bash ghc-utils/rel-eng/bin-release.sh
+```
