@@ -1,0 +1,21 @@
+# Configuring Centos VM for GHC builds
+
+Using `virt-manager` on Debian sid
+
+ * Pull `minimal` images from http://centos.arlionprojects.com/6.6/isos/ for amd64
+   and i386.
+
+ * Create VM, run installer, nothing special
+   
+ * `dhclient eth0` when VM comes up, verify that network is available
+
+ * `adduser ben`
+ * `passwd ben`
+ * `vi /etc/group`, add `ben` to `wheel`
+ * `visudo`, Enable password-less access to `wheel`
+
+ * Install packages listed in `centos-6.6.pkgs` (e.g. `xargs yum install -y`)
+
+ * `git clone https://bgamari@github.com/bgamari/ghc-utils`
+ * `get-ghc --version=7.8.4`
+ * `source /opt/ghc/7.8.4/env.sh`
