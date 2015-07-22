@@ -4,12 +4,18 @@ branch=$(git rev-parse --abbrev-ref HEAD)
 for i in $@; do
         git reset --hard
         git clean -f
-        arc patch --skip-dependencies --nobranch $i
+        arc patch --skip-dependencies --nobranch $i || (
+            echo
+            echo "Resolve the issue and commit or `exit 1`."
+            PS1="resolve $ " bash --norc -i
+        )
         git filter-branch -f --msg-filter "grep -v 'Summary:' | fold -s -w72" $branch^..$branch
+
+        git submodule foreach --quiet 'cd $toplevel; check-submodule $path'
 
         echo
         echo "Landed $i"
-        git diff --stat $branch^..$branch 
+        git diff --stat $branch^..$branch
 done
 
 

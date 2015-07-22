@@ -1,0 +1,31 @@
+#!/bin/bash -e
+
+function yes_or_no {
+    while true; do
+        read -p "$* [y/n]: " yn
+        case $yn in
+            [Yy]*) return 0 ;;
+            [Nn]*) return 1 ;;
+        esac
+    done
+}
+
+path=$1
+if [ -z "$path" ]; then
+    echo "Confirm that submodule changes are desired."
+    echo
+    echo "Usage: $0 [submodule path]"
+    return 1
+fi
+
+summary=$(git submodule summary HEAD^ $path)
+if [ ! -z "$summary" ]; then
+    echo "$summary"
+    echo
+    if ! yes_or_no "Accept this change?"; then
+        git checkout HEAD^ $path
+        git submodule update $path
+        git commit --amend --no-edit $path
+        echo "Reverted."
+    fi
+fi
