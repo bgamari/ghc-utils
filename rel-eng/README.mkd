@@ -1,0 +1,7 @@
+# Scripts useful in GHC release engineering
+
+Here are a variety of tools I've developed for working with various virtualised
+environments when building and testing [GHC](http://haskell.org/ghc).
+
+In addition, one can find notes. For instance, see `setting-up-centos-vms.mkd`
+for a rough description of how the CentOS binary distributions are built.
