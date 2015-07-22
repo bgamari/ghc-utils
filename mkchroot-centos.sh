@@ -47,7 +47,8 @@ curl $centos_release > $dest/centos-release.rpm
 sudo rpm --root=$dest --nodeps --install $dest/centos-release.rpm
 
 sudo $setarch yum --installroot=$dest --nogpg update
-sudo $setarch yum --installroot=$dest --nogpg -y install yum
+# yum-utils for yumdownloader
+sudo $setarch yum --installroot=$dest --nogpg -y install yum yum-utils
 
 sudo chown $user $dest
 sudo chmod u+rwx $dest
@@ -62,10 +63,15 @@ chmod ugo+rx $dest/activate
 # Rebuild the package database with the CentOS RPM
 $dest/activate bash -e <<EOF
 rm -rf /var/lib/rpm
-echo "exclude=udev" >> /etc/yum.conf
 rpm --rebuilddb
 rpm --nodeps -i /centos-release.rpm
 rm /centos-release.rpm
+
+# HACK: filesystem will fail to chown /sys due to nspawn
+yum install -y setup
+yumdownloader filesystem
+rpm --install --excludepath=/sys --excludepath=/dev filesystem*.rpm
+
 yum install -y yum file git sudo
 
 adduser --uid=`id -u` -G wheel $user
@@ -77,7 +83,7 @@ EOF
 
 $dest/activate sudo -u $user -- bash -e <<EOF
 cd
-git clone https://bgamari@github.com/bgamari/ghc-utils.git
+git clone git://bgamari@github.com/bgamari/ghc-utils.git
 cd ghc-utils
 ./setup-chroot
 EOF
