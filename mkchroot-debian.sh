@@ -22,7 +22,7 @@ case $ARCH in
         ;;
 esac
 
-dest=deb7-$arch
+dest=$1
 real_dest=$(realpath $dest)
 user=$(id -un)
 
