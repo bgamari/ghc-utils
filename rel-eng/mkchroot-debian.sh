@@ -38,10 +38,13 @@ EOF
 chmod ugo+rx $dest/activate
 
 $dest/activate adduser --uid=`id -u` $user
-$dest/activate bash -e <<EOF
-apt-get update
-apt-get install -y build-essential vim bash-completion bash locales autoconf libncurses-dev git python sudo curl console-data locales-all libgmp-dev cabal-install zlib1g-dev
+$dest/activate apt-get update
+$dest/activate apt-get install -y \
+               build-essential vim bash-completion bash locales autoconf \
+               libncurses-dev git python sudo curl \
+               console-data locales-all libgmp-dev cabal-install zlib1g-dev
 
+$dest/activate bash -e <<EOF
 sed -i '/^%sudo/d' /etc/sudoers
 echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 adduser $user sudo
@@ -56,6 +59,5 @@ EOF
 $dest/activate sudo -u $user -- bash -e <<EOF
 cd
 git clone https://bgamari@github.com/bgamari/ghc-utils.git
-cd ghc-utils
-./setup-chroot
+ghc-utils/rel-eng/setup-chroot
 EOF
