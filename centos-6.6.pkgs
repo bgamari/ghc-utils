@@ -7,6 +7,7 @@ gcc gcc-c++
 patch
 autoconf automake
 
+zlib-devel
 ncurses-devel
 gmp-devel
 
