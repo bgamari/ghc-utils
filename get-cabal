@@ -1,0 +1,10 @@
+#!/bin/bash -e
+
+src_url="https://www.haskell.org/cabal/release/cabal-install-latest/cabal-install-1.22.0.0.tar.gz"
+wget $src_url
+tar -zxf ${src_url##/*/}
+cd $(basename ${src_url##/*/} .tar.gz)
+./bootstrap.sh
+
+$HOME/.cabal/bin/cabal update
+echo "PATH=$HOME/.cabal/bin:\$PATH" >>.bashrc
