@@ -36,7 +36,7 @@ def detect_arch():
     if kind.startswith('ELF 32-bit'):
         return 'i386'
     elif kind.startswith('ELF 64-bit'):
-        return 'amd64'
+        return 'x86_64'
 
 arch = {
         'amd64': 'x86_64',
