@@ -67,6 +67,7 @@ user = check_output(['whoami']).strip()
 check_call(['sudo', 'chown', user, opts.dest])
 
 url = "https://www.haskell.org/ghc/dist/{ver}/ghc-{ver}-{flavor}.tar.xz".format(ver=opts.version, flavor=flavor)
+print 'Getting GHC binaries from %s' % url
 
 download = Popen(['curl', '-L', url], stdout=subprocess.PIPE)
 untar = Popen(['tar', '-Jx'], stdin=download.stdout)
