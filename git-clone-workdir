@@ -4,9 +4,6 @@ parent=$1
 dest=$2
 
 git new-workdir $parent $dest
-pushd $parent
-git submodule foreach git remote update
-popd
 
 cd $dest
 git submodule init
