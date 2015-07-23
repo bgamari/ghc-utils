@@ -2,6 +2,7 @@
 
 branch=$(git rev-parse --abbrev-ref HEAD)
 for i in $@; do
+        base=$(git rev-parse HEAD)
         git reset --hard
         git clean -f
         arc patch --skip-dependencies --nobranch $i || (
@@ -9,13 +10,15 @@ for i in $@; do
             echo "Resolve the issue and commit or `exit 1`."
             PS1="resolve $ " bash --norc -i
         )
-        git filter-branch -f --msg-filter "grep -v 'Summary:' | fold -s -w72" $branch^..$branch
+        git filter-branch -f --msg-filter "grep -v 'Summary:' | fold -s -w72" $base..$branch
+        git checkout $base .gitmodules
+        git commit --amend .gitmodules
 
         git submodule foreach --quiet 'cd $toplevel; check-submodule $path'
 
         echo
         echo "Landed $i"
-        git diff --stat $branch^..$branch
+        git diff --stat $base..$branch
 done
 
 
