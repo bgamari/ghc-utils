@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-parent=$1
+parent=$(realpath $1)
 dest=$2
 
 git new-workdir $parent $dest
