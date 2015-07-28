@@ -40,7 +40,9 @@ function prepare_docs() {
     ln -s users_guide docs/html
     cp -R ghc-$ver/utils/haddock/doc/haddock docs/haddock
     rm -R ghc-$ver
+
     tar -jxf docs/libraries.html.tar.bz2 -C docs
+    rm docs/index.html
 }
 
 gen_hashes
