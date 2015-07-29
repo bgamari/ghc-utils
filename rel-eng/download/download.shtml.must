@@ -32,9 +32,9 @@
 <div class="box">
     <h1>Bundled packages and cabal-install</h1>
     <p>GHC 7.10 only works
-        with <a href="http://hackage.haskell.org/package/cabal-install">cabal-install</a>
+        with <a href="http://hackage.haskell.org/package/cabal-install"><code>cabal-install</code></a>
         version 1.22 or later. Please upgrade if you have an older version of
-        cabal-install.</p>
+        <code>cabal-install</code>.</p>
 </div>
 
 <h2>Contents</h2>
