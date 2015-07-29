@@ -35,14 +35,14 @@ function prepare_docs() {
     rm -R docs
     $ghc_tree/distrib/mkDocs/mkDocs $linux_bindist $windows_bindist
 
+    mkdir -p docs/html
     tar -jxf $linux_bindist
-    cp -R ghc-$ver/docs/users_guide/users_guide docs/users_guide
-    ln -s users_guide docs/html
-    cp -R ghc-$ver/utils/haddock/doc/haddock docs/haddock
+    cp -R ghc-$ver/docs/users_guide/users_guide docs/html/users_guide
+    cp -R ghc-$ver/utils/haddock/doc/haddock docs/html/haddock
     rm -R ghc-$ver
 
-    tar -jxf docs/libraries.html.tar.bz2 -C docs
-    rm docs/index.html
+    tar -jxf docs/libraries.html.tar.bz2 -C docs/html
+    mv docs/index.html docs/html
 }
 
 function compress_to_xz() {
