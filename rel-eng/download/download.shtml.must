@@ -90,6 +90,7 @@
         <li><a href="#freebsd_x86_64">FreeBSD (x86_64)</a></li>
         <li><a href="#solaris11">Solaris 11 (x86)</a></li>
         <li><a href="#solaris11_x86_64">Solaris 11 (x86_64)</a></li>
+        <li><a href="#solaris11_sparc">Solaris 11 (SPARC)</a></li>
         </ul>
     </div>
 
@@ -243,6 +244,20 @@
         and uses system provided GMP and FFI libraries. If you do not have
         them installed you need to do this by using "pkg install library/gmp"
         and "pkg install library/libffi" commands.
+        </p>
+    </div>
+
+    <div class="section" id="solaris11_sparc">
+        <h3>Solaris 11 (SPARC)</h3>
+        <p>
+            <a href="mailto:karel.gardas@centrum.cz">Karel Gardas</a>
+            has provided SPARC Solaris 11 binaries.
+        </p>
+        {{#tarballs}}sparc-sun-solaris2.11{{/tarballs}}
+        <p>
+        Note: Solaris 11 binary distribution supports shared libraries and uses 
+        system provided GMP library. If you do not have it installed you need to 
+        do this by using the <code>pkg install library/gmp</code> command.
         </p>
     </div>
 </div>
