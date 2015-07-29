@@ -16,11 +16,11 @@ div.box h1 {
     color: #AB2626;
 }
 
-section {
+div.section {
     padding-left: 15px;
     padding-bottom: 20px;
 }
 
-section h1 {
+div.section h1 {
     padding-left: -15px;
 }

@@ -1,11 +1,13 @@
-<!doctype html>
-<html lang="en">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-    <meta charset="UTF-8">
     <meta http-equiv="Content-Language" content="en-gb" />
-    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>GHC: Download version {{ver}}</title>
-    <link href="ghc-new.css" rel="stylesheet" type="text/css" />
+    <link href="ghc.css" rel="stylesheet" type="text/css" />
     <link href="ghc-download.css" rel="stylesheet" type="text/css" />
 </head>
 
@@ -13,7 +15,7 @@
 
 <!--#include file="ghc-std.shtml" -->
 
-<h1>Version 7.10.2 (released 29 July 2015)</h1>
+<h1>Version 7.10.2 (released 29<sup>th</sup> July 2015)</h1>
 
 <div class="box">
     <h1>Take Notice</h1>
@@ -44,7 +46,7 @@
   <li><a href="#sources">Sources</a></li>
 </ul>
 
-<section id="distros">
+<div class="section" id="distros">
     <h2>Distribution packages</h2>
     <p>
     GHC is packaged for a number of operating systems and
@@ -56,9 +58,9 @@
     <ul>
     <li><a href="distribution_packages">Distribution packages</a></li>
     </ul>
-</section>
+</div>
 
-<section id="binaries">
+<div class="section" id="binaries">
     <h2>Binary Packages</h2>
 
     <p>The operating system-specific packages (eg. RPMs on Linux) are generally a better
@@ -92,7 +94,7 @@
 
     <h2>Supported platforms</h2>
 
-    <section id="x86linux">
+    <div class="section" id="x86linux">
         <h3>Linux (x86)</h3>
 
         <ul>
@@ -123,9 +125,9 @@
             what the minimum version required is), or use a binary package built
             for your distribution instead.
         </p>
-    </section>
+    </div>
 
-    <section id="x86_64linux">
+    <div class="section" id="x86_64linux">
         <h3>Linux (x86_64)</h3>
 
         <ul>
@@ -152,26 +154,26 @@
         what the minimum version required is), or use a binary package built
         for your distribution instead.
         </p>
-    </section>
+    </div>
 
-    <section id="windows">
+    <div class="section" id="windows">
         <h3>Windows (x86)</h3>
         {{#tarballs}}i386-unknown-mingw32{{/tarballs}}
         <p>
         This is a complete build, and should work for Microsoft Windows 2000
         or later. It also includes support for compiling C++ files.
         </p>
-    </section>
+    </div>
 
-    <section id="windows64">
+    <div class="section" id="windows64">
         <h3>Windows 64-bit (x86_64)</h3>
         {{#tarballs}}x86_64-unknown-mingw32{{/tarballs}}
         <p>
         This is a complete build. It also includes support for compiling C++ files.
         </p>
-    </section>
+    </div>
 
-    <section id="macosx_x86_64">
+    <div class="section" id="macosx_x86_64">
         <h3>Mac OS X (x86_64)</h3>
         {{#tarballs}}x86_64-apple-darwin{{/tarballs}}
         <p>
@@ -180,9 +182,9 @@
             You can find Xcode at
             <a href="http://developer.apple.com/">http://developer.apple.com/</a>.
         </p>
-    </section>
+    </div>
 
-    <section id="freebsd">
+    <div class="section" id="freebsd">
         <h3><a name="freebsd"></a>FreeBSD (x86)</h3>
         <p>
             <a href="mailto:pgj@FreeBSD.org">Páli Gábor János</a>
@@ -195,9 +197,9 @@
         Note: These are not the same as the <code>lang/ghc</code> port. See the
         <a href="{{download_url}}/README.freebsd.html">README</a> for more information.
         </p>
-    </section>
+    </div>
 
-    <section id="freebsd_x86_64">
+    <div class="section" id="freebsd_x86_64">
         <h3><a name="freebsd_x86_64"></a>FreeBSD (x86_64)</h3>
         <p>
             <a href="mailto:pgj@FreeBSD.org">Páli Gábor János</a>
@@ -211,9 +213,9 @@
         <a href="{{download_url}}/README.freebsd.html">README</a> for more
         information.
         </p>
-    </section>
+    </div>
 
-    <section id="solaris11">
+    <div class="section" id="solaris11">
         <h3>Solaris 11 (x86)</h3>
         <p>
             <a href="mailto:karel.gardas@centrum.cz">Karel Gardas</a>
@@ -226,9 +228,9 @@
         them installed you need to do this by using "pkg install library/gmp"
         and "pkg install library/libffi" commands.
         </p>
-    </section>
+    </div>
 
-    <section id="solaris11_x86_64">
+    <div class="section" id="solaris11_x86_64">
         <h3>Solaris 11 (x86_64)</h3>
         <p>
             <a href="mailto:karel.gardas@centrum.cz">Karel Gardas</a>
@@ -241,10 +243,10 @@
         them installed you need to do this by using "pkg install library/gmp"
         and "pkg install library/libffi" commands.
         </p>
-    </section>
-</section>
+    </div>
+</div>
 
-<section id="sources">
+<div class="section" id="sources">
     <h2>Source Distribution</h2>
     <p>
     The source tarballs provide everything necessary to build the compiler,
@@ -271,7 +273,7 @@
     distribution, then you'll need to consult the section on <a
     href="http://hackage.haskell.org/trac/ghc/wiki/Building/Porting">Porting GHC</a>
     in the Building Guide.</p>
-</section>
+</div>
 
 </div>
 
