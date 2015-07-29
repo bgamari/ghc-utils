@@ -19,10 +19,11 @@
 
 <div class="box">
     <h1>Take Notice</h1>
-    <p>For most users, we recommend installing a
-    <a href="http://www.haskell.org/downloads">proper Haskell distribution</a> instead
-    of GHC alone. A distribution includes a recent GHC release as well as other
-    important tools (such as <code>cabal-install</code>, for installing
+    <p>The packages on this page include only the GHC compiler. For most users,
+    we recommend installing a
+    <a href="http://www.haskell.org/downloads">proper Haskell distribution</a>
+    instead of GHC alone. A distribution includes a recent GHC release as well
+    as other important tools (such as <code>cabal-install</code>, for installing
     libraries), and potentially a broader set of libraries known to work
     together.
     </p>
