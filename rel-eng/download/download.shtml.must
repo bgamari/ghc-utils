@@ -64,10 +64,10 @@
 <div class="section" id="binaries">
     <h2>Binary Packages</h2>
 
-    <p>The operating system-specific packages (eg. RPMs on Linux) are generally a better
-    bet than the vanilla <tt>.tar.bz2</tt> binary bundles, because they
-    will check for dependencies and allow the package to be uninstalled at
-    a later date.</p>
+    <p>The operating system-specific packages (e.g. RPM or `.deb` packages on
+    Linux) are generally a better bet than the vanilla <tt>.tar.bz2</tt> binary
+    bundles, because they will check for dependencies and allow the package to
+    be uninstalled at a later date.</p>
 
     <p>However, if you don't have permission to install binaries on your
     system, or you want to install somewhere other than the default place
