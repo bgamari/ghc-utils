@@ -28,7 +28,7 @@ function gen_hashes() {
 }
 
 function upload() {
-    rsync --progress -a * $host:public_html/$ver
+    rsync --progress -az . $host:public_html/$ver
 }
 
 function prepare_docs() {
