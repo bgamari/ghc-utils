@@ -4,11 +4,21 @@ import logging
 from glob import glob
 import os
 import os.path
+import argparse
 import pystache
 
-version = '7.10.2'
-tarball_dir = '/home/ben/tmp'
-download_url = 'http://downloads.haskell.org/~ghc/{ver}'.format(ver=version)
+parser = argparse.ArgumentParser()
+parser.add_argument('version', help='The GHC version being released (e.g. 7.10.2)')
+parser.add_argument('tarball_dir', help='The path to a directory containing the release tarballs')
+parser.add_argument('--download-url', metavar='URL',
+                    help='The URL where the tarballs will be available. By default http://downloads.haskell.org/~ghc/$version')
+args = parser.parse_args()
+
+version = args.version
+tarball_dir = args.tarball_dir
+download_url = args.download_url
+if download_url is None:
+    download_url = 'http://downloads.haskell.org/~ghc/{ver}'.format(ver=version)
 
 logging.basicConfig(level=logging.DEBUG)
 
