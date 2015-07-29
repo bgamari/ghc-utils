@@ -1,0 +1,24 @@
+# Generating the GHC Download Page
+
+This script can be used to generate a download page for a GHC release (e.g.
+https://www.haskell.org/ghc/download_ghc_7_10_2). To use it you will need a
+working Python 2.7 installation and the `pystache` library. `Pystache` can be
+installed with `pip` (e.g. `pip install pystache`).
+
+To generate a download page you'll first need a directory (say `~/tarballs`)
+containing the release tarballs (which will be used to look-up the file sizes).
+Edit the page template (`download.shtml.must`) to reflect the new release. This
+is a [Mustache](http://mustache.github.io/mustache.5.html) template. Tarball
+links (for instance, for tarballs named
+`ghc-7.10.2-i386-unknown-linux-deb7.tar.{bz2,xz}`) are produced with markup of
+the form `{{#tarballs}}i386-unknown-linux-deb7{{/tarballs}}`. This will produce
+a list of links annotated with the sizes of the respective tarballs.
+
+Now run `process.py` with the version being released and the tarball directory
+path,
+```
+$ python process.py 7.10.2 ~/tarballs
+```
+The resulting page will be named `download_ghc_7_10_2.shtml` and will be ready
+to be copied to `webhost.haskell.org`. Read the output of the script carefully;
+it will produce errors if you forgot to include a tarball in the page template.
