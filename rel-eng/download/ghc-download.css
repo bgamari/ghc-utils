@@ -1,0 +1,25 @@
+div.box {
+    background: #E0E0E0;
+    width: 90%;
+    text-align: left;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
+    border: 1px black solid
+}
+
+div.box h1 {
+    font-size: 130%;
+    font-weight: normal;
+    color: #AB2626;
+}
+
+section {
+    padding-left: 15px;
+}
+
+section h1 {
+    padding-left: -15px;
+}

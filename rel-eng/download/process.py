@@ -41,10 +41,12 @@ def handle_tarballs(text):
 
 context = {
     'tarballs': handle_tarballs,
+    'download_url': download_url,
     'ver': version,
 }
-template = open('download.shtml.must').read()
-print pystache.render(template, context)
+template = open('download.shtml.must').read().decode('utf8')
+with open('download.shtml', 'w') as f:
+    f.write(pystache.render(template, context).encode('utf-8'))
 
 for fname in known_files - used_files:
     logging.warning("Didn't see reference to %s" % fname)
