@@ -107,7 +107,7 @@ available <a href="dist/7.10.2/SHA256SUMS">here</a>.</p>
         made on a CentOS 6.6 system and requires
         <code>libgmp.so.3</code> (typically GMP 4.x).
         </p>
-        {{tarballs i386-unknown-linux-centos66}}
+        {{#tarballs}}i386-unknown-linux-centos66{{/tarballs}}
     </li>
     <li>
         <p>
@@ -116,7 +116,7 @@ available <a href="dist/7.10.2/SHA256SUMS">here</a>.</p>
         made on a Debian 7 "wheezy" system and requires
         <code>libgmp.so.10</code> (typically GMP 5.x).
         </p>
-        {{tarballs i386-unknown-linux-deb7}}
+        {{#tarballs}}i386-unknown-linux-deb7{{/tarballs}}
     </li>
     </ul>
 
@@ -138,14 +138,14 @@ available <a href="dist/7.10.2/SHA256SUMS">here</a>.</p>
       interactive system, profiling libraries and documentation. It was
       made on a CentOS 6.6 system and requires
       <code>libgmp.so.3</code> (typically GMP 4.x).
-      {{tarballs x86_64-unknown-linux-centos66}}
+      {{#tarballs}}x86_64-unknown-linux-centos66{{/tarballs}}
     </li>
     <li>
       Generic amd64 Linux. This is a complete build, including
       interactive system, profiling libraries and documentation. It was
       made on a Debian 7 "wheezey" system and requires
       <code>libgmp.so.10</code> (typically GMP 5.x).
-      {{tarballs x86_64-unknown-linux-deb7}}
+      {{#tarballs}}x86_64-unknown-linux-deb7{{/tarballs}}
     </li>
     </ul>
 
@@ -160,7 +160,7 @@ available <a href="dist/7.10.2/SHA256SUMS">here</a>.</p>
 
 <section id="windows">
     <h3>Windows (x86)</h3>
-    {{tarballs i386-unknown-mingw32}}
+    {{#tarballs}}i386-unknown-mingw32{{/tarballs}}
     <p>
       This is a complete build, and should work for Microsoft Windows 2000
       or later. It also includes support for compiling C++ files.
@@ -169,7 +169,7 @@ available <a href="dist/7.10.2/SHA256SUMS">here</a>.</p>
 
 <section id="windows64">
     <h3>Windows 64-bit (x86_64)</h3>
-    {{tarballs x86_64-unknown-mingw32}}
+    {{#tarballs}}x86_64-unknown-mingw32{{/tarballs}}
     <p>
       This is a complete build. It also includes support for compiling C++ files.
     </p>
@@ -177,7 +177,7 @@ available <a href="dist/7.10.2/SHA256SUMS">here</a>.</p>
 
 <section id="macosx_x86_64">
     <h3>MacOS X (x86_64)</h3>
-    {{tarballs x86_64-apple-darwin}}
+    {{#tarballs}}x86_64-apple-darwin{{/tarballs}}
     <p>
         This is a bindist for Mac OS X, 10.7 or later. The package
         requires the command line tools package of Xcode 4 or XCode 5 to be installed.
@@ -194,7 +194,7 @@ available <a href="dist/7.10.2/SHA256SUMS">here</a>.</p>
         These are complete builds, including interactive system, profiling
         libraries and documentation.
     </p>
-    {{tarballs i386-portbld-freebsd}}
+    {{#tarballs}}i386-portbld-freebsd{{/tarballs}}
     <p>
     Note: These are not the same as the lang/ghc port. See the
     <a href="dist/7.10.1/README.fbsd.html">README</a> for more information.
@@ -209,7 +209,7 @@ available <a href="dist/7.10.2/SHA256SUMS">here</a>.</p>
         These are complete builds, including interactive system, profiling
         libraries and documentation.
     </p>
-    {{tarballs x86_64-portbld-freebsd}}
+    {{#tarballs}}x86_64-portbld-freebsd{{/tarballs}}
     <p>
       Note: These are not the same as the lang/ghc port. See the
       <a href="dist/7.10.1/README.fbsd.html">README</a> for more
@@ -223,7 +223,7 @@ available <a href="dist/7.10.2/SHA256SUMS">here</a>.</p>
         <a href="mailto:karel.gardas@centrum.cz">Karel Gardas</a>
         has provided x86 Solaris 11 binaries.
     </p>
-    {{tarballs i386-unknown-solaris2.11}}
+    {{#tarballs}}i386-unknown-solaris2.11{{/tarballs}}
     <p>
     Note: Solaris 2.11/i386 binary distribution supports shared libraries
     and uses system provided GMP and FFI libraries. If you do not have
@@ -238,7 +238,7 @@ available <a href="dist/7.10.2/SHA256SUMS">here</a>.</p>
         <a href="mailto:karel.gardas@centrum.cz">Karel Gardas</a>
         has provided x86 Solaris 11 binaries.
     </p>
-    {{tarballs x86_64-unknown-solaris2.11}}
+    {{#tarballs}}x86_64-unknown-solaris2.11{{/tarballs}}
     <p>
     Note: Solaris 2.11/x86_64 binary distribution supports shared libraries
     and uses system provided GMP and FFI libraries. If you do not have
@@ -255,7 +255,7 @@ available <a href="dist/7.10.2/SHA256SUMS">here</a>.</p>
     interactive system, and a minimal set of libraries. For more information on
     building, see the <a href="http://hackage.haskell.org/trac/ghc/wiki/Building">building guide</a>.
     </p>
-    {{tarballs src}}
+    {{#tarballs}}src{{/tarballs}}
 
     <p>
     The testsuite provides a through set of tests for validating your build.
@@ -264,11 +264,11 @@ available <a href="dist/7.10.2/SHA256SUMS">here</a>.</p>
     the <a href="https://ghc.haskell.org/trac/ghc/wiki/Building/RunningTests">testing
     guide</a> for details).
     </p>
-    {{tarballs testsuite}}
+    {{#tarballs}}testsuite{{/tarballs}}
 
     <p>Building on Windows requires a set of additional tools. Extract this tarball on
     top of the regular source distribution,</p>
-    {{tarballs windows-extra-src}}
+    {{#tarballs}}windows-extra-src{{/tarballs}}
 
     <p>The source distribution needs an installed GHC (version 7.6 at
     least).  If your platform isn't currently supported with a binary

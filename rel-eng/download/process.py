@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
 import logging
-import re
 from glob import glob
 import os
 import os.path
+import pystache
 
 version = '7.10.2'
 tarball_dir = '/home/ben/tmp'
@@ -12,16 +12,14 @@ download_url = 'http://downloads.haskell.org/~ghc/{ver}'.format(ver=version)
 
 logging.basicConfig(level=logging.DEBUG)
 
-template = open('download.shtml.must').read()
-pat = re.compile('{{tarballs ([-_.a-zA-Z0-9]+)}}')
 extensions = ['tar.bz2', 'tar.xz']
 known_files = set(os.path.basename(path)
                   for ext in extensions
                   for path in glob(os.path.join(tarball_dir, '*.'+ext)))
 used_files = set()
 
-def handle_match(m):
-    suffix = m.group(1)
+def handle_tarballs(text):
+    suffix = text
     accum = '<ul>\n'
     for ext in extensions:
         fname = 'ghc-{ver}-{suffix}.{ext}'.format(ver=version, suffix=suffix, ext=ext)
@@ -41,6 +39,12 @@ def handle_match(m):
     accum += '</ul>\n'
     return accum
 
-print pat.sub(handle_match, template)
+context = {
+    'tarballs': handle_tarballs,
+    'ver': version,
+}
+template = open('download.shtml.must').read()
+print pystache.render(template, context)
+
 for fname in known_files - used_files:
     logging.warning("Didn't see reference to %s" % fname)

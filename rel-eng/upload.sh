@@ -45,6 +45,16 @@ function prepare_docs() {
     rm docs/index.html
 }
 
-gen_hashes
-prepare_docs
-upload
+function compress_to_xz() {
+    for f in $(combine <(basename -s .bz2 *.bz2) not <(basename -s .xz *.xz)); do
+        bunzip2 -c $f.bz2 | xz -c - > $f.xz
+    done
+}
+
+if [ "x$1" == "x" ]; then
+    gen_hashes
+    prepare_docs
+    upload
+else
+    $@
+fi
