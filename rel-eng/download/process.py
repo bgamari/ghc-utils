@@ -45,7 +45,7 @@ context = {
     'ver': version,
 }
 template = open('download.shtml.must').read().decode('utf8')
-with open('download.shtml', 'w') as f:
+with open('download_ghc_%s.shtml' % (version.replace('.', '_')), 'w') as f:
     f.write(pystache.render(template, context).encode('utf-8'))
 
 for fname in known_files - used_files:
