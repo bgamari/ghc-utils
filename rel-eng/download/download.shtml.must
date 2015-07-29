@@ -44,7 +44,7 @@
 	<li><a href="{{download_url}}/docs/html/">Documentation</a></li>
   <li><a href="#distros">Distribution packages</a></li>
   <li><a href="#binaries">Binary packages</a></li>
-  <li><a href="#sources">Source packages</a></li>
+  <li><a href="#sources">Source distribution</a></li>
 </ul>
 
 <div class="section" id="distros">
