@@ -192,7 +192,7 @@
         </p>
         {{#tarballs}}i386-portbld-freebsd{{/tarballs}}
         <p>
-        Note: These are not the same as the lang/ghc port. See the
+        Note: These are not the same as the <code>lang/ghc</code> port. See the
         <a href="{{download_url}}/README.freebsd.html">README</a> for more information.
         </p>
     </section>
@@ -207,7 +207,7 @@
         </p>
         {{#tarballs}}x86_64-portbld-freebsd{{/tarballs}}
         <p>
-        Note: These are not the same as the lang/ghc port. See the
+        Note: These are not the same as the <code>lang/ghc</code> port. See the
         <a href="{{download_url}}/README.freebsd.html">README</a> for more
         information.
         </p>
