@@ -19,8 +19,8 @@
 
 <div class="box">
     <h1>Take Notice</h1>
-    <p>For most users, we recommend installing
-    <a href="http://www.haskell.org/downloads">a proper distribution</a> instead
+    <p>For most users, we recommend installing a
+    <a href="http://www.haskell.org/downloads">proper Haskell distribution</a> instead
     of GHC alone. A distribution includes a recent GHC release as well as other
     important tools (such as <code>cabal-install</code>, for installing
     libraries), and potentially a broader set of libraries known to work
@@ -39,11 +39,11 @@
 <h2>Contents</h2>
 
 <ul>
-	<li><a href="{{download_url}}/docs/users_guide/release-7-10-2.html">Release Notes (since 7.10.1)</a></li>
+	<li><a href="{{download_url}}/docs/users_guide/release-7-10-2.html">Release Notes</a></li>
 	<li><a href="{{download_url}}/docs/">Documentation</a></li>
   <li><a href="#distros">Distribution packages</a></li>
-  <li><a href="#binaries">Binaries</a></li>
-  <li><a href="#sources">Sources</a></li>
+  <li><a href="#binaries">Binary packages</a></li>
+  <li><a href="#sources">Source packages</a></li>
 </ul>
 
 <div class="section" id="distros">
