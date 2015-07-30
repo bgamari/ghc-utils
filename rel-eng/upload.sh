@@ -28,6 +28,7 @@ function gen_hashes() {
 }
 
 function upload() {
+    chmod ugo+r,o-w -R .
     rsync --progress -az . $host:public_html/$ver
 }
 
