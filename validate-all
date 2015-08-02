@@ -8,9 +8,9 @@ fi
 commits=$(git rev-list $1)
 
 log="validate-all.log"
-echo "Validating commits $1" | tee $log
+echo "Validating $(echo "$commits" | wc -l) commits $1" | tee $log
 echo "Started $(date)" | tee -a $log
-echo "commits $commits" | tee -a $log
+echo | tee -a $log
 
 function checkout() {
     commit=$1
@@ -32,7 +32,8 @@ function try() {
 
 # Start with clean validation
 try "checkout" checkout $(echo "$commits" | head -n1)
-try "validate" ./validate || true
+if [ ! -z "$no_clean" ]; then no_clean="--no-clean"; fi
+try "validate" ./validate $no_clean || true
 
 for commit in $(echo "$commits" | tail -n1); do
     echo -e "\nTesting $commit" | tee -a $log
