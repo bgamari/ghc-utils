@@ -1,0 +1,43 @@
+#!/bin/bash -e
+
+if [ $# != 1 ]; then
+    echo "Usage: $0 [COMMIT-RANGE]"
+    exit 1
+fi
+
+commits=$(git rev-list $1)
+
+log="validate-all.log"
+echo "Validating commits $1" | tee $log
+echo "Started $(date)" | tee -a $log
+echo "commits $commits" | tee -a $log
+
+function checkout() {
+    commit=$1
+    git checkout $1
+    git submodule update
+}
+
+function try() {
+    label=$1
+    shift
+    $@
+    (ret=$?; echo "Failed to $label" | tee -a $log)
+    ret=$?
+    if [ $ret != 0 ]; then
+        echo "Failed to $label" | tee -a $log
+    fi
+    return $ret
+}
+
+# Start with clean validation
+try "checkout" checkout $(echo "$commits" | head -n1)
+try "validate" ./validate
+
+for commit in $(echo "$commits" | tail -n1); do
+    echo -e "\nTesting $commit" | tee -a $log
+    try "checkout" checkout $commit || continue
+    if try "validate" ./validate --no-clean; then
+        try "clean validate" ./validate || continue
+    fi
+done
