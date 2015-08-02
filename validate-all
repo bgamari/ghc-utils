@@ -32,7 +32,7 @@ function try() {
 
 # Start with clean validation
 try "checkout" checkout $(echo "$commits" | head -n1)
-try "validate" ./validate
+try "validate" ./validate || true
 
 for commit in $(echo "$commits" | tail -n1); do
     echo -e "\nTesting $commit" | tee -a $log
@@ -41,3 +41,8 @@ for commit in $(echo "$commits" | tail -n1); do
         try "clean validate" ./validate || continue
     fi
 done
+
+echo "Finished $(date)" | tee -a $log
+echo
+echo
+cat $log
