@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 if [ $# != 1 ]; then
     echo "Usage: $0 [COMMIT-RANGE]"
@@ -14,15 +14,14 @@ echo | tee -a $log
 
 function checkout() {
     commit=$1
-    git checkout $1
-    git submodule update
+    git checkout $1 || return $?
+    git submodule update || return $?
 }
 
 function try() {
     label=$1
     shift
     $@
-    (ret=$?; echo "Failed to $label" | tee -a $log)
     ret=$?
     if [ $ret != 0 ]; then
         echo "Failed to $label" | tee -a $log
@@ -31,9 +30,9 @@ function try() {
 }
 
 # Start with clean validation
-try "checkout" checkout $(echo "$commits" | head -n1)
+try "checkout" checkout $(echo "$commits" | head -n1) || exit 1
 if [ ! -z "$no_clean" ]; then no_clean="--no-clean"; fi
-try "validate" ./validate $no_clean || true
+try "validate" ./validate $no_clean
 
 for commit in $(echo "$commits" | tail -n1); do
     echo -e "\nTesting $commit" | tee -a $log
