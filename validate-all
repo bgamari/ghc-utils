@@ -23,7 +23,9 @@ function try() {
     shift
     $@
     ret=$?
-    if [ $ret != 0 ]; then
+    if [ $ret == 0 ]; then
+        echo "$label completed successfully" | tee -a $log
+    else
         echo "Failed to $label ($ret)" | tee -a $log
     fi
     return $ret
@@ -46,7 +48,7 @@ function validate() {
 # Start with clean validation
 if [ "x$no_clean" != "x1" ]; then force_clean=1; fi
 commit=$(echo "$commits" | head -n1)
-validate $commit $no_clean | tee validate-$commit.log
+validate $commit | tee validate-$commit.log
 force_clean=0
 
 for commit in $(echo "$commits" | tail -n1); do
