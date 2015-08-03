@@ -5,7 +5,7 @@ if [ $# != 1 ]; then
     exit 1
 fi
 
-commits=$(git rev-list $1)
+commits=$(git rev-list --reverse $1)
 
 log="validate-all.log"
 echo "Validating $(echo "$commits" | wc -l) commits $1" | tee $log
