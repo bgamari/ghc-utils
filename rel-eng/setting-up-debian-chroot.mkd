@@ -25,5 +25,5 @@ ghc-utils/rel-eng/get-cabal
 export ver="7.10.2"
 wget http://downloads.haskell.org/~ghc/$ver/ghc-$ver-src.tar.bz2
 wget http://downloads.haskell.org/~ghc/$ver/ghc-$ver-testsuite.tar.bz2
-NTHREADS=4 bash ghc-utils/rel-eng/bin-release.sh
+NTHREADS=4 ghc-utils/rel-eng/bin-release.sh
 ```
