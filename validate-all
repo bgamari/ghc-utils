@@ -36,12 +36,13 @@ function validate() {
 
     try "checkout" checkout $(echo "$commits" | head -n1) || exit 1
     if [ "x$force_clean" == "x1" ]; then
-        try "validate" ./validate
+        try "clean validate" ./validate
     else
         if try "validate" ./validate --no-clean; then
-            try "clean validate" ./validate || return $?
+            try "clean validate" ./validate
         fi
     fi
+    return $?
 }
 
 function log_validate() {
