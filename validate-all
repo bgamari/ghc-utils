@@ -10,7 +10,6 @@ commits=$(git rev-list $1)
 log="validate-all.log"
 echo "Validating $(echo "$commits" | wc -l) commits $1" | tee $log
 echo "Started $(date)" | tee -a $log
-echo | tee -a $log
 
 function checkout() {
     commit=$1
@@ -45,14 +44,23 @@ function validate() {
     fi
 }
 
+function log_validate() {
+    commit=$1
+    validate $commit | tee validate-$commit.log
+    ret=$?
+    if [ $ret != 0 ]; then
+        tail -n10 validate-$commit.log | sed 's/^/    /' >> $log
+    fi
+    return $ret
+}
+
 # Start with clean validation
 if [ "x$no_clean" != "x1" ]; then force_clean=1; fi
 commit=$(echo "$commits" | head -n1)
-validate $commit | tee validate-$commit.log
-force_clean=0
+log_validate $commit
 
 for commit in $(echo "$commits" | tail -n1); do
-    validate $commit | tee validate-$commit.log
+    force_clean=0 log_validate $commit
 done
 
 echo "Finished $(date)" | tee -a $log
