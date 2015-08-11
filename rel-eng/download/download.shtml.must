@@ -164,7 +164,12 @@
         {{#tarballs}}arm-unknown-linux{{/tarballs}}
         <p>
           Note: These builds were prepared on Debian Jessie. Note that ARM
-          support is still a bit experimental.
+          support is still a bit experimental. This build is intended for use
+          with LLVM 3.5
+          (<a href="https://packages.debian.org/jessie/llvm">available</a> in
+          Debian Jessie). Due
+          to <a href="https://sourceware.org/bugzilla/show_bug.cgi?id=16177">bugs</a>
+          in BFD ld it is necessary to use the <code>gold</code> linker.
         </p>
     </div>
 
