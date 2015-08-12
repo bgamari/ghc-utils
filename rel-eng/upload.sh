@@ -4,11 +4,26 @@
 #
 # Usage,
 #   1. Update $ver
-#   2. Set $signing_key to your key id
+#   2. Set $signing_key to your key id (prefixed with '=')
 #   3. Update $ghc_tree to point at a source working tree of the version being
 #      released.
 #   4. Create a directory and place the source and binary tarballs there
 #   5. Run this script from that directory
+#
+# You can also invoke the script with an argument to perform only
+# a subset of the usual release,
+#
+#   upload.sh compress_to_xz         produce xz tarballs from gzip tarballs
+#
+#   upload.sh gen_hashes             generate signed hashes of the release
+#                                    tarballs
+#
+#   upload.sh prepare_docs           prepare the documentation directory
+#
+#   upload.sh upload                 upload the tarballs and documentation
+#                                    to downloads.haskell.org
+#
+# Prerequisites: moreutils
 
 ver=7.10.2
 signing_key="=Benjamin Gamari <ben@well-typed.com>"
@@ -48,6 +63,7 @@ function prepare_docs() {
 
 function compress_to_xz() {
     for f in $(combine <(basename -s .bz2 *.bz2) not <(basename -s .xz *.xz)); do
+        echo "Recompressing $f.bz2 to $f.xz"
         bunzip2 -c $f.bz2 | xz -c - > $f.xz
     done
 }
