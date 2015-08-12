@@ -6,6 +6,7 @@ utils=$(dirname "$(realpath $0)")
 $utils/get-ghc --version=$bootstrap
 source /opt/ghc/$bootstrap/env.sh
 $utils/get-cabal
+source ~/.bashrc
 
 cd
 echo "PATH=$HOME/.cabal/bin:\$PATH" >>.bashrc
