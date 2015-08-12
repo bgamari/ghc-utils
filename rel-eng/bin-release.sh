@@ -64,6 +64,7 @@ EOF
     ./configure      2>&1 | tee ../conf.log
     make -j$NTHREADS 2>&1 | tee ../make.log
     make binary-dist 2>&1 | tee ../binary-dist.log
+    make test_bindist 2>&1 | tee ../test-bindist.log
     cd ..
 }
 
