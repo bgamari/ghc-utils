@@ -40,7 +40,7 @@ function validate() {
     echo "Started $(date)"
     git show --no-patch $commit
 
-    try "checkout" checkout $(echo "$commits" | head -n1) || exit 1
+    try "checkout" git checkout $commit || exit 1
     if [ "x$force_clean" == "x1" ]; then
         try "clean validate" ./validate
     else
