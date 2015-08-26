@@ -36,7 +36,7 @@ function try() {
 
 function validate() {
     commit=$1
-    echo -e "\nTesting $(git show --format=oneline $commit)" | tee -a $log
+    echo -e "\nTesting $(git show --no-patch --format=oneline $commit)" | tee -a $log
     echo "Started $(date)"
     git show --no-patch $commit
 
