@@ -38,7 +38,7 @@ function validate() {
     if [ "x$force_clean" == "x1" ]; then
         try "clean validate" ./validate
     else
-        if try "validate" ./validate --no-clean; then
+        if ! try "validate" ./validate --no-clean; then
             try "clean validate" ./validate
         fi
     fi
