@@ -8,6 +8,10 @@ fi
 commits=$(git rev-list --reverse $1)
 
 log="validate-all.log"
+if [ -f $log ]; then
+    mv $log $log.old
+ffi
+
 echo "Validating $(echo "$commits" | wc -l) commits $1" | tee $log
 echo "Started $(date)" | tee -a $log
 
