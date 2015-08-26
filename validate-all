@@ -60,7 +60,7 @@ if [ "x$no_clean" != "x1" ]; then force_clean=1; fi
 commit=$(echo "$commits" | head -n1)
 log_validate $commit
 
-for commit in $(echo "$commits" | tail -n1); do
+for commit in $(echo "$commits" | tail -n+1); do
     force_clean=0 log_validate $commit
 done
 
