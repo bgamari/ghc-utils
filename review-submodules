@@ -30,9 +30,12 @@ elif [ $# == 1 ]; then
     fi
 
 else
-    echo "Confirm that submodule changes are desired."
+    echo "Review and optionally roll-back submodule changes made by the HEAD"
+    echo "commit."
     echo
     echo "Usage: $0 [submodule path]"
+    echo
+    echo "Will review all submodules if path omitted."
     return 1
 fi
 
