@@ -2,7 +2,7 @@
 
 Instead of using a full-blown VM as I do with CentOS (due to the extraordinary
 brokenness of `yum` and friends), Debian builds are easily done in a lightweight
-container. For this I use `systemd-nspawn` antrapd `debootstrap`.
+container. For this I use `systemd-nspawn` and `debootstrap`.
 
 Take the example of the i386 build. We can quickly setup a i386 build
 environment with,
