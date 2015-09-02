@@ -24,7 +24,7 @@ function checkout() {
 function try() {
     label=$1
     shift
-    $@
+    $@ 2>&1
     ret=$?
     if [ $ret == 0 ]; then
         echo "$label completed successfully" | tee -a $log
