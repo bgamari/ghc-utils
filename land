@@ -15,7 +15,7 @@ for i in $@; do
         git checkout $base .gitmodules
         git commit --amend .gitmodules
 
-        git submodule foreach --quiet "cd \$toplevel; $utils/check-submodule \$path"
+        git submodule foreach --quiet "cd \$toplevel; $utils/review-submodules \$path"
 
         echo
         echo "Landed $i"
