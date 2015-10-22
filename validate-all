@@ -6,6 +6,10 @@ if [ $# != 1 ]; then
 fi
 
 commits=$(git rev-list --reverse $1)
+if [ "$commits" == "" ]; then
+    echo "Invalid commit range"
+    exit 1
+fi
 
 log="validate-all.log"
 if [ -f $log ]; then
@@ -53,10 +57,11 @@ function validate() {
 
 function log_validate() {
     commit=$1
-    validate $commit | tee validate-$commit.log
+    commit_log="validate-$(printf "%04d" $commit_n)-$commit.log"
+    validate $commit | tee $commit_log
     ret=$?
     if [ $ret != 0 ]; then
-        tail -n10 validate-$commit.log | sed 's/^/    /' >> $log
+        tail -n10 $commit_log | sed 's/^/    /' >> $log
     fi
     return $ret
 }
@@ -64,9 +69,11 @@ function log_validate() {
 # Start with clean validation
 if [ "x$no_clean" != "x1" ]; then force_clean=1; fi
 commit=$(echo "$commits" | head -n1)
+commit_n=0
 log_validate $commit
 
 for commit in $(echo "$commits" | tail -n+2); do
+    let commit_n=$commit_n + 1
     force_clean=0 log_validate $commit
 done
 
