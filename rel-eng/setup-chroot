@@ -6,11 +6,12 @@ utils=$(dirname "$(realpath $0)")
 $utils/get-ghc --version=$bootstrap
 source /opt/ghc/$bootstrap/env.sh
 $utils/get-cabal
-source ~/.bashrc
 
 cd
 echo "PATH=$HOME/.cabal/bin:\$PATH" >>.bashrc
 echo "source /opt/ghc/$bootstrap/env.sh" >>.bashrc
+source ~/.bashrc
+
 cabal update
 cabal install cabal-install happy alex hscolour
 git config --global user.name "Ben Gamari"
