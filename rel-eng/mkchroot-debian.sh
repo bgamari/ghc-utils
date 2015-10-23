@@ -27,7 +27,7 @@ real_dest=$(realpath $dest)
 user=$(id -un)
 
 mkdir $dest
-sudo debootstrap --arch=$arch wheezy $dest http://http.debian.net/debian/
+sudo debootstrap --arch=$arch jessie $dest http://http.debian.net/debian/
 sudo chown $user $dest
 
 cat >$dest/activate-root <<EOF
@@ -38,7 +38,7 @@ EOF
 
 cat >$dest/activate <<EOF
 #!/bin/bash
-$dest/activate-root sudo -u $user -- \$@
+$dest/activate-root -u $user -- \$@
 EOF
 
 chmod ugo+rx $dest/activate-root $dest/activate
