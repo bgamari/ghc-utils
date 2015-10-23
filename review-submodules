@@ -1,0 +1,41 @@
+#!/bin/bash -e
+
+function yes_or_no {
+    while true; do
+        read -p "$* [y/n]: " yn
+        case $yn in
+            [Yy]*) return 0 ;;
+            [Nn]*) return 1 ;;
+        esac
+    done
+}
+
+if [ $# == 0 ]; then
+    # Review all submodules
+    git submodule foreach --quiet "cd \$toplevel; $0 \$path"
+
+elif [ $# == 1 ]; then
+    # Review single submodule
+    path=$1
+    summary=$(git submodule summary HEAD^ $path)
+    if [ ! -z "$summary" ]; then
+        echo "$summary"
+        echo
+        if ! yes_or_no "Accept this change?"; then
+            git checkout HEAD^ $path
+            git submodule update $path
+            git commit --amend --no-edit $path
+            echo "Reverted."
+        fi
+    fi
+
+else
+    echo "Review and optionally roll-back submodule changes made by the HEAD"
+    echo "commit."
+    echo
+    echo "Usage: $0 [submodule path]"
+    echo
+    echo "Will review all submodules if path omitted."
+    return 1
+fi
+
