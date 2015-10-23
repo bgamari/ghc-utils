@@ -56,7 +56,7 @@ pprModuleName (ModName pkg name) = pkg<>":"<>name
 --         }
 -- @
 data StgName = StgName { stgnExported       :: Bool
-                       , stgnDefiningModule :: ModuleName
+                       , _stgnDefiningModule :: ModuleName
                        , _stgnName          :: String
                        , stgnSignature      :: String
                        , stgnParent         :: Maybe String
@@ -72,6 +72,10 @@ pprStgName :: StgName -> String
 pprStgName Top = "Top"
 pprStgName s@(StgName exported mod name sig parent) =
     name<>" ("<>pprModuleName mod<>")"
+
+stgnDefiningModule :: StgName -> ModuleName
+stgnDefiningModule Top = ModName "" ""
+stgnDefiningModule s@(StgName _ mod _ _ _) = mod
 
 parseReport :: T.Text -> TickyReport
 parseReport s =
@@ -138,7 +142,9 @@ parseModuleName = named "module name" $ do
   where packageName = many $ alphaNum <|> oneOf "-_."
 
 delta :: Real a => a -> a -> Double
-delta a b = (b' - a') / a'
+delta a b
+  | a == b    = 0
+  | otherwise = (b' - a') / a'
   where
     a' = realToFrac a
     b' = realToFrac b
@@ -164,9 +170,12 @@ deltasTable as bs (metricName, metric) cols = header ++ dataRows
         $ sortBy (flip compare)
         $ tabulateDeltas as bs metric
     formatRow (delta, k) =
-        Cells $ [ showSigned' (showFFloat (Just 1)) (delta*100)<>"%", showMetric as, showMetric bs ]
+        Cells $ [ delta', showMetric as, showMetric bs ]
                 ++ map (\(_,f) -> f k (as M.! k) (bs M.! k)) cols
       where
+        delta'
+          | delta == 0 = "-"
+          | otherwise  = showSigned' (showFFloat (Just 1)) (delta*100)<>"%"
         showMetric xs = show $ metric $ xs M.! k
         showSigned' :: Real a => (a -> ShowS) -> a -> String
         showSigned' showIt x = sign <> showIt x ""
@@ -175,7 +184,8 @@ deltasTable as bs (metricName, metric) cols = header ++ dataRows
 test = do
     a <- parseReport <$> T.readFile "ghc-master/ticks"
     b <- parseReport <$> T.readFile "ghc-compare/ticks"
-    let tabulate = M.fromList . map (\frame -> (stgnName $ stgName frame, frame))
+    let tabulate :: [TickyFrame] -> M.Map (String, String) TickyFrame
+        tabulate = M.fromList . map (\frame -> ((moduleName $ stgnDefiningModule $ stgName frame, stgnName $ stgName frame), frame))
         a' = tabulate $ frames a
         b' = tabulate $ frames b
     return $ deltasTable a' b' ("alloc", alloc)
