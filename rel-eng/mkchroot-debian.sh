@@ -52,6 +52,9 @@ $dest/activate-root apt-get install -y \
                     python-sphinx
 
 $dest/activate-root bash -e <<EOF
+locale-gen en_US.UTF-8
+update-locale LANG=en_US.UTF-8
+
 sed -i '/^%sudo/d' /etc/sudoers
 echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 adduser $user sudo
