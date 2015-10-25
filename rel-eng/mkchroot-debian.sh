@@ -48,7 +48,8 @@ $dest/activate-root apt-get update
 $dest/activate-root apt-get install -y \
                     build-essential realpath vim bash-completion bash locales autoconf \
                     libncurses-dev git python sudo curl \
-                    console-data locales-all libgmp-dev zlib1g-dev
+                    console-data locales-all libgmp-dev zlib1g-dev \
+                    python-sphinx
 
 $dest/activate-root bash -e <<EOF
 sed -i '/^%sudo/d' /etc/sudoers
