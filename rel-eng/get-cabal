@@ -8,4 +8,4 @@ cd $(basename ${src_url##/*/} .tar.gz)
 ./bootstrap.sh
 
 $HOME/.cabal/bin/cabal update
-echo "PATH=$HOME/.cabal/bin:\$PATH" >>.bashrc
+echo "PATH=$HOME/.cabal/bin:\$PATH" >>$HOME/.bashrc
