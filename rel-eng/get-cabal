@@ -1,14 +1,13 @@
 #!/bin/bash -e
 
-fname="cabal-install-1.22.6.0.tar.gz"
-src_url="https://www.haskell.org/cabal/release/cabal-install-latest/$fname"
+cabal_ver="1.22.6.0"
+src_url="https://www.haskell.org/cabal/release/cabal-install-$cabal_ver/cabal-install-$cabal_ver.tar.gz"
 
 if [ "$OS" == "Windows_NT" -a ! -e $HOME/.cabal ]; then
     ln -s /c/Users/$(whoami)/AppData/Roaming/cabal $HOME/.cabal
 fi
 
-wget $src_url
-tar -zxf $fname
+curl $src_url | tar -zx
 cd $(basename ${src_url##/*/} .tar.gz)
 ./bootstrap.sh
 
