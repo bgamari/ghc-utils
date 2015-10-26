@@ -2,6 +2,11 @@
 
 fname="cabal-install-1.22.6.0.tar.gz"
 src_url="https://www.haskell.org/cabal/release/cabal-install-latest/$fname"
+
+if [ "$OS" == "Windows_NT" -a ! -e $HOME/.cabal ]; then
+    ln -s /c/Users/$(whoami)/AppData/Roaming/cabal $HOME/.cabal
+fi
+
 wget $src_url
 tar -zxf $fname
 cd $(basename ${src_url##/*/} .tar.gz)
