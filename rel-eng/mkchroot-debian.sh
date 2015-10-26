@@ -27,7 +27,7 @@ real_dest=$(realpath $dest)
 user=$(id -un)
 
 mkdir $dest
-sudo debootstrap --arch=$arch wheezy $dest http://http.debian.net/debian/
+sudo debootstrap --arch=$arch jessie $dest http://http.debian.net/debian/
 sudo chown $user $dest
 
 cat >$dest/activate-root <<EOF
@@ -38,7 +38,7 @@ EOF
 
 cat >$dest/activate <<EOF
 #!/bin/bash
-$dest/activate-root sudo -u $user -- \$@
+$dest/activate-root -u $user -- \$@
 EOF
 
 chmod ugo+rx $dest/activate-root $dest/activate
@@ -48,9 +48,13 @@ $dest/activate-root apt-get update
 $dest/activate-root apt-get install -y \
                     build-essential realpath vim bash-completion bash locales autoconf \
                     libncurses-dev git python sudo curl \
-                    console-data locales-all libgmp-dev zlib1g-dev
+                    console-data locales-all libgmp-dev zlib1g-dev \
+                    python-sphinx
 
 $dest/activate-root bash -e <<EOF
+locale-gen en_US.UTF-8
+update-locale LANG=en_US.UTF-8
+
 sed -i '/^%sudo/d' /etc/sudoers
 echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 adduser $user sudo

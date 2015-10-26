@@ -7,10 +7,9 @@ $utils/get-ghc --version=$bootstrap
 source /opt/ghc/$bootstrap/env.sh
 $utils/get-cabal
 
-cd
-echo "PATH=$HOME/.cabal/bin:\$PATH" >>.bashrc
+cd $HOME
 echo "source /opt/ghc/$bootstrap/env.sh" >>.bashrc
-source ~/.bashrc
+source $HOME/.bashrc
 
 cabal update
 cabal install cabal-install happy alex hscolour

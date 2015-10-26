@@ -73,7 +73,7 @@ commit_n=0
 log_validate $commit
 
 for commit in $(echo "$commits" | tail -n+2); do
-    let commit_n=$commit_n + 1
+    let commit_n=$commit_n+1
     force_clean=0 log_validate $commit
 done
 
