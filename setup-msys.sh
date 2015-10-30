@@ -10,6 +10,8 @@ tar -Jxf $boot_tarball
 
 git clone https://bgamari@github.com/bgamari/ghc-utils
 EXTRA_CONFIGURE_OPTS= CC=$HOME/ghc-$boot_ver/mingw/bin/gcc PATH=$HOME/ghc-$boot_ver/bin:$PATH bash ghc-utils/rel-eng/get-cabal
+source $HOME/.bashrc
+cabal install alex happy
 
 git clone git://git.haskell.org/ghc
 cd ghc
