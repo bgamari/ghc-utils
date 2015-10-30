@@ -74,7 +74,6 @@ EOF
         # dblatex is unavailable on CentOS yet GHC is quite bad at realizing this
         cat >> mk/build.mk <<EOF
 BUILD_DOCBOOK_PDF=YES
-BUILD_DOCBOOK_PS=YES
 EOF
     fi
 
