@@ -8,6 +8,11 @@
 #   wget http://downloads.haskell.org/~ghc/$ver/ghc-$ver-testsuite.tar.bz2
 #   NTHREADS=4 bash bin-release.sh
 
+if [ -z "$ver" ]; then
+    echo "Usage: ver=7.10.2-rc2 $0"
+    exit 1
+fi
+
 mkdir -p bin-dist-$ver
 
 cd bin-dist-$ver
@@ -37,6 +42,12 @@ function prepare() {
     rm -Rf ghc-$ver
     tar -jxf ../ghc-$ver-src.tar.bz2
     tar -jxf ../ghc-$ver-testsuite.tar.bz2
+
+    # In the case of rc tarballs the source directory name may not match $ver
+    root_dir="$(basename $(tar -jtf ../ghc-$ver-src.tar.bz2 | head -n1))"
+    if [ "$root_dir" != "$ver" ]; then
+       ln -s $root_dir $ver
+    fi
 }
 
 function do_build() {
