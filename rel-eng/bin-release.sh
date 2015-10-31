@@ -28,6 +28,10 @@ function setup_redhat() {
     cat centos-6.6.pkgs | sudo xargs yum install -y
 }
 
+function setup_windows() {
+    echo "Running Windows... Good luck."
+}
+
 function prepare() {
     if [ ! -z "$skip_pkgs" ]; then
         if ! grep CentOS /etc/issue; then
@@ -36,6 +40,8 @@ function prepare() {
             setup_debian
         elif ! grep Ubuntu /etc/issue; then
             setup_debian
+        elif test "$OS" = "Windows_NT"; then
+            setup_windows
         else
             echo "Unknown distribution"
         fi
@@ -80,7 +86,6 @@ EOF
         # dblatex is unavailable on CentOS yet GHC is quite bad at realizing this
         cat >> mk/build.mk <<EOF
 BUILD_DOCBOOK_PDF=YES
-BUILD_DOCBOOK_PS=YES
 EOF
     fi
 
