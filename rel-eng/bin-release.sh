@@ -65,7 +65,7 @@ function prepare() {
 
     # In the case of rc tarballs the source directory name may not match $ver
     root_dir="$(basename $(tar -jtf ../ghc-$ver-src.tar.bz2 | head -n1))"
-    if [ "$root_dir" != "$ver" ]; then
+    if [ "$root_dir" != "ghc-$ver" ]; then
         mv $root_dir ghc-$ver
     fi
 }
