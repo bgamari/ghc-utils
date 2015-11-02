@@ -19,6 +19,9 @@ fi
 mkdir -p bin-dist-$ver
 
 cd bin-dist-$ver
+mkdir -p bin
+bin_dir="$(pwd)/bin"
+PATH="$bin_dir:$PATH"
 
 function setup_debian() {
     sudo apt-get install dblatex docbook-xsl python-sphinx
@@ -48,17 +51,26 @@ function prepare() {
         fi
     fi
 
-    cabal install hscolour
-    rm -Rf ghc-$ver
+    if [ ! -e bin/hscolour ]; then
+        cabal install --reinstall --bindir=$bin_dir hscolour
+    fi
+
+    if [ -d ghc-$ver ]; then
+        echo "Using existing tree"
+        return
+    fi
+
     tar -jxf ../ghc-$ver-src.tar.bz2
     tar -jxf ../ghc-$ver-testsuite.tar.bz2
 
     # In the case of rc tarballs the source directory name may not match $ver
     root_dir="$(basename $(tar -jtf ../ghc-$ver-src.tar.bz2 | head -n1))"
     if [ "$root_dir" != "$ver" ]; then
-       ln -s $root_dir ghc-$ver
+        mv $root_dir ghc-$ver
     fi
 }
+
+configure_opts="--enable-tarballs-autodownload --with-hscolour=$bin_dir/bin/hscolour $CONFIGURE_OPTS"
 
 function do_build() {
     if [ -z "$NTHREADS" ]; then
@@ -81,7 +93,7 @@ BUILD_DOCBOOK_PDF=YES
 EOF
     fi
 
-    ./configure      2>&1 | tee ../conf.log
+    ./configure $configure_opts     2>&1 | tee ../conf.log
     make -j$NTHREADS 2>&1 | tee ../make.log
     make binary-dist 2>&1 | tee ../binary-dist.log
     make test_bindist 2>&1 | tee ../test-bindist.log
@@ -93,7 +105,7 @@ function rebuild() {
     mkdir test
     tar -jx -C test -f ../ghc-$ver/ghc-$ver-*.tar.bz2
     cd test/ghc-$ver
-    ./configure --prefix=$(realpath ..)/inst
+    ./configure --prefix=$(realpath ..)/inst $configure_opts
     make
     make install
     echo "Things look good."
