@@ -10,6 +10,9 @@
 
 if [ -z "$ver" ]; then
     echo "Usage: ver=7.10.2-rc2 $0"
+    echo
+    echo "Other environment variables:"
+    echo "  NTHREADS"
     exit 1
 fi
 
@@ -18,7 +21,7 @@ mkdir -p bin-dist-$ver
 cd bin-dist-$ver
 
 function setup_debian() {
-    sudo apt-get install dblatex docbook-xsl
+    sudo apt-get install dblatex docbook-xsl python-sphinx
 }
 
 function setup_redhat() {
@@ -27,6 +30,7 @@ function setup_redhat() {
 
 function setup_windows() {
     echo "Running Windows... Good luck."
+    pacman -Sy pacman -S mingw-w64-$(uname -m)-python2-sphinx
 }
 
 function prepare() {
