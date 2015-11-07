@@ -13,7 +13,7 @@
 # You can also invoke the script with an argument to perform only
 # a subset of the usual release,
 #
-#   upload.sh compress_to_xz         produce xz tarballs from gzip tarballs
+#   upload.sh compress_to_xz         produce xz tarballs from bzip2 tarballs
 #
 #   upload.sh gen_hashes             generate signed hashes of the release
 #                                    tarballs
@@ -25,14 +25,35 @@
 #
 # Prerequisites: moreutils
 
-ver=7.10.2
 signing_key="=Benjamin Gamari <ben@well-typed.com>"
+
+
 # A working directory of the version being packaged
-ghc_tree=/opt/exp/ghc/ghc-7.10
+if [ -z "$ghc_tree" ]; then
+    ghc_tree=/opt/exp/ghc/ghc-7.10
+fi
 
 host=downloads.haskell.org
 windows_bindist="ghc-$ver-x86_64-unknown-mingw32.tar.bz2"
 linux_bindist="ghc-$ver-x86_64-unknown-linux-deb7.tar.bz2"
+
+usage() {
+    echo "Usage: ver=7.10.3-rc2 ghc_tree=[path] $0 [action]"
+    echo
+    echo "where ghc-tree gives the location of GHC source tree"
+    echo "and [action] is one of,"
+    echo "  [nothing]          do everything below"
+    echo "  compress_to_xz     produce xz tarballs from bzip2 tarballs"
+    echo "  gen_hashes         generated signed hashes of the release tarballs"
+    echo "  prepare_docs       prepare the documentation directory"
+    echo "  upload             upload the tarballs and documentation to downloads.haskell.org"
+    echo
+}
+
+if [ -z "$ver" ]; then
+    usage
+    exit 1
+fi
 
 function gen_hashes() {
     sha1sum *.bz2 *.xz >| SHA1SUMS
