@@ -20,6 +20,15 @@ mkdir -p bin
 bin_dir="$(pwd)/bin"
 PATH="$bin_dir:$PATH"
 
+function fetch_tarballs() {
+    if [ -z "$rel_name" ]; then
+        echo "Please set rel_name environment variable (e.g. 7.10.3-rc2)"
+    fi
+
+    wget http://home.smart-cactus.org/ghc/release-prep/$rel_name/ghc-$ver-src.tar.bz2
+    wget http://home.smart-cactus.org/ghc/release-prep/$rel_name/ghc-$ver-testsuite.tar.bz2
+}
+
 function setup_debian() {
     sudo apt-get install dblatex docbook-xsl
 }
