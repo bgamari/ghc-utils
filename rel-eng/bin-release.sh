@@ -10,11 +10,21 @@ function log() {
 function usage() {
     cat <<-EOF
 Usage:
+  $0 [action]
 
+where [action] may be one of,
+  [nothing]   do an automatic build
+  fetch       fetch source tarballs
+  prepare     prepare host environment for build
+  do_build    build the binary distribution
+  rebuild     test the binary distribution
+
+Example:
   mkdir build; cd build
   export ver="7.10.2.20151105"
   export rel_name="7.10.2-rc2"
   NTHREADS=4 $0
+
 EOF
 }
     
