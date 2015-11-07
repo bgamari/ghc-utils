@@ -69,8 +69,14 @@ function upload() {
 }
 
 function prepare_docs() {
-    rm -R docs
-    $ghc_tree/distrib/mkDocs/mkDocs $linux_bindist $windows_bindist
+    rm -Rf docs
+    mkdocs="$ghc_tree/distrib/mkDocs/mkDocs"
+    if [ ! -e $mkdocs ]; then
+        echo "Couldn't find GHC mkDocs at $mkdocs."
+        echo "Perhaps you need to override ghc_tree?"
+        exit 1
+    fi
+    $mkdocs $linux_bindist $windows_bindist
 
     mkdir -p docs/html
     tar -jxf $linux_bindist
