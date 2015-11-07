@@ -13,14 +13,14 @@ Usage:
   $0 [action]
 
 where [action] may be one of,
-  [nothing]   do an automatic build
-  fetch       fetch source tarballs
-  prepare     prepare host environment for build
-  do_build    build the binary distribution
-  rebuild     test the binary distribution
+  [nothing]      do an automatic build
+  fetch          fetch source tarballs
+  prepare        prepare host environment for build
+  do_build       build the binary distribution
+  testsuite      run the testsuite on the built tree
+  test_install   test the binary distribution
 
 Example:
-  mkdir build; cd build
   export ver="7.10.2.20151105"
   export rel_name="7.10.2-rc2"
   NTHREADS=4 $0
@@ -114,7 +114,7 @@ EOF
     log "Bootstrap GHC at $(which ghc)"
     log "Bootstrap GHC says $(ghc -V)"
     log "configuring with $configure_opts"
-    ./configure $configure_opts     2>&1 | tee $root/conf.log
+    ./configure $configure_opts 2>&1 | tee $root/conf.log
     make -j$NTHREADS 2>&1 | tee $root/make.log
     make binary-dist 2>&1 | tee $root/binary-dist.log
     make test_bindist 2>&1 | tee $root/test-bindist.log
@@ -122,7 +122,12 @@ EOF
     log "binary dist build finished"
 }
 
-function rebuild() {
+function testsuite() {
+    log "running testsuite"
+    make test NTHREADS=$NTHREADS 2>&1 | tee $root/testsuite.log
+}
+
+function test_install() {
     rm -Rf test
     mkdir test
     tar -jx -C test -f $root/ghc-$ver/ghc-$ver-*.tar.bz2
@@ -156,7 +161,7 @@ if [ $# == 0 ]; then
     fetch
     prepare
     do_build
-    rebuild
+    test_install
 else
     $1
 fi
