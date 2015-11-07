@@ -1,21 +1,5 @@
 #!/bin/bash -e
 
-
-if [ -z "$ver" ]; then
-    echo "Usage: ver=7.10.2-rc2 $0"
-    echo
-    echo "Other environment variables:"
-    echo "  NTHREADS"
-    exit 1
-fi
-
-mkdir -p bin-dist-$ver
-
-cd bin-dist-$ver
-mkdir -p bin
-bin_dir="$(pwd)/bin"
-PATH="$bin_dir:$PATH"
-
 function usage() {
     cat <<-EOF
 Usage:
@@ -125,6 +109,18 @@ function rebuild() {
     make install
     echo "Things look good."
 }
+
+if [ -z "$ver" ]; then
+   usage
+   exit 1
+fi
+
+mkdir -p bin-dist-$ver
+
+cd bin-dist-$ver
+mkdir -p bin
+bin_dir="$(pwd)/bin"
+PATH="$bin_dir:$PATH"
 
 if [ $# == 0 ]; then
     fetch
