@@ -56,16 +56,15 @@ function prepare() {
 
     if [ -d ghc-$ver ]; then
         echo "Using existing tree"
-        return
-    fi
+    else
+        tar -jxf ghc-$ver-src.tar.bz2
+        tar -jxf ghc-$ver-testsuite.tar.bz2
 
-    tar -jxf ../ghc-$ver-src.tar.bz2
-    tar -jxf ../ghc-$ver-testsuite.tar.bz2
-
-    # In the case of rc tarballs the source directory name may not match $ver
-    root_dir="$(basename $(tar -jtf ../ghc-$ver-src.tar.bz2 | head -n1))"
-    if [ "$root_dir" != "ghc-$ver" ]; then
-        mv $root_dir ghc-$ver
+        # In the case of rc tarballs the source directory name may not match $ver
+        root_dir="$(basename $(tar -jtf ghc-$ver-src.tar.bz2 | head -n1))"
+        if [ "$root_dir" != "ghc-$ver" ]; then
+            mv $root_dir ghc-$ver
+        fi
     fi
 }
 
