@@ -10,6 +10,9 @@
 
 if [ -z "$ver" ]; then
     echo "Usage: ver=7.10.2-rc2 $0"
+    echo
+    echo "Other environment variables:"
+    echo "  NTHREADS"
     exit 1
 fi
 
@@ -30,7 +33,7 @@ function fetch_tarballs() {
 }
 
 function setup_debian() {
-    sudo apt-get install dblatex docbook-xsl
+    sudo apt-get install dblatex docbook-xsl python-sphinx
 }
 
 function setup_redhat() {
@@ -39,6 +42,7 @@ function setup_redhat() {
 
 function setup_windows() {
     echo "Running Windows... Good luck."
+    pacman -Sy pacman -S mingw-w64-$(uname -m)-python2-sphinx
 }
 
 function prepare() {
@@ -70,7 +74,7 @@ function prepare() {
 
     # In the case of rc tarballs the source directory name may not match $ver
     root_dir="$(basename $(tar -jtf ../ghc-$ver-src.tar.bz2 | head -n1))"
-    if [ "$root_dir" != "$ver" ]; then
+    if [ "$root_dir" != "ghc-$ver" ]; then
         mv $root_dir ghc-$ver
     fi
 }
