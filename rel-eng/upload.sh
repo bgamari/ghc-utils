@@ -33,15 +33,18 @@ if [ -z "$ghc_tree" ]; then
     ghc_tree=/opt/exp/ghc/ghc-7.10
 fi
 
-host=downloads.haskell.org
+host="downloads.haskell.org"
 windows_bindist="ghc-$ver-x86_64-unknown-mingw32.tar.bz2"
 linux_bindist="ghc-$ver-x86_64-unknown-linux-deb7.tar.bz2"
 
 usage() {
-    echo "Usage: ver=7.10.3-rc2 ghc_tree=[path] $0 [action]"
+    echo "Usage: [rel_name=<name>] ver=7.10.3-rc2 ghc_tree=/path/to/ghc/tree $0 <action>"
     echo
-    echo "where ghc-tree gives the location of GHC source tree"
-    echo "and [action] is one of,"
+    echo "where,"
+    echo "  ghc-tree           gives the location of GHC source tree"
+    echo "  ver                gives the official version number (e.g. the name of the tarballs)"
+    echo "  rel_name           gives the version name (e.g. in the case of a release candidate, 7.10.3-rc2)"
+    echo "and <action> is one of,"
     echo "  [nothing]          do everything below"
     echo "  compress_to_xz     produce xz tarballs from bzip2 tarballs"
     echo "  gen_hashes         generated signed hashes of the release tarballs"
@@ -54,6 +57,9 @@ if [ -z "$ver" ]; then
     usage
     exit 1
 fi
+if [ -z "$rel_name" ]; then
+    rel_name="$ver"
+fi
 
 function gen_hashes() {
     sha1sum *.bz2 *.xz >| SHA1SUMS
@@ -65,7 +71,7 @@ function gen_hashes() {
 
 function upload() {
     chmod ugo+r,o-w -R .
-    rsync --progress -az . $host:public_html/$ver
+    rsync --progress -az $rsync_opts . $host:public_html/$rel_name
 }
 
 function prepare_docs() {
