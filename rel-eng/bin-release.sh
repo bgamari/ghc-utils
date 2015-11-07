@@ -19,6 +19,7 @@ where [action] may be one of,
   do_build       build the binary distribution
   testsuite      run the testsuite on the built tree
   test_install   test the binary distribution
+  upload         upload to staging directory
 
 Example:
   export ver="7.10.2.20151105"
@@ -139,6 +140,12 @@ function test_install() {
     log "installing test rebuild"
     make install
     log "test rebuild successful; things look good."
+}
+
+function upload() {
+    upload_dir="ben@home.smart-cactus.org:public_html/ghc/release-prep/$rel_name"
+    log "Uploading to $upload_dir"
+    scp $root/ghc-$ver/ghc-$ver-*.tar.bz2 $upload_dir
 }
 
 if [ -z "$ver" ]; then
