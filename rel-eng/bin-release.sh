@@ -1,12 +1,5 @@
 #!/bin/bash -e
 
-# Usage:
-#
-#   mkdir build; cd build
-#   export ver="7.10.2"
-#   wget http://downloads.haskell.org/~ghc/$ver/ghc-$ver-src.tar.bz2
-#   wget http://downloads.haskell.org/~ghc/$ver/ghc-$ver-testsuite.tar.bz2
-#   NTHREADS=4 bash bin-release.sh
 
 if [ -z "$ver" ]; then
     echo "Usage: ver=7.10.2-rc2 $0"
@@ -23,13 +16,26 @@ mkdir -p bin
 bin_dir="$(pwd)/bin"
 PATH="$bin_dir:$PATH"
 
-function fetch_tarballs() {
+function usage() {
+    cat <<-EOF
+Usage:
+
+  mkdir build; cd build
+  export ver="7.10.2.20151105"
+  export rel_name="7.10.2-rc2"
+  NTHREADS=4 $0
+EOF
+}
+
+function fetch() {
     if [ -z "$rel_name" ]; then
         echo "Please set rel_name environment variable (e.g. 7.10.3-rc2)"
     fi
-
-    wget http://home.smart-cactus.org/ghc/release-prep/$rel_name/ghc-$ver-src.tar.bz2
-    wget http://home.smart-cactus.org/ghc/release-prep/$rel_name/ghc-$ver-testsuite.tar.bz2
+    if [ -z "$download_url" ]; then
+        download_url="http://home.smart-cactus.org/ghc/release-prep"
+    fi
+    wget -N $download_url/$rel_name/ghc-$ver-src.tar.bz2
+    wget -N $download_url/$rel_name/ghc-$ver-testsuite.tar.bz2
 }
 
 function setup_debian() {
@@ -121,6 +127,7 @@ function rebuild() {
 }
 
 if [ $# == 0 ]; then
+    fetch
     prepare
     do_build
     rebuild
