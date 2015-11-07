@@ -16,7 +16,7 @@ function fetch() {
         echo "Please set rel_name environment variable (e.g. 7.10.3-rc2)"
     fi
     if [ -z "$download_url" ]; then
-        download_url="http://home.smart-cactus.org/ghc/release-prep"
+        download_url="http://home.smart-cactus.org/~ben/ghc/release-prep"
     fi
     wget -N $download_url/$rel_name/ghc-$ver-src.tar.bz2
     wget -N $download_url/$rel_name/ghc-$ver-testsuite.tar.bz2
