@@ -13,7 +13,7 @@
 # You can also invoke the script with an argument to perform only
 # a subset of the usual release,
 #
-#   upload.sh compress_to_xz         produce xz tarballs from gzip tarballs
+#   upload.sh compress_to_xz         produce xz tarballs from bzip2 tarballs
 #
 #   upload.sh gen_hashes             generate signed hashes of the release
 #                                    tarballs
@@ -25,14 +25,41 @@
 #
 # Prerequisites: moreutils
 
-ver=7.10.2
 signing_key="=Benjamin Gamari <ben@well-typed.com>"
-# A working directory of the version being packaged
-ghc_tree=/opt/exp/ghc/ghc-7.10
 
-host=downloads.haskell.org
+
+# A working directory of the version being packaged
+if [ -z "$ghc_tree" ]; then
+    ghc_tree=/opt/exp/ghc/ghc-7.10
+fi
+
+host="downloads.haskell.org"
 windows_bindist="ghc-$ver-x86_64-unknown-mingw32.tar.bz2"
 linux_bindist="ghc-$ver-x86_64-unknown-linux-deb7.tar.bz2"
+
+usage() {
+    echo "Usage: [rel_name=<name>] ver=7.10.3-rc2 ghc_tree=/path/to/ghc/tree $0 <action>"
+    echo
+    echo "where,"
+    echo "  ghc-tree           gives the location of GHC source tree"
+    echo "  ver                gives the official version number (e.g. the name of the tarballs)"
+    echo "  rel_name           gives the version name (e.g. in the case of a release candidate, 7.10.3-rc2)"
+    echo "and <action> is one of,"
+    echo "  [nothing]          do everything below"
+    echo "  compress_to_xz     produce xz tarballs from bzip2 tarballs"
+    echo "  gen_hashes         generated signed hashes of the release tarballs"
+    echo "  prepare_docs       prepare the documentation directory"
+    echo "  upload             upload the tarballs and documentation to downloads.haskell.org"
+    echo
+}
+
+if [ -z "$ver" ]; then
+    usage
+    exit 1
+fi
+if [ -z "$rel_name" ]; then
+    rel_name="$ver"
+fi
 
 function gen_hashes() {
     sha1sum *.bz2 *.xz >| SHA1SUMS
@@ -44,12 +71,18 @@ function gen_hashes() {
 
 function upload() {
     chmod ugo+r,o-w -R .
-    rsync --progress -az . $host:public_html/$ver
+    rsync --progress -az $rsync_opts . $host:public_html/$rel_name
 }
 
 function prepare_docs() {
-    rm -R docs
-    $ghc_tree/distrib/mkDocs/mkDocs $linux_bindist $windows_bindist
+    rm -Rf docs
+    mkdocs="$ghc_tree/distrib/mkDocs/mkDocs"
+    if [ ! -e $mkdocs ]; then
+        echo "Couldn't find GHC mkDocs at $mkdocs."
+        echo "Perhaps you need to override ghc_tree?"
+        exit 1
+    fi
+    $mkdocs $linux_bindist $windows_bindist
 
     mkdir -p docs/html
     tar -jxf $linux_bindist
