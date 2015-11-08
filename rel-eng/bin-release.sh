@@ -24,7 +24,7 @@ bin_dir="$(pwd)/bin"
 PATH="$bin_dir:$PATH"
 
 function setup_debian() {
-    sudo apt-get install dblatex docbook-xsl python-sphinx
+    sudo apt-get install libgmp10-dev dblatex docbook-xsl python-sphinx
 }
 
 function setup_redhat() {
