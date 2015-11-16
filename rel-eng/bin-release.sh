@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-set pipefail
+set +o pipefail
 
 args="$@"
 
