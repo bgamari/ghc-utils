@@ -104,7 +104,6 @@ function rebuild() {
     tar -jx -C test -f ../ghc-$ver/ghc-$ver-*.tar.bz2
     cd test/ghc-$ver
     ./configure --prefix=$(realpath ..)/inst $configure_opts
-    make
     make install
     echo "Things look good."
 }
