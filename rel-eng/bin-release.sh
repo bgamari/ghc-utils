@@ -136,7 +136,7 @@ function test_install() {
     tar -jx -C test -f $root/ghc-$ver/ghc-$ver-*.tar.bz2
     cd test/ghc-$ver
     log "configuring test rebuild"
-    test_root=$(realpath ..)/inst
+    test_root=$(pwd)/../inst
     ./configure --prefix=$test_root $configure_opts | tee ../test-rebuild
     log "installing test rebuild"
     make install
