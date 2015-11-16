@@ -1,16 +1,34 @@
 #!/bin/bash -e
 
+args="$@"
+
+function log() {
+    echo "bin-release: $@"
+    echo "$@" >> $log
+}
+
 function usage() {
     cat <<-EOF
 Usage:
+  $0 [action]
 
-  mkdir build; cd build
+where [action] may be one of,
+  [nothing]      do an automatic build
+  fetch          fetch source tarballs
+  prepare        prepare host environment for build
+  do_build       build the binary distribution
+  testsuite      run the testsuite on the built tree
+  test_install   test the binary distribution
+  upload         upload to staging directory
+
+Example:
   export ver="7.10.2.20151105"
   export rel_name="7.10.2-rc2"
   NTHREADS=4 $0
+
 EOF
 }
-
+    
 function fetch() {
     if [ -z "$rel_name" ]; then
         echo "Please set rel_name environment variable (e.g. 7.10.3-rc2)"
@@ -18,12 +36,13 @@ function fetch() {
     if [ -z "$download_url" ]; then
         download_url="http://home.smart-cactus.org/~ben/ghc/release-prep"
     fi
+    log "fetching tarballs from $download_url"
     wget -N $download_url/$rel_name/ghc-$ver-src.tar.bz2
     wget -N $download_url/$rel_name/ghc-$ver-testsuite.tar.bz2
 }
 
 function setup_debian() {
-    sudo apt-get install dblatex docbook-xsl python-sphinx
+    sudo apt-get install libgmp10-dev dblatex docbook-xsl python-sphinx
 }
 
 function setup_redhat() {
@@ -31,7 +50,7 @@ function setup_redhat() {
 }
 
 function setup_windows() {
-    echo "Running Windows... Good luck."
+    log "Running Windows... Good luck."
     pacman -Sy pacman -S mingw-w64-$(uname -m)-python2-sphinx
 }
 
@@ -46,16 +65,17 @@ function prepare() {
         elif test "$OS" = "Windows_NT"; then
             setup_windows
         else
-            echo "Unknown distribution"
+            log "Unknown distribution"
         fi
     fi
 
     if [ ! -e bin/hscolour ]; then
+        log "installing hscolout"
         cabal install --reinstall --bindir=$bin_dir hscolour
     fi
 
     if [ -d ghc-$ver ]; then
-        echo "Using existing tree"
+        log "Using existing tree"
     else
         tar -jxf ghc-$ver-src.tar.bz2
         tar -jxf ghc-$ver-testsuite.tar.bz2
@@ -85,27 +105,45 @@ BUILD_DOCBOOK_HTML=YES
 BeConservative=YES
 EOF
     if ! which dblatex; then
+        log "dblatex not available"
         # dblatex is unavailable on CentOS yet GHC is quite bad at realizing this
         cat >> mk/build.mk <<EOF
 BUILD_DOCBOOK_PDF=YES
 EOF
     fi
 
-    ./configure $configure_opts     2>&1 | tee ../conf.log
-    make -j$NTHREADS 2>&1 | tee ../make.log
-    make binary-dist 2>&1 | tee ../binary-dist.log
-    make test_bindist 2>&1 | tee ../test-bindist.log
+    log "Bootstrap GHC at $(which ghc)"
+    log "Bootstrap GHC says $(ghc -V)"
+    log "configuring with $configure_opts"
+    ./configure $configure_opts 2>&1 | tee $root/conf.log
+    make -j$NTHREADS 2>&1 | tee $root/make.log
+    make binary-dist 2>&1 | tee $root/binary-dist.log
+    make test_bindist 2>&1 | tee $root/test-bindist.log
     cd ..
+    log "binary dist build finished"
 }
 
-function rebuild() {
+function testsuite() {
+    log "running testsuite"
+    make test NTHREADS=$NTHREADS 2>&1 | tee $root/testsuite.log
+}
+
+function test_install() {
     rm -Rf test
     mkdir test
-    tar -jx -C test -f ../ghc-$ver/ghc-$ver-*.tar.bz2
+    tar -jx -C test -f $root/ghc-$ver/ghc-$ver-*.tar.bz2
     cd test/ghc-$ver
-    ./configure --prefix=$(realpath ..)/inst $configure_opts
+    log "configuring test rebuild"
+    ./configure --prefix=$(realpath ..)/inst $configure_opts | tee ../test-rebuild
+    log "installing test rebuild"
     make install
-    echo "Things look good."
+    log "test rebuild successful; things look good."
+}
+
+function upload() {
+    upload_dir="ben@home.smart-cactus.org:public_html/ghc/release-prep/$rel_name"
+    log "Uploading to $upload_dir"
+    scp $root/ghc-$ver/ghc-$ver-*.tar.bz2 $upload_dir
 }
 
 if [ -z "$ver" ]; then
@@ -113,18 +151,22 @@ if [ -z "$ver" ]; then
    exit 1
 fi
 
-mkdir -p bin-dist-$ver
+root="$(pwd)/bin-dist-$ver"
+bin_dir="$root/bin"
+mkdir -p $root $root/bin
+PATH="$bin_dir:$PATH"
+
+log="$root/log"
+echo >> $log
+log "invoked with: $args"
 
 cd bin-dist-$ver
-mkdir -p bin
-bin_dir="$(pwd)/bin"
-PATH="$bin_dir:$PATH"
 
 if [ $# == 0 ]; then
     fetch
     prepare
     do_build
-    rebuild
+    test_install
 else
     $1
 fi
