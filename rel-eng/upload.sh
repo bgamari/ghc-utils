@@ -34,8 +34,6 @@ if [ -z "$ghc_tree" ]; then
 fi
 
 host="downloads.haskell.org"
-windows_bindist="ghc-$ver-x86_64-unknown-mingw32.tar.bz2"
-linux_bindist="ghc-$ver-x86_64-unknown-linux-deb7.tar.bz2"
 
 usage() {
     echo "Usage: [rel_name=<name>] ver=7.10.3-rc2 ghc_tree=/path/to/ghc/tree $0 <action>"
@@ -82,6 +80,8 @@ function prepare_docs() {
         echo "Perhaps you need to override ghc_tree?"
         exit 1
     fi
+    windows_bindist="$(ls ghc-$ver-x86_64-unknown-mingw*.tar.bz2 | head -n1)"
+    linux_bindist="$(ls ghc-$ver-x86_64-unknown-linux-*.tar.bz2 | head -n1)"
     $mkdocs $linux_bindist $windows_bindist
 
     mkdir -p docs/html
