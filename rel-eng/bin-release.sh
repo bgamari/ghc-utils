@@ -134,9 +134,17 @@ function test_install() {
     tar -jx -C test -f $root/ghc-$ver/ghc-$ver-*.tar.bz2
     cd test/ghc-$ver
     log "configuring test rebuild"
-    ./configure --prefix=$(realpath ..)/inst $configure_opts | tee ../test-rebuild
+    test_root=$(realpath ..)/inst
+    ./configure --prefix=$test_root $configure_opts | tee ../test-rebuild
     log "installing test rebuild"
     make install
+
+    cat > ../hi.hs <<-EOF
+main = print "hello world!"
+EOF
+    $test_root/bin/ghc ../hi.hs
+    ../hi
+
     log "test rebuild successful; things look good."
 }
 
