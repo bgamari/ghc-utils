@@ -3,5 +3,5 @@
 make distclean
 ./boot
 ./configure
-make
+make $@
 make sdist
