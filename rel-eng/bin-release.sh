@@ -28,7 +28,7 @@ Example:
 
 EOF
 }
-    
+
 function fetch() {
     if [ -z "$rel_name" ]; then
         echo "Please set rel_name environment variable (e.g. 7.10.3-rc2)"
@@ -70,7 +70,7 @@ function prepare() {
     fi
 
     if [ ! -e bin/hscolour ]; then
-        log "installing hscolout"
+        log "installing hscolour"
         cabal install --reinstall --bindir=$bin_dir hscolour
     fi
 
