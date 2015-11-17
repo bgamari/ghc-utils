@@ -23,6 +23,13 @@ where [action] may be one of,
   test_install   test the binary distribution
   upload         upload to staging directory
 
+Relevant environment variables:
+  NTHREADS       Number of CPUs to use
+  CONFIGURE_OPTS Other options to pass to `configure`
+                 On Windows these will be helpful
+                     64-bit:   --host=x86_64-w64-mingw32
+                     32-bit:   --host=i686-w64-mingw32
+
 Example:
   export ver="7.10.2.20151105"
   export rel_name="7.10.2-rc2"
