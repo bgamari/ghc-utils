@@ -130,7 +130,7 @@ HSCOLOUR_SRCS=YES
 BUILD_DOCBOOK_HTML=YES
 BeConservative=YES
 EOF
-    case $(uname) hi
+    case $(uname) in
       Darwin)
         echo 'libraries/integer-gmp2_CONFIGURE_OPTS += --configure-option=--with-intree-gmp' >> mk/build.mk
     esac
