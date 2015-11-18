@@ -63,6 +63,12 @@ function setup_windows() {
     pacman -Sy pacman -S mingw-w64-$(uname -m)-python2-sphinx
 }
 
+function setup_darwin() {
+    for i in automake autoconf docbook docbook-xsl docbook2x psutils; do
+        brew install $i
+    done
+}
+
 function prepare() {
     if [ ! -z "$skip_pkgs" ]; then
         if ! grep CentOS /etc/issue; then
@@ -73,6 +79,8 @@ function prepare() {
             setup_debian
         elif test "$OS" = "Windows_NT"; then
             setup_windows
+        elif test "`uname`" = "Darwin"; then
+            setup_darwin
         else
             log "Unknown distribution"
         fi
@@ -97,7 +105,16 @@ function prepare() {
     fi
 }
 
-configure_opts="--enable-tarballs-autodownload --with-hscolour=$bin_dir/bin/hscolour $CONFIGURE_OPTS"
+configure_opts="--with-hscolour=$bin_dir/bin/hscolour $CONFIGURE_OPTS"
+case $(uname) in
+    MINGW*)
+        configure_opts="$configure_opts --enable-tarballs_autodownload"
+        ;;
+    Darwin)
+        export MACOSX_DEPLOYMENT_TARGET=10.7
+        ;;
+esac
+
 
 function do_build() {
     if [ -z "$NTHREADS" ]; then
@@ -113,6 +130,11 @@ HSCOLOUR_SRCS=YES
 BUILD_DOCBOOK_HTML=YES
 BeConservative=YES
 EOF
+    case $(uname) hi
+      Darwin)
+        echo 'libraries/integer-gmp2_CONFIGURE_OPTS += --configure-option=--with-intree-gmp' >> mk/build.mk
+    esac
+
     if ! which dblatex; then
         log "dblatex not available"
         # dblatex is unavailable on CentOS yet GHC is quite bad at realizing this
