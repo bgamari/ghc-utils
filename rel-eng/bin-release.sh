@@ -64,7 +64,7 @@ function setup_windows() {
 }
 
 function setup_darwin() {
-    for i in automake autoconf docbook docbook-xsl docbook2x psutils; do
+    for i in automake autoconf gcc docbook docbook-xsl docbook2x psutils; do
         brew install $i
     done
 }
@@ -112,6 +112,9 @@ case $(uname) in
         ;;
     Darwin)
         export MACOSX_DEPLOYMENT_TARGET=10.7
+        log "MACOS_DEPLOYMENT_TARGET = $MACOS_DEPLOYMENT_TARGET"
+        configure_opts="$configure_opts --with-gcc=/usr/local/bin/gcc-5"
+        log "Using Homebrew's gcc $(gcc -dumpversion)"
         ;;
 esac
 
@@ -131,16 +134,16 @@ BUILD_DOCBOOK_HTML=YES
 BeConservative=YES
 EOF
     case $(uname) in
-      Darwin)
-        echo 'libraries/integer-gmp2_CONFIGURE_OPTS += --configure-option=--with-intree-gmp' >> mk/build.mk
+        Darwin)
+            log "using in-tree GMP"
+            echo 'libraries/integer-gmp2_CONFIGURE_OPTS += --configure-option=--with-intree-gmp' >> mk/build.mk
+            ;;
     esac
 
     if ! which dblatex; then
         log "dblatex not available"
         # dblatex is unavailable on CentOS yet GHC is quite bad at realizing this
-        cat >> mk/build.mk <<EOF
-BUILD_DOCBOOK_PDF=YES
-EOF
+        echo 'BUILD_DOCBOOK_PDF=YES' >> mk/build.mk
     fi
 
     log "Bootstrap GHC at $(which ghc)"
