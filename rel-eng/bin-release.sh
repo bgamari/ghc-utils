@@ -106,7 +106,7 @@ function prepare() {
 }
 
 setup_env() {
-    configure_opts="--with-hscolour=$bin_dir/bin/hscolour $CONFIGURE_OPTS"
+    PATH="$bin_dir:$PATH"
     case $(uname) in
         MINGW*)
             configure_opts="$configure_opts --enable-tarballs_autodownload"
