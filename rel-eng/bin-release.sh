@@ -113,7 +113,7 @@ setup_env() {
             ;;
         Darwin)
             export MACOSX_DEPLOYMENT_TARGET=10.7
-            log "MACOS_DEPLOYMENT_TARGET = $MACOS_DEPLOYMENT_TARGET"
+            log "MACOSX_DEPLOYMENT_TARGET = $MACOSX_DEPLOYMENT_TARGET"
             configure_opts="$configure_opts --with-gcc=/usr/local/bin/gcc-5"
             log "Using Homebrew's gcc $(gcc -dumpversion)"
             ;;
