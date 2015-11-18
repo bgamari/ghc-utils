@@ -105,19 +105,20 @@ function prepare() {
     fi
 }
 
-configure_opts="--with-hscolour=$bin_dir/bin/hscolour $CONFIGURE_OPTS"
-case $(uname) in
-    MINGW*)
-        configure_opts="$configure_opts --enable-tarballs_autodownload"
-        ;;
-    Darwin)
-        export MACOSX_DEPLOYMENT_TARGET=10.7
-        log "MACOS_DEPLOYMENT_TARGET = $MACOS_DEPLOYMENT_TARGET"
-        configure_opts="$configure_opts --with-gcc=/usr/local/bin/gcc-5"
-        log "Using Homebrew's gcc $(gcc -dumpversion)"
-        ;;
-esac
-
+setup_env() {
+    configure_opts="--with-hscolour=$bin_dir/bin/hscolour $CONFIGURE_OPTS"
+    case $(uname) in
+        MINGW*)
+            configure_opts="$configure_opts --enable-tarballs_autodownload"
+            ;;
+        Darwin)
+            export MACOSX_DEPLOYMENT_TARGET=10.7
+            log "MACOS_DEPLOYMENT_TARGET = $MACOS_DEPLOYMENT_TARGET"
+            configure_opts="$configure_opts --with-gcc=/usr/local/bin/gcc-5"
+            log "Using Homebrew's gcc $(gcc -dumpversion)"
+            ;;
+    esac
+}
 
 function do_build() {
     if [ -z "$NTHREADS" ]; then
@@ -201,6 +202,7 @@ PATH="$bin_dir:$PATH"
 log="$root/log"
 echo >> $log
 log "invoked with: $args"
+setup_env
 
 cd bin-dist-$ver
 
