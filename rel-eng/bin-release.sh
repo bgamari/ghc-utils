@@ -86,7 +86,7 @@ function prepare() {
         fi
     fi
 
-    if [ ! -e bin/hscolour ]; then
+    if [ ! -e $bin_dir/hscolour ]; then
         log "installing hscolour"
         cabal install --reinstall --bindir=$bin_dir hscolour
     fi
