@@ -21,7 +21,7 @@ if [ -z "$exe" -o -z "$(which $exe)" ]; then
     usage
     exit 1;
 fi
-if [ -o ! -e "$(which $exe)" ]; then
+if [ ! -e "$(which $exe)" ]; then
     echo "$exe is not executable"
     echo
     usage
@@ -36,4 +36,5 @@ for l in $(grep -v '^exec ' $wrapper); do eval $l; done
 
 cmdline="$(sed -n 's/^exec \(.*\)$/\1/p' $wrapper)"
 echo "$PROG $(eval echo "$cmdline")"
+echo
 $PROG $(eval echo "$cmdline")
