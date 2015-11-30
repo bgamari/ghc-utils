@@ -1,0 +1,40 @@
+#!/bin/bash -e
+
+if [ -z "$PROG" ]; then
+    PROG="gdb --args"
+fi
+
+usage() {
+    cat <<EOF
+Usage: [PROG=<wrapper>] $0 <executable> [<args>]
+
+Run a GHC "wrapped" executable in a debugger like gdb.
+PROG="gdb --args" by default.
+
+For instance,
+    PROG=strace $0 ghc Hello.hs
+EOF
+}
+
+exe="$1"
+if [ -z "$exe" -o -z "$(which $exe)" ]; then
+    usage
+    exit 1;
+fi
+if [ ! -e "$(which $exe)" ]; then
+    echo "$exe is not executable"
+    echo
+    usage
+    exit 1
+fi
+
+wrapper="$(which $exe)"
+shift
+args="$@"
+
+for l in $(grep -v '^exec ' $wrapper); do eval $l; done
+
+cmdline="$(sed -n 's/^exec \(.*\)$/\1/p' $wrapper)"
+echo "$PROG $(eval echo "$cmdline")"
+echo
+$PROG $(eval echo "$cmdline")
