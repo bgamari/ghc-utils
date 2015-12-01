@@ -159,8 +159,9 @@ EOF
 }
 
 function testsuite() {
+    cd ghc-$ver
     log "running testsuite"
-    make test NTHREADS=$NTHREADS 2>&1 | tee $root/testsuite.log
+    make test THREADS=$NTHREADS 2>&1 | tee $root/testsuite.log
 }
 
 function test_install() {
