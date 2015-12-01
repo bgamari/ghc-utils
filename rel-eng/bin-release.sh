@@ -165,21 +165,21 @@ function testsuite() {
 }
 
 function test_install() {
-    rm -Rf test
-    mkdir test
+    rm -Rf $root/test
+    mkdir $root/test
     tar -jx -C test -f $root/ghc-$ver/ghc-$ver-*.tar.bz2
-    cd test/ghc-$ver
+    cd $root/test/ghc-$ver
     log "configuring test rebuild"
-    test_root=$(pwd)/../inst
-    ./configure --prefix=$test_root $configure_opts | tee ../test-rebuild
+    test_root=$root/test/inst
+    ./configure --prefix=$test_root $configure_opts | tee $root/test-rebuild.log
     log "installing test rebuild"
-    make install
+    make install | tee $root/test-install.log
 
-    cat > ../hi.hs <<-EOF
+    cat > $root/test/hi.hs <<-EOF
 main = print "hello world!"
 EOF
-    $test_root/bin/ghc ../hi.hs
-    ../hi
+    $test_root/bin/ghc $root/test/hi.hs
+    $root/test/hi
 
     log "test rebuild successful; things look good."
 }
