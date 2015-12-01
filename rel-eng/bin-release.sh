@@ -141,10 +141,13 @@ EOF
             ;;
     esac
 
-    if ! which dblatex; then
-        log "dblatex not available"
-        # dblatex is unavailable on CentOS yet GHC is quite bad at realizing this
+    if which dblatex; then
         echo 'BUILD_DOCBOOK_PDF=YES' >> mk/build.mk
+        log "dblatex is available"
+    else
+        # dblatex is unavailable on CentOS yet GHC is quite bad at realizing this
+        echo 'BUILD_DOCBOOK_PDF=NO' >> mk/build.mk
+        log "dblatex not available"
     fi
 
     log "Bootstrap GHC at $(which ghc)"
