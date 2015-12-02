@@ -198,7 +198,7 @@ if [ -z "$ver" ]; then
    exit 1
 fi
 
-root="$(pwd)/bin-dist-$ver"
+root="$(pwd)/bin-dist-$ver-$(uname)"
 bin_dir="$root/bin"
 mkdir -p $root $root/bin
 PATH="$bin_dir:$PATH"
