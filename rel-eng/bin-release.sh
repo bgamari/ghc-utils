@@ -168,6 +168,10 @@ function testsuite() {
 }
 
 function test_install() {
+    if uname | grep -q MINGW; then
+        log "No installation test on Windows"
+        return;
+    fi
     rm -Rf $root/test
     mkdir $root/test
     tar -jx -C test -f $root/ghc-$ver/ghc-$ver-*.tar.bz2
@@ -208,7 +212,7 @@ echo >> $log
 log "invoked with: $args"
 setup_env
 
-cd bin-dist-$ver
+cd $root
 
 if [ $# == 0 ]; then
     fetch
