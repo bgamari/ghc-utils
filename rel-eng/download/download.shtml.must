@@ -64,7 +64,7 @@
 <div class="section" id="binaries">
     <h2>Binary Packages</h2>
 
-    <p>The operating system-specific packages (e.g. RPM or `.deb` packages on
+    <p>The operating system-specific packages (e.g. RPM or <tt>.deb</tt> packages on
     Linux) are generally a better bet than the vanilla <tt>.tar.bz2</tt> binary
     bundles, because they will check for dependencies and allow the package to
     be uninstalled at a later date.</p>
@@ -87,11 +87,6 @@
         <li><a href="#windows">Windows 2000 or later (x86)</a></li>
         <li><a href="#windows64">Windows 64-bit (x86_64)</a></li>
         <li><a href="#macosx_x86_64">Mac OS X (x86_64)</a></li>
-        <li><a href="#freebsd">FreeBSD (x86)</a></li>
-        <li><a href="#freebsd_x86_64">FreeBSD (x86_64)</a></li>
-        <li><a href="#solaris11">Solaris 11 (x86)</a></li>
-        <li><a href="#solaris11_x86_64">Solaris 11 (x86_64)</a></li>
-        <li><a href="#solaris11_sparc">Solaris 11 (SPARC)</a></li>
         </ul>
     </div>
 
@@ -114,7 +109,7 @@
             <p>
             Generic i386 Linux. This is a complete build, including
             interactive system, profiling libraries and documentation. It was
-            made on a Debian 8 "jessie" system and requires
+            made on a Debian 8 "Jessie" system and requires
             <code>libgmp.so.10</code> (typically GMP 5.x).
             </p>
             {{#tarballs}}i386-deb8-linux{{/tarballs}}
@@ -144,7 +139,7 @@
         <li>
         Generic amd64 Linux. This is a complete build, including
         interactive system, profiling libraries and documentation. It was
-        made on a Debian 8 "jessie" system and requires
+        made on a Debian 8 "Jessie" system and requires
         <code>libgmp.so.10</code> (typically GMP 5.x).
         {{#tarballs}}x86_64-deb8-linux{{/tarballs}}
         </li>
