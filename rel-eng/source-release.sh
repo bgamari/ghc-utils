@@ -9,4 +9,5 @@ find -iname '*.o' -delete
 find -iname '*.hi' -delete
 find -iname '*.dyn_hi' -delete
 find -iname '*.dyn_o' -delete
+git clean -fxd testsuite/tests
 make sdist
