@@ -15,7 +15,7 @@
 
 <!--#include file="ghc-std.shtml" -->
 
-<h1>Version 7.10.2 (released 29<sup>th</sup> July 2015)</h1>
+<h1>Version 7.10.3 (released 8<sup>th</sup> December 2015)</h1>
 
 <div class="box">
     <h1>Take Notice</h1>
@@ -105,19 +105,19 @@
             <p>
             Generic i386 Linux. This is a complete build, including
             interactive system, profiling libraries and documentation. It was
-            made on a CentOS 6.6 system and requires
+            made on a CentOS 6.7 system and requires
             <code>libgmp.so.3</code> (typically GMP 4.x).
             </p>
-            {{#tarballs}}i386-unknown-linux-centos66{{/tarballs}}
+            {{#tarballs}}i386-centos67-linux{{/tarballs}}
         </li>
         <li>
             <p>
             Generic i386 Linux. This is a complete build, including
             interactive system, profiling libraries and documentation. It was
-            made on a Debian 7 "wheezy" system and requires
+            made on a Debian 8 "jessie" system and requires
             <code>libgmp.so.10</code> (typically GMP 5.x).
             </p>
-            {{#tarballs}}i386-unknown-linux-deb7{{/tarballs}}
+            {{#tarballs}}i386-deb8-linux{{/tarballs}}
         </li>
         </ul>
 
@@ -137,16 +137,16 @@
         <li>
         Generic amd64 Linux. This is a complete build, including
         interactive system, profiling libraries and documentation. It was
-        made on a CentOS 6.6 system and requires
+        made on a CentOS 6.7 system and requires
         <code>libgmp.so.3</code> (typically GMP 4.x).
-        {{#tarballs}}x86_64-unknown-linux-centos66{{/tarballs}}
+        {{#tarballs}}x86_64-centos67-linux{{/tarballs}}
         </li>
         <li>
         Generic amd64 Linux. This is a complete build, including
         interactive system, profiling libraries and documentation. It was
-        made on a Debian 7 "wheezy" system and requires
+        made on a Debian 8 "jessie" system and requires
         <code>libgmp.so.10</code> (typically GMP 5.x).
-        {{#tarballs}}x86_64-unknown-linux-deb7{{/tarballs}}
+        {{#tarballs}}x86_64-deb8-linux{{/tarballs}}
         </li>
         </ul>
 
@@ -161,7 +161,7 @@
 
     <div class="section" id="linux_armv7">
         <h3>Linux (ARMv7)</h3>
-        {{#tarballs}}arm-unknown-linux{{/tarballs}}
+        {{#tarballs}}armv7-deb8-linux{{/tarballs}}
         <p>
           Note: These builds were prepared on Debian Jessie. Note that ARM
           support is still a bit experimental. This build is intended for use
@@ -169,7 +169,7 @@
           (<a href="https://packages.debian.org/jessie/llvm">available</a> in
           Debian Jessie). Due
           to <a href="https://sourceware.org/bugzilla/show_bug.cgi?id=16177">bugs</a>
-          in BFD ld it is necessary to use the <code>gold</code> linker.
+          in BFD <code>ld</code> it is necessary to use the <code>gold</code> linker.
         </p>
     </div>
 
@@ -198,81 +198,6 @@
             requires the command line tools package of Xcode 4 or XCode 5 to be installed.
             You can find Xcode at
             <a href="http://developer.apple.com/">http://developer.apple.com/</a>.
-        </p>
-    </div>
-
-    <div class="section" id="freebsd">
-        <h3><a name="freebsd"></a>FreeBSD (x86)</h3>
-        <p>
-            <a href="mailto:pgj@FreeBSD.org">Páli Gábor János</a>
-            has provided binary distribution tarballs for FreeBSD.
-            These are complete builds, including interactive system, profiling
-            libraries and documentation.
-        </p>
-        {{#tarballs}}i386-portbld-freebsd{{/tarballs}}
-        <p>
-        Note: These are not the same as the <code>lang/ghc</code> port. See the
-        <a href="{{download_url}}/README.freebsd.html">README</a> for more information.
-        </p>
-    </div>
-
-    <div class="section" id="freebsd_x86_64">
-        <h3><a name="freebsd_x86_64"></a>FreeBSD (x86_64)</h3>
-        <p>
-            <a href="mailto:pgj@FreeBSD.org">Páli Gábor János</a>
-            has provided binary distribution tarballs for FreeBSD.
-            These are complete builds, including interactive system, profiling
-            libraries and documentation.
-        </p>
-        {{#tarballs}}x86_64-portbld-freebsd{{/tarballs}}
-        <p>
-        Note: These are not the same as the <code>lang/ghc</code> port. See the
-        <a href="{{download_url}}/README.freebsd.html">README</a> for more
-        information.
-        </p>
-    </div>
-
-    <div class="section" id="solaris11">
-        <h3>Solaris 11 (x86)</h3>
-        <p>
-            <a href="mailto:karel.gardas@centrum.cz">Karel Gardas</a>
-            has provided x86 Solaris 11 binaries.
-        </p>
-        {{#tarballs}}i386-unknown-solaris2.11{{/tarballs}}
-        <p>
-        Note: Solaris 2.11/i386 binary distribution supports shared libraries
-        and uses system provided GMP and FFI libraries. If you do not have
-        them installed you need to do this by using "pkg install library/gmp"
-        and "pkg install library/libffi" commands.
-        </p>
-    </div>
-
-    <div class="section" id="solaris11_x86_64">
-        <h3>Solaris 11 (x86_64)</h3>
-        <p>
-            <a href="mailto:karel.gardas@centrum.cz">Karel Gardas</a>
-            has provided x86 Solaris 11 binaries.
-        </p>
-        {{#tarballs}}x86_64-unknown-solaris2.11{{/tarballs}}
-        <p>
-        Note: Solaris 2.11/x86_64 binary distribution supports shared libraries
-        and uses system provided GMP and FFI libraries. If you do not have
-        them installed you need to do this by using "pkg install library/gmp"
-        and "pkg install library/libffi" commands.
-        </p>
-    </div>
-
-    <div class="section" id="solaris11_sparc">
-        <h3>Solaris 11 (SPARC)</h3>
-        <p>
-            <a href="mailto:karel.gardas@centrum.cz">Karel Gardas</a>
-            has provided SPARC Solaris 11 binaries.
-        </p>
-        {{#tarballs}}sparc-sun-solaris2.11{{/tarballs}}
-        <p>
-        Note: Solaris 11 binary distribution supports shared libraries and uses 
-        system provided GMP library. If you do not have it installed you need to 
-        do this by using the <code>pkg install library/gmp</code> command.
         </p>
     </div>
 </div>
