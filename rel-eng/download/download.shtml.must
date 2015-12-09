@@ -40,7 +40,7 @@
 <h2>Contents</h2>
 
 <ul>
-	<li><a href="{{download_url}}/docs/html/users_guide/release-7-10-2.html">Release Notes</a></li>
+  <li><a href="{{download_url}}/docs/html/users_guide/release-7-10-3.html">Release Notes</a></li>
 	<li><a href="{{download_url}}/docs/html/">Documentation</a></li>
   <li><a href="#distros">Distribution packages</a></li>
   <li><a href="#binaries">Binary packages</a></li>
