@@ -60,8 +60,9 @@ if [ -z "$rel_name" ]; then
 fi
 
 function gen_hashes() {
-    sha1sum *.bz2 *.xz >| SHA1SUMS
-    sha256sum *.bz2 *.xz >| SHA256SUMS
+    hash_files="*bz2 *.xz *.patch"
+    sha1sum $hash_files >| SHA1SUMS
+    sha256sum $hash_files >| SHA256SUMS
     for i in SHA1SUMS SHA256SUMS; do
         gpg --detach-sign --local-user="$signing_key" $i
     done
