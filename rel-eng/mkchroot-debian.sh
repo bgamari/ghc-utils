@@ -3,7 +3,7 @@
 # setup a debootstrap-based debian chroot
 
 function usage() {
-    echo "Usage: ARCH=[i386|amd64] $0 [dest]"
+    echo "Usage: ARCH=[i386|amd64] DIST=[jessie|wheezy] $0 [dest]"
 }
 
 case $ARCH in
@@ -25,9 +25,11 @@ esac
 dest=$1
 real_dest=$(realpath $dest)
 user=$(id -un)
+dist="$DIST"
+if [ -z "$dist" ]; then dist="jessie"; fi
 
 mkdir $dest
-sudo debootstrap --arch=$arch jessie $dest http://http.debian.net/debian/
+sudo debootstrap --arch=$arch $dist $dest http://http.debian.net/debian/
 sudo chown $user $dest
 
 cat >$dest/activate-root <<EOF
