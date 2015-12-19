@@ -93,17 +93,14 @@ function prepare() {
         cabal install --reinstall --bindir=$bin_dir hscolour
     fi
 
-    if [ -d ghc-$ver ]; then
+    if [ -d ghc ]; then
         log "Using existing tree"
     else
         tar -jxf ghc-$ver-src.tar.bz2
         tar -jxf ghc-$ver-testsuite.tar.bz2
 
-        # In the case of rc tarballs the source directory name may not match $ver
         root_dir="$(basename $(tar -jtf ghc-$ver-src.tar.bz2 | head -n1))"
-        if [ "$root_dir" != "ghc-$ver" ]; then
-            mv $root_dir ghc-$ver
-        fi
+        mv $root_dir ghc
     fi
 }
 
@@ -127,7 +124,7 @@ function do_build() {
         NTHREADS=1
     fi
 
-    cd ghc-$ver
+    cd ghc
     cat > mk/build.mk <<EOF
 V=1
 HADDOCK_DOCS=YES
@@ -164,7 +161,7 @@ EOF
 }
 
 function testsuite() {
-    cd ghc-$ver
+    cd ghc
     log "running testsuite"
     make test THREADS=$NTHREADS 2>&1 | tee $root/testsuite.log
 }
@@ -176,8 +173,8 @@ function test_install() {
     fi
     rm -Rf $root/test
     mkdir $root/test
-    tar -C test -jxf $root/ghc-$ver/ghc-*.tar.bz2
-    cd $root/test/ghc-$ver
+    tar -C test -jxf $root/ghc/ghc-*.tar.bz2
+    cd $root/test/ghc*
     log "configuring test rebuild"
     test_root=$root/test/inst
     ./configure --prefix=$test_root $configure_opts | tee $root/test-rebuild.log
@@ -196,7 +193,7 @@ EOF
 function upload() {
     upload_dir="ben@home.smart-cactus.org:public_html/ghc/release-prep/$rel_name"
     log "Uploading to $upload_dir"
-    scp $root/ghc-$ver/ghc-$ver-*.tar.bz2 $upload_dir
+    scp $root/ghc/ghc-*.tar.bz2 $upload_dir
 }
 
 if [ -z "$ver" ]; then
