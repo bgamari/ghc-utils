@@ -5,7 +5,7 @@
 ghc_ver="7.8.4"
 
 sudo apt-get update
-sudo apt-get install -y vim build-essential cabal-install ghc happy mosh tmux git autoconf htop fakeroot curl
+sudo apt-get install -y vim build-essential cabal-install ghc happy mosh tmux git autoconf htop fakeroot curl zlib1g-dev
 sudo apt-get build-dep -y ghc
 
 if false; then
