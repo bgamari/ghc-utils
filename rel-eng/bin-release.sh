@@ -192,11 +192,11 @@ EOF
 
 function upload() {
     upload_dir="ben@home.smart-cactus.org:public_html/ghc/release-prep/$rel_name"
-    log "Uploading to $upload_dir"
     eval $(make -C $root/ghc show VALUE=ProjectVersion | grep ^ProjectVersion)
     tarball="$(ls $root/ghc/ghc-*.tar.bz2)"
-    dest_tarball="$(basename $tarball | sed "s/$ProjectVersion/$ver/")"
-    scp $tarball $upload_dir/$dest_tarball
+    dest_tarball="$upload_dir/$(basename $tarball | sed "s/$ProjectVersion/$ver/")"
+    log "Uploading to $dest_tarball"
+    scp $tarball $dest_tarball
 }
 
 if [ -z "$ver" ]; then
