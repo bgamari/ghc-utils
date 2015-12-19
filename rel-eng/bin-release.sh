@@ -24,6 +24,8 @@ where [action] may be one of,
   upload         upload to staging directory
 
 Relevant environment variables:
+  ver            the version of the source release (e.g. 7.10.2.20151105 or 7.10.2)
+  rel_name       the official name of the release used to identify its download directory (e.g. 7.10.2, 7.10.2, or 7.10.3-rc2)
   NTHREADS       Number of CPUs to use
   CONFIGURE_OPTS Other options to pass to `configure`
                  On Windows these will be helpful
@@ -174,7 +176,7 @@ function test_install() {
     fi
     rm -Rf $root/test
     mkdir $root/test
-    tar -jx -C test -f $root/ghc-$ver/ghc-$ver-*.tar.bz2
+    tar -C test -jxf $root/ghc-$ver/ghc-*.tar.bz2
     cd $root/test/ghc-$ver
     log "configuring test rebuild"
     test_root=$root/test/inst
