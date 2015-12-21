@@ -2,15 +2,21 @@
 
 branch=$(git rev-parse --abbrev-ref HEAD)
 utils=$(dirname $(realpath $0))
+
 for i in $@; do
+        echo
+        echo "Landing $i..."
         base=$(git rev-parse HEAD)
         git reset --hard
         git clean -f
-        arc patch --skip-dependencies --nobranch $i || (
+        arc patch --skip-dependencies $i || (
             echo
             echo "Resolve the issue and commit or `exit 1`."
             PS1="resolve $ " bash --norc -i
         )
+        commit=$(git rev-parse HEAD)
+        git checkout $branch
+        git cherry-pick $commit
         git filter-branch -f --msg-filter "grep -v 'Summary:' | fold -s -w72" $base..$branch
         git checkout $base .gitmodules
         git commit --amend .gitmodules
@@ -21,5 +27,3 @@ for i in $@; do
         echo "Landed $i"
         git diff --stat $base..$branch
 done
-
-
