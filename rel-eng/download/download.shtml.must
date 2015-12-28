@@ -81,8 +81,8 @@
         <p>Supported platforms:</p>
 
         <ul>
-        <li><a href="#x86linux">Linux (x86)</a></li>
-        <li><a href="#x86_64linux">Linux (x86_64)</a></li>
+        <li><a href="#linux_i386">Linux (x86)</a></li>
+        <li><a href="#linux_x86_64">Linux (x86_64)</a></li>
         <li><a href="#linux_armv7">Linux (ARMv7)</a></li>
         <li><a href="#windows">Windows 2000 or later (x86)</a></li>
         <li><a href="#windows64">Windows 64-bit (x86_64)</a></li>
@@ -92,20 +92,11 @@
 
     <h2>Supported platforms</h2>
 
-    <div class="section" id="x86linux">
+    <div class="section" id="linux_i386">
         <h3>Linux (x86)</h3>
 
-        <ul>
-        <li>
-            <p>
-            Generic i386 Linux. This is a complete build, including
-            interactive system, profiling libraries and documentation. It was
-            made on a CentOS 6.7 system and requires
-            <code>libgmp.so.3</code> (typically GMP 4.x).
-            </p>
-            {{#tarballs}}i386-centos67-linux{{/tarballs}}
-        </li>
-        <li>
+        <div>
+            <h4>Debian 8</h4>
             <p>
             Generic i386 Linux. This is a complete build, including
             interactive system, profiling libraries and documentation. It was
@@ -113,8 +104,29 @@
             <code>libgmp.so.10</code> (typically GMP 5.x).
             </p>
             {{#tarballs}}i386-deb8-linux{{/tarballs}}
-        </li>
-        </ul>
+        </div>
+
+        <div>
+            <h4>Debian 7</h4>
+            <p>
+            Generic i386 Linux. This is a complete build, including
+            interactive system, profiling libraries and documentation. It was
+            made on a Debian 7 "Wheezy" system and requires
+            <code>libgmp.so.10</code> (typically GMP 5.x).
+            </p>
+            {{#tarballs}}i386-deb7-linux{{/tarballs}}
+        </div>
+
+        <div>
+            <h4>Centos 6.7</h4>
+            <p>
+            Generic i386 Linux. This is a complete build, including
+            interactive system, profiling libraries and documentation. It was
+            made on a CentOS 6.7 system and requires
+            <code>libgmp.so.3</code> (typically GMP 4.x).
+            </p>
+            {{#tarballs}}i386-centos67-linux{{/tarballs}}
+        </div>
 
         <p>
             Note: If you have too old a version of libc, then you will get an
@@ -125,25 +137,40 @@
         </p>
     </div>
 
-    <div class="section" id="x86_64linux">
+    <div class="section" id="linux_x86_64">
         <h3>Linux (x86_64)</h3>
 
-        <ul>
-        <li>
-        Generic amd64 Linux. This is a complete build, including
-        interactive system, profiling libraries and documentation. It was
-        made on a CentOS 6.7 system and requires
-        <code>libgmp.so.3</code> (typically GMP 4.x).
-        {{#tarballs}}x86_64-centos67-linux{{/tarballs}}
-        </li>
-        <li>
-        Generic amd64 Linux. This is a complete build, including
-        interactive system, profiling libraries and documentation. It was
-        made on a Debian 8 "Jessie" system and requires
-        <code>libgmp.so.10</code> (typically GMP 5.x).
-        {{#tarballs}}x86_64-deb8-linux{{/tarballs}}
-        </li>
-        </ul>
+        <div>
+          <h4>Debian 8</h4>
+          <p>
+            Generic amd64 Linux. This is a complete build, including
+            interactive system, profiling libraries and documentation. It was
+            made on a Debian 8 "Jessie" system and requires
+            <code>libgmp.so.10</code> (typically GMP 5.x).
+            {{#tarballs}}x86_64-deb8-linux{{/tarballs}}
+          </p>
+        </div>
+
+        <div>
+          <h4>Debian 7</h4>
+          <p>
+            Generic amd64 Linux. This is a complete build, including
+            interactive system, profiling libraries and documentation. It was
+            made on a Debian 7 "Wheezy" system and requires
+            <code>libgmp.so.10</code> (typically GMP 5.x).
+            {{#tarballs}}x86_64-deb7-linux{{/tarballs}}
+          </p>
+        </div>
+
+        <div>
+          <h4>Centos 6.7</h4>
+          <p>
+            Generic amd64 Linux. This is a complete build, including interactive
+            system, profiling libraries and documentation. It was made on a CentOS
+            6.7 system and requires
+            <code>libgmp.so.3</code> (typically GMP 4.x).
+            {{#tarballs}}x86_64-centos67-linux{{/tarballs}}
+        </div>
 
         <p>
         Note: If you have too old a version of libc, then you will get an
@@ -172,7 +199,7 @@
         <h3>Windows (x86)</h3>
         {{#tarballs}}i386-unknown-mingw32{{/tarballs}}
         <p>
-        This is a complete build, and should work for Microsoft Windows 2000
+        This is a complete build, and should work for Microsoft Windows XP
         or later. It also includes support for compiling C++ files.
         </p>
     </div>
@@ -194,6 +221,18 @@
             You can find Xcode at
             <a href="http://developer.apple.com/">http://developer.apple.com/</a>.
         </p>
+    </div>
+
+    <div class="section" id="freebsd_x86_64">
+        <h3>FreeBSD (x86_64)</h3>
+        {{#tarballs}}x86_64-portbld-freebsd{{/tarballs}}
+        <p> See the <a href="README-freebsd.html">FreeBSD readme</a> for details. </p>
+    </div>
+
+    <div class="section" id="freebsd_i386">
+        <h3>FreeBSD (i386)</h3>
+        {{#tarballs}}i386-portbld-freebsd{{/tarballs}}
+        <p> See the <a href="README-freebsd.html">FreeBSD readme</a> for details. </p>
     </div>
 </div>
 
