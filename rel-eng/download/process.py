@@ -47,8 +47,8 @@ def handle_tarballs(text):
             size = os.stat(path).st_size
             size = '%d MB' % (size / 1024 / 1024)
 
-        used_files.union(paths)
-        logging.debug('Saw %s' % paths)
+            used_files.update(map(os.path.basename, paths))
+            logging.debug('Saw %s' % ', '.join(map(os.path.basename, paths)))
 
         accum += '<li><a href="{root_url}/{fname}">{fname}</a> ({size})</li>\n'.format(
             root_url=download_url, fname=fname, size=size)
