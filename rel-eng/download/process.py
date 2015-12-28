@@ -32,16 +32,23 @@ def handle_tarballs(text):
     suffix = text
     accum = '<ul>\n'
     for ext in extensions:
-        fname = 'ghc-{ver}-{suffix}.{ext}'.format(ver=version, suffix=suffix, ext=ext)
-        path = os.path.join(tarball_dir, fname)
-        if not os.path.isfile(path):
+        # Here we look at all patch levels of the desired version
+        pattern = 'ghc-{ver}*-{suffix}.{ext}'.format(ver=version, suffix=suffix, ext=ext)
+        paths = glob(os.path.join(tarball_dir, pattern))
+
+        if len(paths) == 0:
             logging.error("Couldn't find %s" % path)
             size = 'unknown size'
+            fname = 'unknown'
         else:
+            # Here we take just the latest one
+            path = sorted(paths)[-1]
+            fname = os.path.basename(path)
             size = os.stat(path).st_size
             size = '%d MB' % (size / 1024 / 1024)
-            used_files.add(fname)
-            logging.debug('Saw %s' % fname)
+
+        used_files.union(paths)
+        logging.debug('Saw %s' % paths)
 
         accum += '<li><a href="{root_url}/{fname}">{fname}</a> ({size})</li>\n'.format(
             root_url=download_url, fname=fname, size=size)
