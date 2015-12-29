@@ -226,13 +226,13 @@
     <div class="section" id="freebsd_x86_64">
         <h3>FreeBSD (x86_64)</h3>
         {{#tarballs}}x86_64-portbld-freebsd{{/tarballs}}
-        <p> See the <a href="README-freebsd.html">FreeBSD readme</a> for details. </p>
+        <p> See the <a href="{{download_url}}/README-freebsd.html">FreeBSD readme</a> for details. </p>
     </div>
 
     <div class="section" id="freebsd_i386">
         <h3>FreeBSD (i386)</h3>
         {{#tarballs}}i386-portbld-freebsd{{/tarballs}}
-        <p> See the <a href="README-freebsd.html">FreeBSD readme</a> for details. </p>
+        <p> See the <a href="{{download_url}}/README-freebsd.html">FreeBSD readme</a> for details. </p>
     </div>
 </div>
 
