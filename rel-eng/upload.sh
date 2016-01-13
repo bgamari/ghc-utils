@@ -61,14 +61,14 @@ fi
 
 function gen_hashes() {
     hash_files="*bz2 *.xz *.patch"
-    for i in $hash_files; do
-        gpg --detach-sign --local-user="$signing_key" $i
-    done
+    # Kill DISPLAY lest pinentry won't work
+    DISPLAY=
+    eval $(gpg-agent --daemon)
     sha1sum $hash_files >| SHA1SUMS
     sha256sum $hash_files >| SHA256SUMS
-    for i in SHA1SUMS SHA256SUMS; do
+    for i in $hash_files SHA1SUMS SHA256SUMS; do
         rm -f $i.sig
-        gpg --detach-sign --local-user="$signing_key" $i
+        gpg --use-agent --detach-sign --local-user="$signing_key" $i
     done
 }
 
