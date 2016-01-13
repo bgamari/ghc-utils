@@ -60,7 +60,7 @@ if [ -z "$rel_name" ]; then
 fi
 
 function gen_hashes() {
-    hash_files="*bz2 *.xz *.patch"
+    hash_files="$(find -iname '*.bz2') $(find -iname '*.xz') $(find -iname '*.patch')"
     # Kill DISPLAY lest pinentry won't work
     DISPLAY=
     eval $(gpg-agent --daemon)
