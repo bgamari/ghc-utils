@@ -67,6 +67,10 @@ function gen_hashes() {
     sha1sum $hash_files >| SHA1SUMS
     sha256sum $hash_files >| SHA256SUMS
     for i in $hash_files SHA1SUMS SHA256SUMS; do
+        if [ -e $i -a $i -nt $i.sig ]; then
+            echo "Skipping hash of $i"
+            continue
+        fi
         rm -f $i.sig
         gpg --use-agent --detach-sign --local-user="$signing_key" $i
     done
