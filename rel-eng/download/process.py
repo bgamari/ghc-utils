@@ -61,7 +61,7 @@ context = {
     'download_url': download_url,
     'ver': version,
 }
-template = open('download.shtml.must').read().decode('utf8')
+template = open('download-{ver}.shtml.must'.format(ver=version)).read().decode('utf8')
 with open('download_ghc_%s.shtml' % (version.replace('.', '_')), 'w') as f:
     f.write(pystache.render(template, context).encode('utf-8'))
 
