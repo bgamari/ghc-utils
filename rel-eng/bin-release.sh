@@ -136,7 +136,7 @@ EOF
     case $(uname) in
         Darwin)
             log "using in-tree GMP"
-            echo 'libraries/integer-gmp2_CONFIGURE_OPTS += --configure-option=--with-intree-gmp' >> mk/build.mk
+            echo 'libraries/integer-gmp_CONFIGURE_OPTS += --configure-option=--with-intree-gmp' >> mk/build.mk
             ;;
     esac
 

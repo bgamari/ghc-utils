@@ -11,7 +11,7 @@ git clean -dxf
 mk/get-win32-tarballs.sh download all
 ./boot
 ./configure
-make $@
+# make $@ # only GHC <= 7.10
 
 find -iname '*.o' -delete
 find -iname '*.hi' -delete

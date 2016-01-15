@@ -33,7 +33,7 @@ def handle_tarballs(text):
     accum = '<ul>\n'
     for ext in extensions:
         # Here we look at all patch levels of the desired version
-        pattern = 'ghc-{ver}*-{suffix}.{ext}'.format(ver=version, suffix=suffix, ext=ext)
+        pattern = 'ghc-{ver}[!-]-{suffix}.{ext}'.format(ver=version, suffix=suffix, ext=ext)
         paths = glob(os.path.join(tarball_dir, pattern))
 
         if len(paths) == 0:
@@ -61,7 +61,7 @@ context = {
     'download_url': download_url,
     'ver': version,
 }
-template = open('download.shtml.must').read().decode('utf8')
+template = open('download-{ver}.shtml.must'.format(ver=version)).read().decode('utf8')
 with open('download_ghc_%s.shtml' % (version.replace('.', '_')), 'w') as f:
     f.write(pystache.render(template, context).encode('utf-8'))
 
