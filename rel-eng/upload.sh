@@ -91,7 +91,7 @@ function prepare_docs() {
         exit 1
     fi
     windows_bindist="$(ls ghc-$ver-x86_64-unknown-mingw*.tar.bz2 | head -n1)"
-    linux_bindist="$(ls ghc-$ver-x86_64-unknown-linux-*.tar.bz2 | head -n1)"
+    linux_bindist="$(ls ghc-$ver-x86_64-*deb8*.tar.bz2 | head -n1)"
     $mkdocs $linux_bindist $windows_bindist
 
     mkdir -p docs/html
