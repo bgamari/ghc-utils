@@ -35,9 +35,11 @@ def handle_tarballs(text):
         # Here we look at all patch levels of the desired version
         pattern = 'ghc-{ver}[!-]-{suffix}.{ext}'.format(ver=version, suffix=suffix, ext=ext)
         paths = glob(os.path.join(tarball_dir, pattern))
+        pattern = 'ghc-{ver}-{suffix}.{ext}'.format(ver=version, suffix=suffix, ext=ext)
+        paths += glob(os.path.join(tarball_dir, pattern))
 
         if len(paths) == 0:
-            logging.error("Couldn't find %s" % path)
+            logging.error("Couldn't find %s" % suffix)
             size = 'unknown size'
             fname = 'unknown'
         else:
