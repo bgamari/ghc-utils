@@ -40,8 +40,10 @@ usage() {
     echo
     echo "where,"
     echo "  ghc-tree           gives the location of GHC source tree"
-    echo "  ver                gives the official version number (e.g. the name of the tarballs)"
-    echo "  rel_name           gives the version name (e.g. in the case of a release candidate, 7.10.3-rc2)"
+    echo "  ver                gives the version number (e.g. the name of the tarballs, in the case of"
+    echo "                     a release candidate something like 7.10.3.20150820, otherwise just 7.10.3)"
+    echo "  rel_name           gives the release name (e.g. in the case of a release candidate 7.10.3-rc2"
+    echo "                     otherwise just 7.10.3)"
     echo "and <action> is one of,"
     echo "  [nothing]          do everything below"
     echo "  compress_to_xz     produce xz tarballs from bzip2 tarballs"
@@ -60,7 +62,7 @@ if [ -z "$rel_name" ]; then
 fi
 
 function gen_hashes() {
-    hash_files="*bz2 *.xz *.patch"
+    hash_files="$(find -iname '*.bz2') $(find -iname '*.xz') $(find -iname '*.patch')"
     # Kill DISPLAY lest pinentry won't work
     DISPLAY=
     eval $(gpg-agent --daemon)
@@ -93,7 +95,7 @@ function prepare_docs() {
         exit 1
     fi
     windows_bindist="$(ls ghc-$ver-x86_64-unknown-mingw*.tar.bz2 | head -n1)"
-    linux_bindist="$(ls ghc-$ver-x86_64-unknown-linux-*.tar.bz2 | head -n1)"
+    linux_bindist="$(ls ghc-$ver-x86_64-*deb8*.tar.bz2 | head -n1)"
     $mkdocs $linux_bindist $windows_bindist
 
     mkdir -p docs/html
