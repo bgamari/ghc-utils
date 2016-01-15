@@ -63,16 +63,21 @@ fi
 
 function gen_hashes() {
     hash_files="$(find -iname '*.bz2') $(find -iname '*.xz') $(find -iname '*.patch')"
+
+    echo -n "Hashing..."
+    sha1sum $hash_files >| SHA1SUMS
+    sha256sum $hash_files >| SHA256SUMS
+    echo "done"
+
     # Kill DISPLAY lest pinentry won't work
     DISPLAY=
     eval $(gpg-agent --daemon)
-    sha1sum $hash_files >| SHA1SUMS
-    sha256sum $hash_files >| SHA256SUMS
     for i in $hash_files SHA1SUMS SHA256SUMS; do
         if [ -e $i -a $i -nt $i.sig ]; then
             echo "Skipping hash of $i"
             continue
         fi
+        echo "Signing $i"
         rm -f $i.sig
         gpg --use-agent --detach-sign --local-user="$signing_key" $i
     done
