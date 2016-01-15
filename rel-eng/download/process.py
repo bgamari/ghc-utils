@@ -33,7 +33,7 @@ def handle_tarballs(text):
     accum = '<ul>\n'
     for ext in extensions:
         # Here we look at all patch levels of the desired version
-        pattern = 'ghc-{ver}*-{suffix}.{ext}'.format(ver=version, suffix=suffix, ext=ext)
+        pattern = 'ghc-{ver}[!-]-{suffix}.{ext}'.format(ver=version, suffix=suffix, ext=ext)
         paths = glob(os.path.join(tarball_dir, pattern))
 
         if len(paths) == 0:
