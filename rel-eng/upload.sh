@@ -73,8 +73,8 @@ function gen_hashes() {
     DISPLAY=
     eval $(gpg-agent --daemon)
     for i in $hash_files SHA1SUMS SHA256SUMS; do
-        if [ -e $i -a $i -nt $i.sig ]; then
-            echo "Skipping hash of $i"
+        if [ -e $i -a $i.sig -nt $i ]; then
+            echo "Skipping signing of $i"
             continue
         fi
         echo "Signing $i"
