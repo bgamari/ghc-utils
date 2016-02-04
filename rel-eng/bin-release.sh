@@ -96,10 +96,10 @@ function prepare() {
     if [ -d ghc ]; then
         log "Using existing tree"
     else
-        tar -jxf ghc-$ver-src.tar.xz
-        tar -jxf ghc-$ver-testsuite.tar.xz
+        tar -Jxf ghc-$ver-src.tar.xz
+        tar -Jxf ghc-$ver-testsuite.tar.xz
 
-        root_dir="$(basename $(tar -jtf ghc-$ver-src.tar.xz | head -n1))"
+        root_dir="$(basename $(tar -Jtf ghc-$ver-src.tar.xz | head -n1))"
         mv $root_dir ghc
     fi
 }
@@ -173,7 +173,7 @@ function test_install() {
     fi
     rm -Rf $root/test
     mkdir $root/test
-    tar -C test -jxf $root/ghc/ghc-*.tar.xz
+    tar -C test -Jxf $root/ghc/ghc-*.tar.xz
     cd $root/test/ghc*
     log "configuring test rebuild"
     test_root=$root/test/inst
