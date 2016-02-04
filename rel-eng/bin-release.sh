@@ -48,8 +48,8 @@ function fetch() {
         download_url="http://home.smart-cactus.org/~ben/ghc/release-prep"
     fi
     log "fetching tarballs from $download_url"
-    wget -N $download_url/$rel_name/ghc-$ver-src.tar.bz2
-    wget -N $download_url/$rel_name/ghc-$ver-testsuite.tar.bz2
+    wget -N $download_url/$rel_name/ghc-$ver-src.tar.xz
+    wget -N $download_url/$rel_name/ghc-$ver-testsuite.tar.xz
 }
 
 function setup_debian() {
@@ -96,10 +96,10 @@ function prepare() {
     if [ -d ghc ]; then
         log "Using existing tree"
     else
-        tar -jxf ghc-$ver-src.tar.bz2
-        tar -jxf ghc-$ver-testsuite.tar.bz2
+        tar -jxf ghc-$ver-src.tar.xz
+        tar -jxf ghc-$ver-testsuite.tar.xz
 
-        root_dir="$(basename $(tar -jtf ghc-$ver-src.tar.bz2 | head -n1))"
+        root_dir="$(basename $(tar -jtf ghc-$ver-src.tar.xz | head -n1))"
         mv $root_dir ghc
     fi
 }
@@ -173,7 +173,7 @@ function test_install() {
     fi
     rm -Rf $root/test
     mkdir $root/test
-    tar -C test -jxf $root/ghc/ghc-*.tar.bz2
+    tar -C test -jxf $root/ghc/ghc-*.tar.xz
     cd $root/test/ghc*
     log "configuring test rebuild"
     test_root=$root/test/inst
@@ -193,7 +193,7 @@ EOF
 function upload() {
     upload_dir="ben@home.smart-cactus.org:public_html/ghc/release-prep/$rel_name"
     eval $(make -C $root/ghc show VALUE=ProjectVersion | grep ^ProjectVersion)
-    tarball="$(ls $root/ghc/ghc-*.tar.bz2)"
+    tarball="$(ls $root/ghc/ghc-*.tar.xz)"
     dest_tarball="$upload_dir/$(basename $tarball | sed "s/$ProjectVersion/$ver/")"
     log "Uploading to $dest_tarball"
     scp $tarball $dest_tarball
