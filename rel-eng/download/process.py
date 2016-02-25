@@ -52,8 +52,11 @@ def handle_tarballs(text):
             used_files.update(map(os.path.basename, paths))
             logging.debug('Saw %s' % ', '.join(map(os.path.basename, paths)))
 
-        accum += '<li><a href="{root_url}/{fname}">{fname}</a> ({size})</li>\n'.format(
-            root_url=download_url, fname=fname, size=size)
+        accum += """
+            <li>
+              <a href="{root_url}/{fname}">{fname}</a>
+              ({size}, <a href="{root_url}/{fname}.sig">sig</a>)
+            </li>\n""".strip().format(root_url=download_url, fname=fname, size=size)
 
     accum += '</ul>\n'
     return accum
