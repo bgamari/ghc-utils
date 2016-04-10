@@ -88,6 +88,7 @@ function upload() {
     rsync --progress -az $rsync_opts . $host:public_html/$rel_name
     chmod ugo-w *.xz
     # Purge CDN cache
+    curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/
     curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/*
 }
 
