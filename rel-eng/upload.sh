@@ -86,7 +86,7 @@ function gen_hashes() {
 function upload() {
     chmod ugo+r,o-w -R .
     rsync --progress -az $rsync_opts . $host:public_html/$rel_name
-    chmod ugo-w *.xz *.bz2
+    chmod ugo-w *.xz
     # Purge CDN cache
     curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/*
 }
