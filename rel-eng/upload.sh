@@ -86,7 +86,7 @@ function gen_hashes() {
 function upload() {
     chmod ugo+r,o-w -R .
     rsync --progress -az $rsync_opts . $host:public_html/$rel_name
-    chmod ugo-w *.xz
+    chmod ugo-w $(ls *.xz *.bz2)
     # Purge CDN cache
     curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/
     curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/*
@@ -100,17 +100,17 @@ function prepare_docs() {
         echo "Perhaps you need to override ghc_tree?"
         exit 1
     fi
-    windows_bindist="$(ls ghc-$ver-x86_64-unknown-mingw*.tar.bz2 | head -n1)"
-    linux_bindist="$(ls ghc-$ver-x86_64-*deb8*.tar.bz2 | head -n1)"
+    windows_bindist="$(ls ghc-*-x86_64-unknown-mingw*.tar.xz | head -n1)"
+    linux_bindist="$(ls ghc-*-x86_64-*deb8*.tar.xz | head -n1)"
     $mkdocs $linux_bindist $windows_bindist
 
     mkdir -p docs/html
-    tar -jxf $linux_bindist
-    cp -R ghc-$ver/docs/users_guide/users_guide docs/html/users_guide
-    cp -R ghc-$ver/utils/haddock/doc/haddock docs/html/haddock
+    tar -Jxf $linux_bindist
+    cp -R ghc-$ver/docs/users_guide/build-html/users_guide docs/html/users_guide
+    #cp -R ghc-$ver/utils/haddock/doc/haddock docs/html/haddock
     rm -R ghc-$ver
 
-    tar -jxf docs/libraries.html.tar.bz2 -C docs/html
+    tar -Jxf docs/libraries.html.tar.xz -C docs/html
     mv docs/index.html docs/html
 }
 
