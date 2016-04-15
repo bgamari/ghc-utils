@@ -89,7 +89,9 @@ function upload() {
     chmod ugo-w $(ls *.xz *.bz2)
     # Purge CDN cache
     curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/
-    curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/*
+    for i in *; do
+        curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/$i
+    done
 }
 
 function prepare_docs() {
