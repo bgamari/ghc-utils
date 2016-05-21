@@ -79,7 +79,7 @@ function gen_hashes() {
         fi
         echo "Signing $i"
         rm -f $i.sig
-        gpg --use-agent --detach-sign --local-user="$signing_key" $i
+        gpg2 --use-agent --detach-sign --local-user="$signing_key" $i
     done
 }
 
