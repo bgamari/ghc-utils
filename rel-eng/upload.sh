@@ -83,7 +83,16 @@ function gen_hashes() {
     done
 }
 
+function verify() {
+    for i in *.sig; do
+        echo
+        echo Verifying $i
+        gpg --verify $i $(basename $i .sig)
+    done
+}
+
 function upload() {
+    verify
     chmod ugo+r,o-w -R .
     rsync --progress -az $rsync_opts . $host:public_html/$rel_name
     chmod ugo-w $(ls *.xz *.bz2)
