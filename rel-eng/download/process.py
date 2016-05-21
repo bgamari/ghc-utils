@@ -22,7 +22,7 @@ if download_url is None:
 
 logging.basicConfig(level=logging.DEBUG)
 
-extensions = ['tar.bz2', 'tar.xz']
+extensions = ['tar.xz']
 known_files = set(os.path.basename(path)
                   for ext in extensions
                   for path in glob(os.path.join(tarball_dir, '*.'+ext)))

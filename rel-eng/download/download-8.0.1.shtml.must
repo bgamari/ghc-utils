@@ -104,6 +104,7 @@
         <ul>
         <li><a href="#linux_i386">Linux (x86)</a></li>
         <li><a href="#linux_x86_64">Linux (x86_64)</a></li>
+        <li><a href="#linux_ppc64">Linux (PowerPC, 64-bit)</a></li>
         <li><a href="#linux_armv7">Linux (ARMv7)</a></li>
         <li><a href="#windows">Windows 2000 or later (x86)</a></li>
         <li><a href="#windows64">Windows 64-bit (x86_64)</a></li>
@@ -111,7 +112,7 @@
         <li><a href="#freebsd_x86_64">FreeBSD (x86_64)</a></li>
         <li><a href="#freebsd_i386">FreeBSD (x86)</a></li>
         <li><a href="#openbsd_x86_64">OpenBSD 5.9 (x86_64)</a></li>
-        <li><a href="#aix7_ppc">AIX 7 (PowerPC)</a></li>
+        <li><a href="#aix_ppc">AIX 7.1 (PowerPC)</a></li>
         <li><a href="#solaris_i386">Solaris 2.11 (x86)</a></li>
         <li><a href="#solaris_x86_64">Solaris 2.11 (x86_64)</a></li>
         <li><a href="#solaris_sparc">Solaris 2.11 (SPARC)</a></li>
@@ -209,6 +210,17 @@
         </p>
     </div>
 
+    <div class="section" id="linux_ppc64">
+        <h3>Linux (PowerPC, 64-bit)</h3>
+        {{#tarballs}}powerpc64-unknown-linux{{/tarballs}}
+        <p>
+          Note: Linux/PPC64 binary distribution supports big-endian PPC64 Linux
+          hosts. The distribution was built on Fedora 20 with system provided GMP
+          library.
+        </p>
+        <p>Produced by Karel Gardas.</p>
+    </div>
+
     <div class="section" id="linux_armv7">
         <h3>Linux (ARMv7)</h3>
         {{#tarballs}}armv7-deb8-linux{{/tarballs}}
@@ -230,8 +242,8 @@
         <h3>Windows (x86)</h3>
         {{#tarballs}}i386-unknown-mingw32{{/tarballs}}
         <p>
-        This is a complete build, and should work for Microsoft Windows XP
-        or later. It also includes support for compiling C++ files.
+          This is a complete build, and should work for Microsoft Windows XP
+          or later. It also includes support for compiling C++ files.
         </p>
     </div>
 
@@ -239,7 +251,7 @@
         <h3>Windows 64-bit (x86_64)</h3>
         {{#tarballs}}x86_64-unknown-mingw32{{/tarballs}}
         <p>
-        This is a complete build. It also includes support for compiling C++ files.
+          This is a complete build. It also includes support for compiling C++ files.
         </p>
     </div>
 
@@ -247,7 +259,7 @@
         <h3>Mac OS X (x86_64)</h3>
         {{#tarballs}}x86_64-apple-darwin{{/tarballs}}
         <p>
-            This is a bindist for Mac OS X, 10.7 or later. The package
+            This is a distribution for Mac OS X, 10.7 or later. The package
             requires the command line tools package of Xcode 4 or XCode 5 to be installed.
             You can find Xcode at
             <a href="http://developer.apple.com/">http://developer.apple.com/</a>.
@@ -258,7 +270,8 @@
         <h3>FreeBSD (x86_64)</h3>
         {{#tarballs}}x86_64-portbld-freebsd{{/tarballs}}
         <p>
-          See the <a href="{{download_url}}/README-freebsd.html">FreeBSD readme</a> for details.
+          Produced by Páli Gábor János.
+          See the <a href="{{download_url}}/README.freebsd.html">FreeBSD readme</a> for details.
         </p>
     </div>
 
@@ -266,33 +279,60 @@
         <h3>FreeBSD (i386)</h3>
         {{#tarballs}}i386-portbld-freebsd{{/tarballs}}
         <p>
-          See the <a href="{{download_url}}/README-freebsd.html">FreeBSD readme</a> for details.
+          Produced by Páli Gábor János.
+          See the <a href="{{download_url}}/README.freebsd.html">FreeBSD readme</a> for details.
         </p>
     </div>
 
     <div class="section" id="openbsd_x86_64">
-        <h3>OpenBSD 5.9 (SPARC)</h3>
+        <h3>OpenBSD 5.9 (x86_64)</h3>
         {{#tarballs}}x86_64-unknown-openbsd5.9{{/tarballs}}
+        <p>
+          Note: OpenBSD 5.9/x86_64 binary distribution supports shared libraries
+          and uses system (ports) provided GMP, ICONV and FFI libraries. If you do
+          not have them installed you need to do this by using the <tt>pkg_add gmp
+          libiconv libffi</tt> command.
+        </p>
+        <p>Produced by Karel Gardas.</p>
     </div>
 
-    <div class="section" id="aix7_ppc">
-        <h3>AIX 7 (PowerPC)</h3>
-        {{#tarballs}}powerpc-ibm-aix7{{/tarballs}}
+    <div class="section" id="aix_ppc">
+        <h3>AIX 7.1 (PowerPC)</h3>
+        {{#tarballs}}powerpc-ibm-aix7.1.0.0{{/tarballs}}
+        <p>Produced by Herbert Valerio Riedel.</p>
     </div>
 
     <div class="section" id="solaris_i386">
         <h3>Solaris 2.11 (i386)</h3>
-        {{#tarballs}}i386-sun-solaris2.11{{/tarballs}}
+        {{#tarballs}}i386-unknown-solaris2.11{{/tarballs}}
+        <p>
+          Note: Solaris 2.11/i386/x86_64/SPARC binary distribution supports shared
+          libraries and uses system provided GMP library. If you do not have it
+          installed you need to do this by using "pkg install library/gmp" command.
+        </p>
+        <p>Produced by Karel Gardas.</p>
     </div>
 
     <div class="section" id="solaris_x86_64">
         <h3>Solaris 2.11 (x86_64)</h3>
-        {{#tarballs}}x86_64-sun-solaris2.11{{/tarballs}}
+        {{#tarballs}}x86_64-unknown-solaris2.11{{/tarballs}}
+        <p>
+          Note: Solaris 2.11/i386/x86_64/SPARC binary distribution supports shared
+          libraries and uses system provided GMP library. If you do not have it
+          installed you need to do this by using "pkg install library/gmp" command.
+        </p>
+        <p>Produced by Karel Gardas.</p>
     </div>
 
     <div class="section" id="solaris_sparc">
         <h3>Solaris 2.11 (SPARC)</h3>
         {{#tarballs}}sparc-sun-solaris2.11{{/tarballs}}
+        <p>
+          Note: Solaris 2.11/i386/x86_64/SPARC binary distribution supports shared
+          libraries and uses system provided GMP library. If you do not have it
+          installed you need to do this by using "pkg install library/gmp" command.
+        </p>
+        <p>Produced by Karel Gardas.</p>
     </div>
 </div>
 
