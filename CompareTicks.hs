@@ -9,6 +9,7 @@ import Data.List (sortBy, transpose, intercalate)
 import Data.Char (isSpace)
 import Data.Monoid
 import Control.Applicative
+import qualified Options.Applicative as O
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Map as M
@@ -44,6 +45,7 @@ pprModuleName (ModName pkg name) = pkg<>":"<>name
 --         , name = "runCmdLine"
 --         , signature = "v rWL"
 --         , parent = Nothing
+--         }
 -- @
 --
 -- A non-exported name like @sat_s5EP{v} (ghc-7.11:CmdLineParser) in rXu@ is,
@@ -181,18 +183,6 @@ deltasTable as bs (metricName, metric) cols = header ++ dataRows
         showSigned' showIt x = sign <> showIt x ""
           where sign = if x > 0 then "+" else "-"
 
-test = do
-    a <- parseReport <$> T.readFile "ghc-master/ticks"
-    b <- parseReport <$> T.readFile "ghc-compare/ticks"
-    let tabulate :: [TickyFrame] -> M.Map (String, String) TickyFrame
-        tabulate = M.fromList . map (\frame -> ((moduleName $ stgnDefiningModule $ stgName frame, stgnName $ stgName frame), frame))
-        a' = tabulate $ frames a
-        b' = tabulate $ frames b
-    return $ deltasTable a' b' ("alloc", alloc)
-             [ ("name", \k a b->pprStgName $ stgName a)
-             ]
-
-
 data Row = HeaderSep
          | Cells [String]
          deriving (Show)
@@ -226,3 +216,21 @@ formatTable unpaddedRows = unlines $ map formatRow rows
 
 
     colSep = "|"
+
+args :: O.Parser (FilePath, FilePath)
+args =
+    (,) <$> tickyProfile <*> tickyProfile
+  where
+    tickyProfile = O.argument O.str (O.metavar "FILE" <> O.help "ticky profile output")
+
+main :: IO ()
+main = do
+    (fa, fb) <- O.execParser $ O.info (O.helper <*> args) mempty
+    a <- parseReport <$> T.readFile fa
+    b <- parseReport <$> T.readFile fb
+    let tabulate :: [TickyFrame] -> M.Map (String, String) TickyFrame
+        tabulate = M.fromList . map (\frame -> ((moduleName $ stgnDefiningModule $ stgName frame, stgnName $ stgName frame), frame))
+        a' = tabulate $ frames a
+        b' = tabulate $ frames b
+        table = deltasTable a' b' ("alloc", alloc) [ ("name", \k a b->pprStgName $ stgName a) ]
+    putStrLn $ formatTable table
