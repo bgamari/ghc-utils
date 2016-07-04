@@ -12,41 +12,59 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 import TickyReport
 
-delta :: Real a => a -> a -> Double
-delta a b
+relDelta :: Real a => a -> a -> Double
+relDelta a b
   | a == b    = 0
   | otherwise = (b' - a') / a'
   where
     a' = realToFrac a
     b' = realToFrac b
 
+data DeltaType = Relative | Absolute
+
 tabulateDeltas :: (Ord id, Real metric)
-               => M.Map id a -> M.Map id a -> (a -> metric) -> [(Double, id)]
-tabulateDeltas as bs = \f -> map (\k->(delta (f $ as M.! k) (f $ bs M.! k), k))
-                    $ S.toList keys
-    where keys = M.keysSet as `S.intersection` M.keysSet bs
+               => DeltaType -> M.Map id a -> M.Map id a -> (a -> metric) -> [(Double, id)]
+tabulateDeltas deltaType as bs = \f ->
+    [ (computeDelta (f $ as M.! k) (f $ bs M.! k), k)
+    | k <- S.toList keys
+    ]
+  where
+    keys = M.keysSet as `S.intersection` M.keysSet bs
+    computeDelta =
+      case deltaType of
+        Relative -> relDelta
+        Absolute -> \x y -> realToFrac $ y - x
 
 deltasTable :: (Ord id, Real metric, Show metric)
-            => M.Map id a -> M.Map id a
-            -> (String, a -> metric)                       -- ^ Metric to examine change in
-            -> [(String, id -> a -> a -> String)]  -- ^ Other columns
+            => DeltaType                           -- ^ relative or absolute changes
+            -> M.Map id a -> M.Map id a
+            -> (String, a -> metric)               -- ^ metric to examine change in
+            -> [(String, id -> a -> a -> String)]  -- ^ other columns to include
             -> [Row]
-deltasTable as bs (metricName, metric) cols = header ++ dataRows
+deltasTable deltaType as bs (metricName, metric) cols = header ++ dataRows
   where
-    header = [ Cells $ ["% change", metricName++" A", metricName++" B"]++map fst cols
+    header = [ Cells $ [ case deltaType of
+                           Relative -> "% change"
+                           Absolute -> "Change"
+                       , metricName++" A"
+                       , metricName++" B"
+                       ] ++ map fst cols
              , HeaderSep
              ]
     dataRows =
         map formatRow
         $ sortBy (flip compare)
-        $ tabulateDeltas as bs metric
+        $ tabulateDeltas deltaType as bs metric
     formatRow (delta, k) =
         Cells $ [ delta', showMetric as, showMetric bs ]
                 ++ map (\(_,f) -> f k (as M.! k) (bs M.! k)) cols
       where
         delta'
           | delta == 0 = "-"
-          | otherwise  = showSigned' (showFFloat (Just 1)) (delta*100)<>"%"
+          | otherwise  =
+            case deltaType of
+              Relative -> showSigned' (showFFloat (Just 1)) (delta*100)<>"%"
+              Absolute -> showSigned' (showFFloat (Just 1)) delta
         showMetric xs = show $ metric $ xs M.! k
         showSigned' :: Real a => (a -> ShowS) -> a -> String
         showSigned' showIt x = sign <> showIt x ""
@@ -86,20 +104,21 @@ formatTable unpaddedRows = unlines $ map formatRow rows
 
     colSep = "|"
 
-args :: O.Parser (FilePath, FilePath)
+args :: O.Parser (DeltaType, FilePath, FilePath)
 args =
-    (,) <$> tickyProfile <*> tickyProfile
+    (,,) <$> deltaType <*> tickyProfile <*> tickyProfile
   where
+    deltaType = O.flag Relative Absolute (O.long "relative" <> O.short 'r' <> O.help "relative changes")
     tickyProfile = O.argument O.str (O.metavar "FILE" <> O.help "ticky profile output")
 
 main :: IO ()
 main = do
-    (fa, fb) <- O.execParser $ O.info (O.helper <*> args) mempty
+    (deltaType, fa, fb) <- O.execParser $ O.info (O.helper <*> args) mempty
     a <- parseReport <$> T.readFile fa
     b <- parseReport <$> T.readFile fb
     let tabulate :: [TickyFrame] -> M.Map (String, String) TickyFrame
         tabulate = M.fromList . map (\frame -> ((moduleName $ stgnDefiningModule $ stgName frame, stgnName $ stgName frame), frame))
         a' = tabulate $ frames a
         b' = tabulate $ frames b
-        table = deltasTable a' b' ("alloc", alloc) [ ("name", \k a b->pprStgName $ stgName a) ]
+        table = deltasTable deltaType a' b' ("alloc", alloc) [ ("name", \_k a _b -> pprStgName $ stgName a) ]
     putStrLn $ formatTable table
