@@ -100,7 +100,7 @@ parseFrame =
      <*> spacesThen ((text "TOP" *> pure Top) <|> try nonExportedName <|> exportedName)
      <*  eof
   where
-    funcName = many $ alphaNum <|> oneOf "$=<>[]()+-,.#*|/_'"
+    funcName = many $ alphaNum <|> oneOf "$=<>[]()+-,.#*|/_'!@"
     sig = named "signature" $ braces $ many $ noneOf "}"
 
     -- e.g. ghc-7.11:CmdLineParser.runCmdLine{v rWL}
