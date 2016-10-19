@@ -3,8 +3,9 @@
 module TickyReport where
 
 import Text.Trifecta
-import Data.Monoid
+import Control.Monad (void)
 import Control.Applicative
+import Data.Monoid
 import qualified Data.Text as T
 
 data TickyReport = TickyReport { frames :: [TickyFrame] }
@@ -135,7 +136,7 @@ parseModuleName :: Parser ModuleName
 parseModuleName = named "module name" $ do
     package <- packageName
     optional $ char '@' >> packageName  -- what is this?
-    char ':'
+    void (text "::") <|> void (char ':') -- not sure what :: is all about
     name <- startsWith upper $ alphaNum <|> oneOf "_."
     return $ ModName package name
   where packageName = many $ alphaNum <|> oneOf "-_."
