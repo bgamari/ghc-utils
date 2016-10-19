@@ -108,7 +108,7 @@ args :: O.Parser (DeltaType, FilePath, FilePath)
 args =
     (,,) <$> deltaType <*> tickyProfile <*> tickyProfile
   where
-    deltaType = O.flag Relative Absolute (O.long "relative" <> O.short 'r' <> O.help "relative changes")
+    deltaType = O.flag Absolute Relative (O.long "relative" <> O.short 'r' <> O.help "relative changes")
     tickyProfile = O.argument O.str (O.metavar "FILE" <> O.help "ticky profile output")
 
 main :: IO ()
