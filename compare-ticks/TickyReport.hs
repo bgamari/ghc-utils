@@ -109,6 +109,8 @@ parseFrame =
         mod <- parseModuleName
         _name <- funcName
         _sig <- sig
+        spaces
+        optional $ text "(fun)" <|> text "(fun,se)"
         return $ StgName True mod _name _sig Nothing
 
     -- e.g. sat_sbMg{v} (main@main:Main) in sbMh
@@ -118,6 +120,9 @@ parseFrame =
         _sig <- sig
         spaces
         mod <- parens parseModuleName
+        spaces
+        optional $ text "(fun)" <|> text "(fun,se)"
+        spaces
         parent <- optional $ text "in" *> spaces *> funcName
         return $ StgName False mod _name _sig parent
 
