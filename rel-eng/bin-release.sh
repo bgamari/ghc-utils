@@ -113,6 +113,9 @@ setup_env() {
         Darwin)
             export MACOSX_DEPLOYMENT_TARGET=10.7
             log "MACOSX_DEPLOYMENT_TARGET = $MACOSX_DEPLOYMENT_TARGET"
+            # Only Sierra supports clock_gettime. See #12858.
+            log "Disabling clock_gettime"
+            export ac_cv_func_clock_gettime=no
             configure_opts="$configure_opts --with-gcc=/usr/local/bin/gcc-5 --with-nm=/Library/Developer/CommandLineTools/usr/bin/nm-classic"
             log "Using Homebrew's gcc $(gcc -dumpversion)"
             ;;
