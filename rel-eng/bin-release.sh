@@ -156,10 +156,13 @@ EOF
     log "Bootstrap GHC at $(which ghc)"
     log "Bootstrap GHC says $(ghc -V)"
     log "configuring with $configure_opts"
-    ./configure $configure_opts 2>&1 | tee $root/conf.log
+    ./configure $configure_opts 2>&1 | tee $root/configure.log
+    cd ..
+    log "binary dist configure finished"
 }
 
 function do_build() {
+    cd ghc
     make -j$NTHREADS 2>&1 | tee $root/make.log
     make binary-dist 2>&1 | tee $root/binary-dist.log
     make test_bindist 2>&1 | tee $root/test-bindist.log
