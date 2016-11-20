@@ -3,8 +3,9 @@
 module TickyReport where
 
 import Text.Trifecta
-import Data.Monoid
+import Control.Monad (void)
 import Control.Applicative
+import Data.Monoid
 import qualified Data.Text as T
 
 data TickyReport = TickyReport { frames :: [TickyFrame] }
@@ -100,7 +101,7 @@ parseFrame =
      <*> spacesThen ((text "TOP" *> pure Top) <|> try nonExportedName <|> exportedName)
      <*  eof
   where
-    funcName = many $ alphaNum <|> oneOf "$=<>[]()+-,.#*|/_'"
+    funcName = many $ alphaNum <|> oneOf "$=<>[]()+-,.#*|/_'!@"
     sig = named "signature" $ braces $ many $ noneOf "}"
 
     -- e.g. ghc-7.11:CmdLineParser.runCmdLine{v rWL}
@@ -109,6 +110,8 @@ parseFrame =
         mod <- parseModuleName
         _name <- funcName
         _sig <- sig
+        spaces
+        optional $ text "(fun)" <|> text "(fun,se)"
         return $ StgName True mod _name _sig Nothing
 
     -- e.g. sat_sbMg{v} (main@main:Main) in sbMh
@@ -118,6 +121,9 @@ parseFrame =
         _sig <- sig
         spaces
         mod <- parens parseModuleName
+        spaces
+        optional $ text "(fun)" <|> text "(fun,se)"
+        spaces
         parent <- optional $ text "in" *> spaces *> funcName
         return $ StgName False mod _name _sig parent
 
@@ -130,7 +136,7 @@ parseModuleName :: Parser ModuleName
 parseModuleName = named "module name" $ do
     package <- packageName
     optional $ char '@' >> packageName  -- what is this?
-    char ':'
+    void (text "::") <|> void (char ':') -- not sure what :: is all about
     name <- startsWith upper $ alphaNum <|> oneOf "_."
     return $ ModName package name
   where packageName = many $ alphaNum <|> oneOf "-_."

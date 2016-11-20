@@ -17,7 +17,7 @@ executable compare-ticks
   main-is:             CompareTicks.hs
   other-modules:       TickyReport
   other-extensions:    OverloadedStrings, LambdaCase
-  build-depends:       base >=4.9 && <4.10,
+  build-depends:       base >=4.8 && <4.10,
                        trifecta >=1.5 && <1.7,
                        optparse-applicative >=0.12 && <0.13,
                        text >=1.2 && <1.3,
