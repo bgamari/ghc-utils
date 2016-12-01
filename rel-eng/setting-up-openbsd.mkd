@@ -1,0 +1,20 @@
+# Setting up OpenBSD for GHC development
+
+Download recent `install` ISO, (e.g.  http://mirrors.mit.edu/pub/OpenBSD/6.0/amd64/install60.iso). Boot VM from it. Run
+default installation.
+
+Login as `root`.
+
+In `/etc/fstab` set the `wxallowed` flag for the `/home` mount. Reconfigure mount without rebooting with,
+```
+$ mount -u -o wxallowed /home
+```
+
+```
+$ pkg_add bash pkglocatedb autoconf automake python git gcc py-sphinx gmp libiconv libffi gmake ghc happy alex
+$ git clone --recursive git://git.haskell.org/ghc
+$ AUTOCONF_VERSION=2.69 AUTOMAKE_VERSION=1.15 ./boot
+$ ./configure --with-iconv-includes=/usr/local/include --with-iconv-libraries=/usr/local/lib
+$ gmake -j4
+```
+
