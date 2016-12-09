@@ -2,6 +2,7 @@
 
 module TickyReport where
 
+import Data.Maybe
 import Text.Trifecta
 import Control.Monad (void)
 import Control.Applicative
@@ -25,6 +26,9 @@ data ModuleName = ModName { modulePackage :: String
                           , moduleName    :: String
                           }
                 deriving (Show)
+
+noModule :: ModuleName
+noModule = ModName "" "<no module>"
 
 pprModuleName :: ModuleName -> String
 pprModuleName (ModName pkg name) = pkg<>":"<>name
@@ -100,7 +104,7 @@ parseFrame =
      <*> spacesThen integer
      <*> spacesThen (do n <- integer
                         count (fromIntegral n) anyChar)
-     <*> spacesThen ((text "TOP" *> pure Top) <|> try nonExportedName <|> exportedName)
+     <*> spacesThen ((text "TOP" *> pure Top) <|> nonExportedName <|> exportedName)
      <*  eof
   where
     funcName = many $ alphaNum <|> oneOf "$=<>[]()+-,.#*|/_'!@"
@@ -122,11 +126,10 @@ parseFrame =
         _name <- many $ noneOf "{"
         _sig <- sig
         spaces
-        mod <- parens parseModuleName
+        mod <- fmap (fromMaybe noModule) $ optional $ try $ parens parseModuleName
         spaces
         optional $ text "(fun)" <|> text "(fun,se)"
-        spaces
-        parent <- optional $ text "in" *> spaces *> funcName
+        parent <- optional $ spaces *> text "in" *> spaces *> funcName
         return $ StgName False mod _name _sig parent
 
 type QualifiedName = (ModuleName, String)
