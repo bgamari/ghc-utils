@@ -75,7 +75,9 @@ stgnDefiningModule s@(StgName _ mod _ _ _) = mod
 parseReport :: T.Text -> TickyReport
 parseReport s =
     let ls = T.lines s
-        _:tableLines = dropWhile (\l -> not $ "---------------------" `T.isPrefixOf` l) ls
+        tableLines = case dropWhile (\l -> not $ "---------------------" `T.isPrefixOf` l) ls of
+                       _:xs -> xs
+                       _    -> error "parseReport: Parse error: Failed to find beginning of report"
         parseIt s = case parseString parseFrame mempty (T.unpack s) of
           Success a -> a
           Failure doc -> error $ show doc
