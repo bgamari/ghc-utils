@@ -18,6 +18,7 @@ where [action] may be one of,
   [nothing]      do an automatic build
   fetch          fetch source tarballs
   prepare        prepare host environment for build
+  do_configure   configure source tree
   do_build       build the binary distribution
   testsuite      run the testsuite on the built tree
   test_install   test the binary distribution
@@ -113,13 +114,16 @@ setup_env() {
         Darwin)
             export MACOSX_DEPLOYMENT_TARGET=10.7
             log "MACOSX_DEPLOYMENT_TARGET = $MACOSX_DEPLOYMENT_TARGET"
+            # Only Sierra supports clock_gettime. See #12858.
+            log "Disabling clock_gettime"
+            export ac_cv_func_clock_gettime=no
             configure_opts="$configure_opts --with-gcc=/usr/local/bin/gcc-6 --with-nm=/Library/Developer/CommandLineTools/usr/bin/nm-classic"
             log "Using Homebrew's gcc $(gcc -dumpversion)"
             ;;
     esac
 }
 
-function do_build() {
+function do_configure() {
     if [ -z "$NTHREADS" ]; then
         NTHREADS=1
     fi
@@ -152,7 +156,13 @@ EOF
     log "Bootstrap GHC at $(which ghc)"
     log "Bootstrap GHC says $(ghc -V)"
     log "configuring with $configure_opts"
-    ./configure $configure_opts 2>&1 | tee $root/conf.log
+    ./configure $configure_opts 2>&1 | tee $root/configure.log
+    cd ..
+    log "binary dist configure finished"
+}
+
+function do_build() {
+    cd ghc
     make -j$NTHREADS 2>&1 | tee $root/make.log
     make binary-dist 2>&1 | tee $root/binary-dist.log
     make test_bindist 2>&1 | tee $root/test-bindist.log
@@ -219,6 +229,7 @@ cd $root
 if [ $# == 0 ]; then
     fetch
     prepare
+    do_configure
     do_build
     test_install
 else

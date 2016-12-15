@@ -1,0 +1,26 @@
+# Setting up FreeBSD VM for GHC development
+
+```
+$ pkg install bash vim ghc autoconf automake git gmake gmp python3 hs-cabal-install
+$ # Create user, setup networking
+$ bsdconfig
+```
+Enable the `sshd_enable`.
+
+Build happy and alex
+```
+$ cabal update
+$ cabal install happy alex
+$ echo 'PATH="$HOME/.cabal/bin:$PATH"' >> ~/.bashrc
+$ source ~/.bashrc
+```
+Now checkout tree
+```
+$ git clone git://git.haskell.org/ghc
+$ git submodule update --init
+$ cd ghc
+$ ./boot
+$ ./configure --disable-large-address-space
+$ gmake -j5
+```
+

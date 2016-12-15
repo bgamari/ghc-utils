@@ -3,6 +3,10 @@
 branch=$(git rev-parse --abbrev-ref HEAD)
 utils=$(dirname $(realpath $0))
 
+RED="\[\e[0;31m\]"
+PURPLE="\[\e[0;35m\]"
+NO_COLOUR="\[\e[0m\]"
+
 for i in $@; do
         echo
         echo "Landing $i..."
@@ -12,7 +16,7 @@ for i in $@; do
         arc patch --skip-dependencies $i || (
             echo
             echo "Resolve the issue and commit or `exit 1`."
-            PS1="resolve $ " bash --norc -i
+            PS1="${RED}resolve${NO_COLOR}(${PURPLE}$i${NO_COLOR}) $ " bash --norc -i
         )
         commit=$(git rev-parse HEAD)
         git checkout $branch
