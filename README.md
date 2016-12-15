@@ -40,3 +40,6 @@ others for release management. Some are useful; all are hacky.
      environments for GHC building with `systemd-nspawn`.
    * `download`
      * `process.py`: The script that I use to generate GHC download pages
+ * `library-versions`: A set of scripts used to generate the
+   `Commentary/Libraries/VersionHistory` page on the GHC Wiki. See
+   `library-versions/README.mkd`.
