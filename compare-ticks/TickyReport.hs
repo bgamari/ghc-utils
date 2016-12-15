@@ -103,12 +103,22 @@ parseFrame =
      <*> spacesThen integer
      <*> spacesThen integer
      <*> spacesThen (do n <- integer
-                        count (fromIntegral n) anyChar)
-     <*> spacesThen ((text "TOP" *> pure Top) <|> nonExportedName <|> exportedName)
+                        spaces
+                        -- sometimes this field is wider than its allotted width
+                        case n of
+                          0 -> return ""
+                          _ -> many $ noneOf " ")
+     <*> spacesThen parseStgName
      <*  eof
+
+parseStgName :: Parser StgName
+parseStgName = topName <|> try nonExportedName <|> exportedName
   where
     funcName = many $ alphaNum <|> oneOf "$=<>[]()+-,.#*|/_'!@"
     sig = named "signature" $ braces $ many $ noneOf "}"
+
+    -- e.g. TOP
+    topName = text "TOP" *> pure Top
 
     -- e.g. ghc-7.11:CmdLineParser.runCmdLine{v rWL}
     exportedName :: Parser StgName
@@ -117,7 +127,8 @@ parseFrame =
         _name <- funcName
         _sig <- sig
         spaces
-        optional $ text "(fun)" <|> text "(fun,se)"
+        optional $ do
+            text "(fun)" <|> text "(fun,se)"
         return $ StgName True mod _name _sig Nothing
 
     -- e.g. sat_sbMg{v} (main@main:Main) in sbMh
