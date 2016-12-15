@@ -113,7 +113,7 @@ setup_env() {
         Darwin)
             export MACOSX_DEPLOYMENT_TARGET=10.7
             log "MACOSX_DEPLOYMENT_TARGET = $MACOSX_DEPLOYMENT_TARGET"
-            configure_opts="$configure_opts --with-gcc=/usr/local/bin/gcc-5 --with-nm=/Library/Developer/CommandLineTools/usr/bin/nm-classic"
+            configure_opts="$configure_opts --with-gcc=/usr/local/bin/gcc-6 --with-nm=/Library/Developer/CommandLineTools/usr/bin/nm-classic"
             log "Using Homebrew's gcc $(gcc -dumpversion)"
             ;;
     esac
