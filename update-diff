@@ -1,0 +1,23 @@
+#!/usr/bin/python
+
+import subprocess
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-u', '--update', metavar='DNNNN')
+parser.add_argument('ref', metavar='REF')
+args = parser.parse_args()
+
+subprocess.call(['git', 'diff-index', '--quiet', '--ignore-submodules=untracked', 'HEAD'])
+orig = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip()
+commits = subprocess.check_output(['git', 'rev-parse', args.ref]).split()
+subprocess.check_call(['git', 'checkout', commits[0]])
+if len(commits) == 1:
+    base_commit = 'HEAD^'
+else:
+    base_commit = commits[-1]
+arc_args = ['arc', 'diff', base_commit]
+if args.update is not None:
+    arc_args.extend(['--update', args.update])
+subprocess.check_call(arc_args)
+subprocess.check_call(['git', 'checkout', orig])
