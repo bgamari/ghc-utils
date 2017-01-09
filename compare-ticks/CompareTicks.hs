@@ -21,6 +21,7 @@ relDelta a b
     b' = realToFrac b
 
 data DeltaType = Relative | Absolute
+data FieldChoice = Alloc | Allocd | Entries deriving Show
 
 tabulateDeltas :: (Ord id, Real metric)
                => DeltaType -> M.Map id a -> M.Map id a -> (a -> metric) -> [(Double, id)]
@@ -104,21 +105,40 @@ formatTable unpaddedRows = unlines $ map formatRow rows
 
     colSep = "|"
 
-args :: O.Parser (DeltaType, FilePath, FilePath)
+args :: O.Parser (FieldChoice, DeltaType, FilePath, FilePath)
 args =
-    (,,) <$> deltaType <*> tickyProfile <*> tickyProfile
+    (,,,) <$> fieldChoice <*> deltaType <*> tickyProfile <*> tickyProfile
   where
+    fieldChoice = O.option (p =<< O.str) ( O.long "field" <> O.short 'f' <> O.metavar "FIELD"
+                                <> O.value Alloc <> O.help "Select alloc, allocd, or entries"
+                                <> O.completeWith ["alloc", "allocd", "entries"]
+                                <> O.showDefaultWith (const "alloc") )
+      where p "alloc" = pure Alloc
+            p "allocd" = pure Allocd
+            p "entries" = pure Entries
+            p _ = fail "FIELD must be alloc, allocd, or entries"
     deltaType = O.flag Absolute Relative (O.long "relative" <> O.short 'r' <> O.help "relative changes")
     tickyProfile = O.argument O.str (O.metavar "FILE" <> O.help "ticky profile output")
 
+chosenFieldName :: FieldChoice -> String
+chosenFieldName Alloc = "alloc"
+chosenFieldName Allocd = "allocd"
+chosenFieldName Entries = "entries"
+
+chosenFieldSelector :: FieldChoice -> TickyFrame -> Integer
+chosenFieldSelector Alloc = alloc
+chosenFieldSelector Allocd = allocd
+chosenFieldSelector Entries = entries
+
 main :: IO ()
 main = do
-    (deltaType, fa, fb) <- O.execParser $ O.info (O.helper <*> args) mempty
+    (chosenField, deltaType, fa, fb) <- O.execParser $ O.info (O.helper <*> args) mempty
     a <- parseReport <$> T.readFile fa
     b <- parseReport <$> T.readFile fb
     let tabulate :: [TickyFrame] -> M.Map (String, String) TickyFrame
         tabulate = M.fromList . map (\frame -> ((moduleName $ stgnDefiningModule $ stgName frame, stgnName $ stgName frame), frame))
         a' = tabulate $ frames a
         b' = tabulate $ frames b
-        table = deltasTable deltaType a' b' ("alloc", alloc) [ ("name", \_k a _b -> pprStgName $ stgName a) ]
+        table = deltasTable deltaType a' b' (chosenFieldName chosenField, chosenFieldSelector chosenField)
+                   [ ("name", \_k a'' _b -> pprStgName $ stgName a'') ]
     putStrLn $ formatTable table
