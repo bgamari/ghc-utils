@@ -1,0 +1,5 @@
+dist/
+.stack-work/
+.cabal-sandbox/
+*.hi
+*.o
