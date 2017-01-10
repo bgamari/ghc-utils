@@ -76,6 +76,10 @@ function gen_hashes() {
         if [ -e $i -a $i.sig -nt $i ]; then
             echo "Skipping signing of $i"
             continue
+        elif gpg2 --verify $i.sig; then
+            # Don't resign if current signature is valid
+            touch $i.sig
+            continue
         fi
         echo "Signing $i"
         rm -f $i.sig
