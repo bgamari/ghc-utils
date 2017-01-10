@@ -14,7 +14,8 @@ $ mount -u -o wxallowed /home
 $ pkg_add bash pkglocatedb autoconf automake python git gcc py-sphinx gmp libiconv libffi gmake ghc happy alex
 $ git clone --recursive git://git.haskell.org/ghc
 $ AUTOCONF_VERSION=2.69 AUTOMAKE_VERSION=1.15 ./boot
-$ ./configure --with-iconv-includes=/usr/local/include --with-iconv-libraries=/usr/local/lib
+$ ./configure --with-iconv-includes=/usr/local/include --with-iconv-libraries=/usr/local/lib  \
+  --with-system-libffi --with-ffi-includes=/usr/local/include --with-ffi-libraries=/usr/local/lib
 $ gmake -j4
 ```
 
