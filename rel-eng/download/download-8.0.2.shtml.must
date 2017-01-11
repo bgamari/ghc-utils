@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="Content-Language" content="en-gb" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>GHC: Download version {{ver}}</title>
+    <link href="ghc.css" rel="stylesheet" type="text/css" />
+    <link href="ghc-download.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+
+<!--#include file="ghc-std.shtml" -->
+
+<h1>Version 8.0.2 (released 11<sup>th</sup> January 2016)</h1>
+
+<div class="box">
+    <h1>Take Notice</h1>
+    <p>
+      The packages on this page include only the GHC compiler. For most users,
+      we recommend installing a
+      <a href="http://www.haskell.org/downloads">proper Haskell distribution</a>
+      instead of GHC alone. A distribution includes a recent GHC release as well
+      as other important tools (such as <code>cabal-install</code>, for
+      installing libraries), and potentially a broader set of libraries known to
+      work together.
+    </p>
+</div>
+
+<div class="box">
+    <h1>Bundled packages and cabal-install</h1>
+    <p>
+      GHC 8.0 only works
+      with <a href="http://hackage.haskell.org/package/cabal-install"><code>cabal-install</code></a>
+      version 1.24 or later. Please upgrade if you have an older version of
+      <code>cabal-install</code>.
+    </p>
+</div>
+
+<div class="box">
+    <h1>Optional LLVM dependency</h1>
+    <p>
+      GHC has an optional code generator targetting
+      the <a href="http://www.llvm.org/">LLVM</a> compiler framework which can
+      produce faster code for some programs. If you would like to use the LLVM
+      backend, you'll need to install LLVM 3.7 from
+      an <a href="http://llvm.org/releases/download.html#3.7.1">upstream binary
+      distribution</a> or via your distribution's package manager.
+    </p>
+</div>
+
+<h2>Contents</h2>
+
+<ul>
+  <li><a href="{{download_url}}/docs/html/users_guide/8.0.2-notes.html">Release Notes</a></li>
+	<li><a href="{{download_url}}/docs/html/">Documentation</a></li>
+  <li><a href="#distros">Distribution packages</a></li>
+  <li><a href="#binaries">Binary packages</a></li>
+  <li><a href="#sources">Source distribution</a></li>
+</ul>
+
+<div class="section" id="distros">
+    <h2>Distribution packages</h2>
+    <p>
+      GHC is packaged for a number of operating systems and
+      distributions. While they may lag behind the latest GHC
+      release, advantages such as dependency checking and ease of
+      uninstallation mean we recommend using them anyway, unless
+      you have a particular need for new features or bug fixes.
+    </p>
+    <ul>
+      <li><a href="distribution_packages">Distribution packages</a></li>
+    </ul>
+</div>
+
+<div class="section" id="binaries">
+    <h2>Binary Packages</h2>
+
+    <p>
+      The operating system-specific packages (e.g. RPM or <tt>.deb</tt> packages
+      on Linux) are generally a better bet than the vanilla <tt>.tar.bz2</tt>
+      binary bundles, because they will check for dependencies and allow the
+      package to be uninstalled at a later date.
+    </p>
+
+    <p>
+      However, if you don't have permission to install binaries on your system,
+      or you want to install somewhere other than the default place
+      (<tt>/usr</tt> or <tt>/usr/local</tt> on a Unix system), then you'll need
+      to use a <tt>.tar.bz2</tt> binary bundle.
+    </p>
+
+    <p>
+      SHA-256 hashes for all of these binary distributions are
+      available <a href="{{download_url}}/SHA256SUMS">here</a>.
+    </p>
+
+    <div style="border:1px solid; background:#ffffc6; padding: 10px">
+        <p>Supported platforms:</p>
+
+        <ul>
+        <li><a href="#linux_i386">Linux (x86)</a></li>
+        <li><a href="#linux_x86_64">Linux (x86_64)</a></li>
+        <li><a href="#linux_armv7">Linux (ARMv7)</a></li>
+        <li><a href="#windows">Windows 2000 or later (x86)</a></li>
+        <li><a href="#windows64">Windows 64-bit (x86_64)</a></li>
+        <li><a href="#macosx_x86_64">Mac OS X (x86_64)</a></li>
+        <li><a href="#freebsd_x86_64">FreeBSD (x86_64)</a></li>
+        <li><a href="#freebsd_i386">FreeBSD (x86)</a></li>
+        <li><a href="#openbsd_x86_64">OpenBSD 5.9 (x86_64)</a></li>
+        <li><a href="#aix_ppc">AIX 7.1 (PowerPC)</a></li>
+        <li><a href="#solaris_i386">Solaris 2.11 (x86)</a></li>
+        <li><a href="#solaris_x86_64">Solaris 2.11 (x86_64)</a></li>
+        </ul>
+    </div>
+
+    <h2>Supported platforms</h2>
+
+    <div class="section" id="linux_i386">
+        <h3>Linux (x86)</h3>
+
+        <div>
+            <h4>Debian 8</h4>
+            <p>
+            Generic i386 Linux. This is a complete build, including
+            interactive system, profiling libraries and documentation. It was
+            made on a Debian 8 "Jessie" system and requires
+            <code>libgmp.so.10</code> (typically GMP 5.x).
+            </p>
+            {{#tarballs}}i386-deb8-linux{{/tarballs}}
+        </div>
+
+        <div>
+            <h4>Debian 7</h4>
+            <p>
+            Generic i386 Linux. This is a complete build, including
+            interactive system, profiling libraries and documentation. It was
+            made on a Debian 7 "Wheezy" system and requires
+            <code>libgmp.so.10</code> (typically GMP 5.x).
+            </p>
+            {{#tarballs}}i386-deb7-linux{{/tarballs}}
+        </div>
+
+        <div>
+            <h4>Centos 6.7</h4>
+            <p>
+            Generic i386 Linux. This is a complete build, including
+            interactive system, profiling libraries and documentation. It was
+            made on a CentOS 6.7 system and requires
+            <code>libgmp.so.3</code> (typically GMP 4.x).
+            </p>
+            {{#tarballs}}i386-centos67-linux{{/tarballs}}
+        </div>
+
+        <p>
+            Note: If you have too old a version of libc, then you will get an
+            error like "floating point exception" from the binaries in these
+            bindists. You will need to either upgrade your libc (we're not sure
+            what the minimum version required is), or use a binary package built
+            for your distribution instead.
+        </p>
+    </div>
+
+    <div class="section" id="linux_x86_64">
+        <h3>Linux (x86_64)</h3>
+
+        <div>
+          <h4>Debian 8</h4>
+          <p>
+            Generic amd64 Linux. This is a complete build, including
+            interactive system, profiling libraries and documentation. It was
+            made on a Debian 8 "Jessie" system and requires
+            <code>libgmp.so.10</code> (typically GMP 5.x).
+            {{#tarballs}}x86_64-deb8-linux{{/tarballs}}
+          </p>
+        </div>
+
+        <div>
+          <h4>Debian 7</h4>
+          <p>
+            Generic amd64 Linux. This is a complete build, including
+            interactive system, profiling libraries and documentation. It was
+            made on a Debian 7 "Wheezy" system and requires
+            <code>libgmp.so.10</code> (typically GMP 5.x).
+            {{#tarballs}}x86_64-deb7-linux{{/tarballs}}
+          </p>
+        </div>
+
+        <div>
+          <h4>Centos 6.7</h4>
+          <p>
+            Generic amd64 Linux. This is a complete build, including interactive
+            system, profiling libraries and documentation. It was made on a CentOS
+            6.7 system and requires
+            <code>libgmp.so.3</code> (typically GMP 4.x).
+            {{#tarballs}}x86_64-centos67-linux{{/tarballs}}
+        </div>
+
+        <p>
+        Note: If you have too old a version of libc, then you will get an
+        error like "floating point exception" from the binaries in these
+        bindists. You will need to either upgrade your libc (we're not sure
+        what the minimum version required is), or use a binary package built
+        for your distribution instead.
+        </p>
+    </div>
+
+    <div class="section" id="linux_armv7">
+        <h3>Linux (ARMv7)</h3>
+        {{#tarballs}}armv7-deb8-linux{{/tarballs}}
+        <p>
+          Generic 32-bit ARM Linux.
+        </p>
+        <p>
+          Note: These builds were prepared on Debian Jessie. Note that ARM
+          support is still a bit experimental. This build is intended for use
+          with LLVM 3.7
+          (<a href="http://llvm.org/releases/download.html#3.7.1">available</a> in
+          Debian Jessie). Due
+          to <a href="https://sourceware.org/bugzilla/show_bug.cgi?id=16177">bugs</a>
+          in BFD <code>ld</code> it is necessary to use the <code>gold</code> linker.
+        </p>
+    </div>
+
+    <div class="section" id="windows">
+        <h3>Windows (x86)</h3>
+        {{#tarballs}}i386-unknown-mingw32{{/tarballs}}
+        <p>
+          This is a complete build, and should work for Microsoft Windows XP
+          or later. It also includes support for compiling C++ files.
+        </p>
+        <p>
+          Note that this distribution was produced with a
+         <a href="{{download_url}}/0001-SysTools-Revert-linker-flags-change.patch">patched</a>
+         source tree due to a Windows-specific bug noticed late in the release
+         cycle.</a>
+        </p>
+    </div>
+
+    <div class="section" id="windows64">
+        <h3>Windows 64-bit (x86_64)</h3>
+        {{#tarballs}}x86_64-unknown-mingw32{{/tarballs}}
+        <p>
+          This is a complete build. It also includes support for compiling C++ files.
+        </p>
+        <p>
+          Note that this distribution was produced with a
+         <a href="{{download_url}}/0001-SysTools-Revert-linker-flags-change.patch">patched</a>
+         source tree due to a Windows-specific bug noticed late in the release
+         cycle.</a>
+        </p>
+    </div>
+
+    <div class="section" id="macosx_x86_64">
+        <h3>Mac OS X (x86_64)</h3>
+        {{#tarballs}}x86_64-apple-darwin{{/tarballs}}
+        <p>
+            This is a distribution for Mac OS X, 10.7 or later. The package
+            requires the command line tools package of Xcode 4 or XCode 5 to be installed.
+            You can find Xcode at
+            <a href="http://developer.apple.com/">http://developer.apple.com/</a>.
+        </p>
+    </div>
+
+    <div class="section" id="freebsd_x86_64">
+        <h3>FreeBSD (x86_64)</h3>
+        {{#tarballs}}x86_64-portbld-freebsd{{/tarballs}}
+        <p>
+          Produced by Páli Gábor János.
+          See the <a href="{{download_url}}/README.freebsd.html">FreeBSD readme</a> for details.
+        </p>
+    </div>
+
+    <div class="section" id="freebsd_i386">
+        <h3>FreeBSD (i386)</h3>
+        {{#tarballs}}i386-portbld-freebsd{{/tarballs}}
+        <p>
+          Produced by Páli Gábor János.
+          See the <a href="{{download_url}}/README.freebsd.html">FreeBSD readme</a> for details.
+        </p>
+    </div>
+
+    <div class="section" id="openbsd_x86_64">
+        <h3>OpenBSD 5.9 (x86_64)</h3>
+        {{#tarballs}}x86_64-unknown-openbsd{{/tarballs}}
+        <p>
+          Note: OpenBSD 5.9/x86_64 binary distribution supports shared libraries
+          and uses system (ports) provided GMP, ICONV and FFI libraries. If you do
+          not have them installed you need to do this by using the <tt>pkg_add gmp
+          libiconv libffi</tt> command.
+        </p>
+        <p>Produced by Karel Gardas.</p>
+    </div>
+
+    <div class="section" id="aix_ppc">
+        <h3>AIX 7.1 (PowerPC)</h3>
+        {{#tarballs}}powerpc-ibm-aix7.1.0.0{{/tarballs}}
+        <p>Produced by Herbert Valerio Riedel.</p>
+    </div>
+
+    <div class="section" id="solaris_i386">
+        <h3>Solaris 2.11 (i386)</h3>
+        {{#tarballs}}i386-unknown-solaris2{{/tarballs}}
+        <p>
+          Note: Solaris 2.11/i386/x86_64/SPARC binary distribution supports shared
+          libraries and uses system provided GMP library. If you do not have it
+          installed you need to do this by using <pre>pkg install library/gmp</pre> command.
+        </p>
+        <p>Produced by Karel Gardas.</p>
+    </div>
+
+    <div class="section" id="solaris_x86_64">
+        <h3>Solaris 2.11 (x86_64)</h3>
+        <p>
+          Unfortunately x86-64 Solaris support is currently broken due
+          to <a href="https://ghc.haskell.org/trac/ghc/ticket/13091">#13091</a>.
+        </p>
+    </div>
+</div>
+
+<div class="section" id="sources">
+    <h2>Source Distribution</h2>
+    <p>
+      The source tarballs provide everything necessary to build the compiler,
+      interactive system, and a minimal set of libraries. For more information
+      on building, see
+      the <a href="http://hackage.haskell.org/trac/ghc/wiki/Building">building
+      guide</a>.
+    </p>
+    {{#tarballs}}src{{/tarballs}}
+    <p>
+      Note that, due to a bug noticed late in the release cycle, this source tree
+      will need to be patched
+      with <a href="{{download_url}}/0001-SysTools-Revert-linker-flags-change.patch">this
+      patch</a> on Windows.
+      See <a href="https://ghc.haskell.org/trac/ghc/ticket/13100">#13100</a> for
+      details.
+    </p>
+
+    <p>
+      The testsuite provides a thorough set of tests for validating your build.
+      Unpack this tarball on top of the regular source distribution in order to
+      run the testsuite (see
+      the <a href="https://ghc.haskell.org/trac/ghc/wiki/Building/RunningTests">testing
+      guide</a> for details).
+    </p>
+    {{#tarballs}}testsuite{{/tarballs}}
+
+    <p>
+      Building on Windows requires a set of additional tools. Extract this tarball on
+      top of the regular source distribution,
+    </p>
+    {{#tarballs}}windows-extra-src{{/tarballs}}
+
+    <p>
+      The source distribution needs an installed GHC (version 7.10 at least). If
+      your platform isn't currently supported with a binary distribution, then
+      you'll need to consult the section
+      on <a href="http://hackage.haskell.org/trac/ghc/wiki/Building/Porting">Porting
+      GHC</a> in the Building Guide.
+    </p>
+</div>
+
+</div>
+
+<!--#include file="ghc-footer.shtml"-->
+
+</body>
+</html>
