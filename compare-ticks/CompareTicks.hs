@@ -49,6 +49,40 @@ tabulateDeltas deltaType metric as bs =
   . M.toList
   $ calculateDeltas deltaType metric as bs
 
+calculateMissing :: Ord id
+                 => (a -> metric)
+                 -> M.Map id a -> M.Map id a -> M.Map id (metric, a)
+calculateMissing measure xs ys = fmap (\x -> (measure x, x)) $ M.difference xs ys
+
+tabulateMissing :: (Ord id, Ord metric)
+                => (a -> metric)
+                -> M.Map id a -> M.Map id a -> [(id, a)]
+tabulateMissing metric as bs =
+  map ( \ (k, (_value, a)) -> (k, a) )
+  . sortBy (flip compare `on` (\(_id, (value, _a)) -> value))
+  . M.toList
+  $ calculateMissing metric as bs
+
+missingTable :: (Ord id, Ord metric, Show metric)
+             => String
+             -> M.Map id a -> M.Map id a
+             -> (String, a -> metric)
+             -> [(String, id -> a -> String)]
+             -> [Row]
+missingTable name as bs (metricName, metric) cols = header ++ dataRows
+  where
+    header = [ Cells $ [ metricName++" " ++ name ] ++ map fst cols
+             , HeaderSep
+             ]
+
+    dataRows =
+        map formatRow
+        $ tabulateMissing metric as bs
+
+    formatRow (k, a) =
+        Cells $ [ show (metric a) ]
+                ++ map (\(_,f) -> f k a) cols
+
 deltasTable :: (Ord id, Real metric, Show metric)
             => DeltaType                           -- ^ relative or absolute changes
             -> M.Map id a -> M.Map id a
@@ -155,4 +189,10 @@ main = do
         b' = tabulate $ frames b
         table = deltasTable deltaType a' b' (chosenFieldName chosenField, chosenFieldSelector chosenField)
                    [ ("name", \_k a'' _b -> pprStgName $ stgName a'') ]
+        tableA = missingTable "A" a' b' (chosenFieldName chosenField, chosenFieldSelector chosenField)
+                   [ ("name", \_k a'' -> pprStgName $ stgName a'') ]
+        tableB = missingTable "B" b' a' (chosenFieldName chosenField, chosenFieldSelector chosenField)
+                   [ ("name", \_k b'' -> pprStgName $ stgName b'') ]
     putStrLn $ formatTable table
+    putStrLn $ formatTable tableA
+    putStrLn $ formatTable tableB
