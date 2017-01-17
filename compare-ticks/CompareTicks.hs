@@ -1,18 +1,20 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE LambdaCase #-}
 
 module Main where
 
 import Numeric
+import Data.Function (on)
 import Data.List (sortBy, transpose, intercalate)
 import Data.Monoid
 import qualified Options.Applicative as O
 import qualified Data.Text.IO as T
 import qualified Data.Map as M
-import qualified Data.Set as S
 import TickyReport
 
-relDelta :: Real a => a -> a -> Double
+relDelta :: (Real a, Fractional b) => a -> a -> b
 relDelta a b
   | a == b    = 0
   | otherwise = (b' - a') / a'
@@ -23,18 +25,63 @@ relDelta a b
 data DeltaType = Relative | Absolute
 data FieldChoice = Alloc | Allocd | Entries deriving Show
 
-tabulateDeltas :: (Ord id, Real metric)
-               => DeltaType -> M.Map id a -> M.Map id a -> (a -> metric) -> [(Double, id)]
-tabulateDeltas deltaType as bs = \f ->
-    [ (computeDelta (f $ as M.! k) (f $ bs M.! k), k)
-    | k <- S.toList keys
-    ]
+calculateDeltas :: (Ord id, Real metric)
+                => DeltaType
+                -> (a -> metric)
+                -> M.Map id a -> M.Map id a -> M.Map id (Double, a, a)
+calculateDeltas deltaType measure =
+  M.intersectionWith $ \x y -> let !delta = combine x y in (delta, x, y)
   where
-    keys = M.keysSet as `S.intersection` M.keysSet bs
-    computeDelta =
-      case deltaType of
-        Relative -> relDelta
-        Absolute -> \x y -> realToFrac $ y - x
+    combine = case deltaType of
+        Relative -> relDelta `on` measure
+        Absolute -> \x y -> realToFrac (measure y - measure x)
+
+tabulateDeltas :: (Ord id, Real metric)
+                => DeltaType
+                -> (a -> metric)
+                -> M.Map id a -> M.Map id a -> [(id, Double, a, a)]
+tabulateDeltas deltaType metric as bs =
+    -- Sort by delta from greatest to smallest
+    sortBy (flip compare `on` (\(_id, delta, _a, _b) -> delta)) 
+
+    -- get rid of nesting we don't need
+  . map ( \ (k, (delta, a, b)) -> (k, delta, a, b) )
+  . M.toList
+  $ calculateDeltas deltaType metric as bs
+
+calculateMissing :: Ord id
+                 => (a -> metric)
+                 -> M.Map id a -> M.Map id a -> M.Map id (metric, a)
+calculateMissing measure xs ys = fmap (\x -> (measure x, x)) $ M.difference xs ys
+
+tabulateMissing :: (Ord id, Ord metric)
+                => (a -> metric)
+                -> M.Map id a -> M.Map id a -> [(id, a)]
+tabulateMissing metric as bs =
+  map ( \ (k, (_value, a)) -> (k, a) )
+  . sortBy (flip compare `on` (\(_id, (value, _a)) -> value))
+  . M.toList
+  $ calculateMissing metric as bs
+
+missingTable :: (Ord id, Ord metric, Show metric)
+             => String
+             -> M.Map id a -> M.Map id a
+             -> (String, a -> metric)
+             -> [(String, id -> a -> String)]
+             -> [Row]
+missingTable name as bs (metricName, metric) cols = header ++ dataRows
+  where
+    header = [ Cells $ [ metricName++" " ++ name ] ++ map fst cols
+             , HeaderSep
+             ]
+
+    dataRows =
+        map formatRow
+        $ tabulateMissing metric as bs
+
+    formatRow (k, a) =
+        Cells $ [ show (metric a) ]
+                ++ map (\(_,f) -> f k a) cols
 
 deltasTable :: (Ord id, Real metric, Show metric)
             => DeltaType                           -- ^ relative or absolute changes
@@ -52,13 +99,14 @@ deltasTable deltaType as bs (metricName, metric) cols = header ++ dataRows
                        ] ++ map fst cols
              , HeaderSep
              ]
+
     dataRows =
         map formatRow
-        $ sortBy (flip compare)
-        $ tabulateDeltas deltaType as bs metric
-    formatRow (delta, k) =
-        Cells $ [ delta', showMetric as, showMetric bs ]
-                ++ map (\(_,f) -> f k (as M.! k) (bs M.! k)) cols
+        $ tabulateDeltas deltaType metric as bs
+
+    formatRow (k, delta, a, b) =
+        Cells $ [ delta', show (metric a), show (metric b) ]
+                ++ map (\(_,f) -> f k a b) cols
       where
         delta'
           | delta == 0 = "-"
@@ -66,7 +114,7 @@ deltasTable deltaType as bs (metricName, metric) cols = header ++ dataRows
             case deltaType of
               Relative -> showSigned' (showFFloat (Just 1)) (delta*100)<>"%"
               Absolute -> showSigned' (showFFloat (Just 1)) delta
-        showMetric xs = show $ metric $ xs M.! k
+
         showSigned' :: Real a => (a -> ShowS) -> a -> String
         showSigned' showIt x = sign <> showIt x ""
           where sign = if x > 0 then "+" else "-"
@@ -141,4 +189,10 @@ main = do
         b' = tabulate $ frames b
         table = deltasTable deltaType a' b' (chosenFieldName chosenField, chosenFieldSelector chosenField)
                    [ ("name", \_k a'' _b -> pprStgName $ stgName a'') ]
+        tableA = missingTable "A" a' b' (chosenFieldName chosenField, chosenFieldSelector chosenField)
+                   [ ("name", \_k a'' -> pprStgName $ stgName a'') ]
+        tableB = missingTable "B" b' a' (chosenFieldName chosenField, chosenFieldSelector chosenField)
+                   [ ("name", \_k b'' -> pprStgName $ stgName b'') ]
     putStrLn $ formatTable table
+    putStrLn $ formatTable tableA
+    putStrLn $ formatTable tableB
