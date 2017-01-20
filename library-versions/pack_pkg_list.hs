@@ -9,6 +9,11 @@ import System.Environment
 import System.Exit
 import System.IO
 
+-- | These are packages which are sometimes installed in the global package
+-- database (e.g. during @validate@) but aren't actually boot packages.
+nonBootPackages :: [String]
+nonBootPackages = [ "parallel", "stm" ]
+
 main :: IO ()
 main = do
     fns <- getArgs
@@ -28,7 +33,10 @@ main = do
         let c' = sort (map parsePkgName $ tail c)
             Just ghcver = lookup "ghc" (map fst c')
 
-        let ln = ghcver <> "\t" <> unwords [ n<>"/"<>v<>(if h then "*" else "") | ((n,v),h) <- c' ]
+        let ln = ghcver <> "\t" <> unwords [ n<>"/"<>v<>(if h then "*" else "")
+                                           | ((n,v),h) <- c'
+                                           , not $ n `elem` nonBootPackages
+                                           ]
         putStrLn ln
 
     return ()
