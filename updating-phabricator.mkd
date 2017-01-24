@@ -1,0 +1,27 @@
+```
+service php5-fpm stop
+/etc/init.d/nginx stop
+ps -Af | grep php
+
+cd /opt/phabricator
+git remote update
+git checkout upstream/stable
+cd ..
+
+cd /opt/libphutil
+git remote update
+git checkout upstream/stable
+cd ..
+
+cd /opt/arcanist
+git remote update
+git checkout upstream/stable
+cd ..
+
+cd /opt/phabricator
+sudo -uphab /opt/phabricator/bin/storage upgrade --user root --password $password
+sudo -uphab bin/phd start
+service php5-fpm start
+/etc/init.d/nginx start
+```
+
