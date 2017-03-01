@@ -10,16 +10,23 @@ import Data.Monoid
 import qualified Data.Text as T
 
 data TickyReport = TickyReport { frames :: [TickyFrame] }
-                   deriving (Show)
+                 deriving (Show)
 
-data TickyFrame = TickyFrame { entries   :: Integer
-                             , alloc     :: Integer
-                             , allocd    :: Integer
+data TickyFrame = TickyFrame { stats     :: TickyStats
                              , arguments :: String
                              , stgName   :: StgName
                              }
-                  deriving (Show)
+                deriving (Show)
 
+data TickyStats = TickyStats { entries   :: Integer
+                             , alloc     :: Integer
+                             , allocd    :: Integer
+                             }
+                deriving (Show)
+
+instance Monoid TickyStats where
+    mempty = TickyStats 0 0 0
+    TickyStats a b c `mappend` TickyStats x y z = TickyStats (a+x) (b+y) (c+z)
 
 -- | The name of a module
 data ModuleName = ModName { modulePackage :: String
@@ -97,12 +104,14 @@ named :: String -> Parser a -> Parser a
 named n p = p <?> n
 
 parseFrame :: Parser TickyFrame
-parseFrame =
-    TickyFrame
-     <$> spacesThen integer
-     <*> spacesThen integer
-     <*> spacesThen integer
-     <*> spacesThen (do n <- integer
+parseFrame = do
+    stats <- TickyStats
+        <$> spacesThen integer
+        <*> spacesThen integer
+        <*> spacesThen integer
+
+    TickyFrame stats
+     <$> spacesThen (do n <- integer
                         spaces
                         -- sometimes this field is wider than its allotted width
                         case n of

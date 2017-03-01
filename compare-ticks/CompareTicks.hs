@@ -153,9 +153,9 @@ formatTable unpaddedRows = unlines $ map formatRow rows
 
     colSep = "|"
 
-args :: O.Parser (FieldChoice, DeltaType, FilePath, FilePath)
+args :: O.Parser (FieldChoice, DeltaType, Bool, FilePath, FilePath)
 args =
-    (,,,) <$> fieldChoice <*> deltaType <*> tickyProfile <*> tickyProfile
+    (,,,,) <$> fieldChoice <*> deltaType <*> byModule <*> tickyProfile <*> tickyProfile
   where
     fieldChoice = O.option (p =<< O.str) ( O.long "field" <> O.short 'f' <> O.metavar "FIELD"
                                 <> O.value Alloc <> O.help "Select alloc, allocd, or entries"
@@ -166,6 +166,7 @@ args =
             p "entries" = pure Entries
             p _ = fail "FIELD must be alloc, allocd, or entries"
     deltaType = O.flag Absolute Relative (O.long "relative" <> O.short 'r' <> O.help "relative changes")
+    byModule = O.switch (O.long "by-module" <> O.short 'm' <> O.help "aggregate statistics by module")
     tickyProfile = O.argument O.str (O.metavar "FILE" <> O.help "ticky profile output")
 
 chosenFieldName :: FieldChoice -> String
@@ -173,26 +174,31 @@ chosenFieldName Alloc = "alloc"
 chosenFieldName Allocd = "allocd"
 chosenFieldName Entries = "entries"
 
-chosenFieldSelector :: FieldChoice -> TickyFrame -> Integer
+chosenFieldSelector :: FieldChoice -> TickyStats -> Integer
 chosenFieldSelector Alloc = alloc
 chosenFieldSelector Allocd = allocd
 chosenFieldSelector Entries = entries
 
 main :: IO ()
 main = do
-    (chosenField, deltaType, fa, fb) <- O.execParser $ O.info (O.helper <*> args) mempty
+    (chosenField, deltaType, byModule, fa, fb) <- O.execParser $ O.info (O.helper <*> args) mempty
     a <- parseReport <$> T.readFile fa
     b <- parseReport <$> T.readFile fb
-    let tabulate :: [TickyFrame] -> M.Map (String, String) TickyFrame
-        tabulate = M.fromList . map (\frame -> ((moduleName $ stgnDefiningModule $ stgName frame, stgnName $ stgName frame), frame))
+    let tabulate :: [TickyFrame] -> M.Map String TickyStats
+        tabulate = M.fromListWith mappend
+                 . map (\frame -> (getKey frame, stats frame))
+          where
+            getKey
+              | byModule  = pprModuleName . stgnDefiningModule . stgName
+              | otherwise = pprStgName . stgName
         a' = tabulate $ frames a
         b' = tabulate $ frames b
         table = deltasTable deltaType a' b' (chosenFieldName chosenField, chosenFieldSelector chosenField)
-                   [ ("name", \_k a'' _b -> pprStgName $ stgName a'') ]
+                   [ ("name", \k _a _b -> k) ]
         tableA = missingTable "A" a' b' (chosenFieldName chosenField, chosenFieldSelector chosenField)
-                   [ ("name", \_k a'' -> pprStgName $ stgName a'') ]
+                   [ ("name", \k _a -> k) ]
         tableB = missingTable "B" b' a' (chosenFieldName chosenField, chosenFieldSelector chosenField)
-                   [ ("name", \_k b'' -> pprStgName $ stgName b'') ]
+                   [ ("name", \k _a -> k) ]
     putStrLn $ formatTable table
     putStrLn $ formatTable tableA
     putStrLn $ formatTable tableB
