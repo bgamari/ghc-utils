@@ -1,6 +1,8 @@
 ```
 service php5-fpm stop
 /etc/init.d/nginx stop
+
+sudo -uphab /opt/phabricator/bin/phd stop
 ps -Af | grep php
 
 cd /opt/phabricator
