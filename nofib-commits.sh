@@ -12,7 +12,7 @@ do_commit() {
     git submodule update --init
 
     echo "building $commit..."
-    make -j9 stage=2 >$logs/build-$seq-$commit.log 2>&1
+    ( make -j9 stage=2 || (make clean; make -j9) ) >$logs/build-$seq-$commit.log 2>&1
     if [ ! -e inplace/bin/ghc-stage2 ]; then
         echo "Uh oh, no compiler found!"
         exit 1
