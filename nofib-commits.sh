@@ -1,22 +1,46 @@
 #!/bin/bash -e
 
-mkdir -p logs
+commits=$(git rev-parse $@)
+if [[ -z "$nruns" ]]; then
+    nruns=1
+fi
 
 do_commit() {
-    commit=$1
-    sha=`git rev-parse $commit`
-    echo "Building $1 ($commit)..."
+    seq=$(printf "%03d" $i)
+    echo "checking out $commit..."
     git checkout $commit
     git submodule update --init
-    ./validate --build-only >| logs/build-$sha.log
 
-    echo "Nofibbing $1 ($commit)..."
-    pushd nofib
-    make clean
-    make boot
-    make >| logs/nofib-$sha.log 2>&1
+    echo "building $commit..."
+    ( make -j9 stage=2 || (make clean; make -j9) ) >$logs/build-$seq-$commit.log 2>&1
+    if [ ! -e inplace/bin/ghc-stage2 ]; then
+        echo "Uh oh, no compiler found!"
+        exit 1
+    fi
+
+    echo "running nofib on $commit..."
+    cd nofib
+    cabal install --with-ghc=$root/inplace/bin/ghc-stage2 --disable-library-profiling --force-reinstalls regex-compat html >log 2>&1
+    make clean >log 2>&1
+    make -j8 boot >$logs/nofib-boot-$seq-$commit.log 2>&1
+    for run in $(seq $nruns); do
+        echo "  run $i"
+        (
+          git -C .. show --pretty=oneline
+          make
+        ) >$logs/nofib-$seq-$commit-run$(printf "%03d" $run).log 2>&1
+    done
+    let i=i+1
+    cd ..
 }
 
-for commit in $@; do
-    do_commit || echo "commit $commit failed"
+cabal install --disable-library-profiling --force-reinstalls regex-compat html >log 2>&1
+logs=`pwd`/logs
+mkdir -p $logs
+echo "Testing $(echo $commits | wc -l) commits with $nruns runs each"
+i=0
+root=$(pwd)
+for commit in $commits; do
+    do_commit $commit
 done
+
