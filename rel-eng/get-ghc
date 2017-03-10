@@ -1,57 +1,50 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import subprocess
-from subprocess import check_call, Popen, PIPE
-import optparse
+from subprocess import check_call, check_output, Popen, PIPE
+import argparse
 import os
 
-def check_output(*popenargs, **kwargs):
-    r"""Run command with arguments and return its output as a byte string.
-    Backported from Python 2.7 as it's implemented as pure python on stdlib.
-    >>> check_output(['/usr/bin/python', '--version'])
-    Python 2.6.2
-    """
-    process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
-    output, unused_err = process.communicate()
-    retcode = process.poll()
-    if retcode:
-        cmd = kwargs.get("args")
-        if cmd is None:
-            cmd = popenargs[0]
-        error = subprocess.CalledProcessError(retcode, cmd)
-        error.output = output
-        raise error
-    return output
+architectures = {
+    'amd64': 'x86_64',
+    'i386': 'i386',
+    'x32': 'i386',
+}
+distributions = { 'deb7', 'centos65' }
 
-parser = optparse.OptionParser()
-parser.add_option('--dest', default='/opt/ghc')
-parser.add_option('--version')
-parser.add_option('--arch')
-parser.add_option('--dist')
-opts,_ = parser.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument('-d', '--dest', type=str, default='/opt/ghc', help='root destination directory')
+parser.add_argument('-v', '--version', required=True, type=str, help='GHC release to fetch')
+parser.add_argument('-a', '--arch', choices=architectures.keys(), help='current architecture (can typically be detected)')
+parser.add_argument('-D', '--dist', choices=distributions, help='current distribution (can typically be detected)')
+opts = parser.parse_args()
 
 def detect_arch():
     out = check_output(['file', '/bin/bash'])
-    kind = out.split(':')[1].strip()
+    kind = str(out).split(':')[1].strip()
     if kind.startswith('ELF 32-bit'):
         return 'i386'
     elif kind.startswith('ELF 64-bit'):
         return 'x86_64'
-
-arch = {
-        'amd64': 'x86_64',
-        'i386': 'i386',
-        'x32': 'i386',
-}.get(opts.arch)
+arch = architectures.get(opts.arch)
 if arch is None:
     arch = detect_arch()
 
 def detect_dist():
+
     a = open('/etc/issue').read()
     if a.startswith('Ubuntu'):
         return 'deb7'
     if a.startswith('Debian'):
-        return 'deb7'
+        if os.path.isfile('/etc/debian_version'):
+            v = open('/etc/debian_version').read()
+            if v.startswith('7.'):
+                return 'deb7'
+            elif v.startswith('8.'):
+                return 'deb8'
+            else:
+                print('Unknown Debian version: %s' % v)
+                return None
     if a.startswith('CentOS'):
         return 'centos65'
 
@@ -59,7 +52,10 @@ dist = opts.dist
 if dist is None:
     dist = detect_dist()
 
-flavor="{arch}-unknown-linux-{dist}".format(arch=arch, dist=dist)
+if opts.version < '8.':
+    flavor="{arch}-unknown-linux-{dist}".format(arch=arch, dist=dist)
+else:
+    flavor="{arch}-{dist}-linux".format(arch=arch, dist=dist)
 
 dest = os.path.join(opts.dest, opts.version)
 check_call(['sudo', 'mkdir', '-p', opts.dest])
@@ -67,11 +63,13 @@ user = check_output(['whoami']).strip()
 check_call(['sudo', 'chown', user, opts.dest])
 
 url = "https://www.haskell.org/ghc/dist/{ver}/ghc-{ver}-{flavor}.tar.xz".format(ver=opts.version, flavor=flavor)
-print 'Getting GHC binaries from %s' % url
+print('Getting GHC binaries from %s' % url)
 
 download = Popen(['curl', '-L', url], stdout=subprocess.PIPE)
 untar = Popen(['tar', '-Jx'], stdin=download.stdout)
-untar.wait()
+if untar.wait() != 0 or download.wait() != 0:
+    print('Error: Failed to extract')
+    exit(1)
 
 os.chdir('ghc-'+opts.version)
 check_call(['./configure', '--prefix={dest}'.format(dest=dest)])
@@ -82,3 +80,4 @@ with open(os.path.join(dest, 'env.sh'), 'w') as f:
 LD_LIBRARY_PATH={dest}/lib:$LD_LIBRARY_PATH
 echo "Using GHC {ver}"
 """.format(dest=dest, ver=opts.version))
+
