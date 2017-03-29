@@ -14,6 +14,7 @@ library
   build-depends:
 EOF
 sed "s/constraints://" cabal.config | sed 's/^\s\+/    /' | sed '/^--/d' | grep -v ' installed,' >> $dir/stackage-test.cabal
+sed "s/constraints://" cabal.config | sed 's/^\s\+//' | grep '==' | cut -d'=' -f1 > $dir/packages.list
 
 cat > $dir/cabal.project <<EOF
 packages: .
