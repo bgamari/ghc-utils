@@ -51,7 +51,7 @@ $dest/activate-root apt-get install -y \
                     build-essential realpath vim bash-completion bash locales autoconf \
                     libncurses-dev git python sudo curl \
                     console-data locales-all libgmp-dev zlib1g-dev \
-                    python-sphinx
+                    python3 python-sphinx
 
 $dest/activate-root bash -e <<EOF
 locale-gen en_US.UTF-8
