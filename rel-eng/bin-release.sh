@@ -10,7 +10,7 @@ function log() {
 }
 
 function usage() {
-    cat <<-EOF
+    cat <<-"EOF"
 Usage:
   $0 [action]
 
