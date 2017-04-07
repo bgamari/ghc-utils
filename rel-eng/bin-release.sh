@@ -109,7 +109,7 @@ setup_env() {
     PATH="$bin_dir:$PATH"
     case $(uname) in
         MINGW*)
-            configure_opts="$configure_opts --enable-tarballs_autodownload"
+            configure_opts="$configure_opts --enable-tarballs-autodownload"
             ;;
         Darwin)
             export MACOSX_DEPLOYMENT_TARGET=10.7
