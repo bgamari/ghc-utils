@@ -75,7 +75,7 @@ if [ -z "$rel_name" ]; then
 fi
 
 function gen_hashes() {
-    hash_files="$(find -maxdepth 0 -iname '*.bz2') $(find -maxdepth 0 -iname '*.xz') $(find -maxdepth 0 -iname '*.patch')"
+    hash_files="$(find -maxdepth 1 -iname '*.bz2') $(find -maxdepth 1 -iname '*.xz') $(find -maxdepth 1 -iname '*.patch')"
 
     echo -n "Hashing..."
     sha1sum $hash_files >| SHA1SUMS
