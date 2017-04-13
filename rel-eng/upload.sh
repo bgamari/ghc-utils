@@ -63,6 +63,7 @@ usage() {
     echo "  prepare_docs       prepare the documentation directory"
     echo "  upload             upload the tarballs and documentation to downloads.haskell.org"
     echo "  purge_file file    purge a given file from the CDN"
+    echo "  verify             verify the signatures in this directory"
     echo
 }
 
@@ -74,12 +75,15 @@ if [ -z "$rel_name" ]; then
     rel_name="$ver"
 fi
 
-function gen_hashes() {
-    hash_files="$(find -maxdepth 1 -iname '*.bz2') $(find -maxdepth 1 -iname '*.xz') $(find -maxdepth 1 -iname '*.patch')"
+# returns the set of files that must have hashes generated.
+function hash_files() {
+    echo $(find -maxdepth 1 -iname '*.bz2') $(find -maxdepth 1 -iname '*.xz') $(find -maxdepth 1 -iname '*.patch')
+}
 
+function gen_hashes() {
     echo -n "Hashing..."
-    sha1sum $hash_files >| SHA1SUMS &
-    sha256sum $hash_files >| SHA256SUMS &
+    sha1sum $(hash_files) >| SHA1SUMS &
+    sha256sum $(hash_files) >| SHA256SUMS &
     wait
     echo "done"
 }
@@ -88,8 +92,8 @@ function sign() {
     # Kill DISPLAY lest pinentry won't work
     DISPLAY=
     eval $(gpg-agent --daemon)
-    for i in $hash_files SHA1SUMS SHA256SUMS; do
-        if [ -e $i -a $i.sig -nt $i ]; then
+    for i in $(hash_files) SHA1SUMS SHA256SUMS; do
+        if [ -e $i -a -e $i.sig -a $i.sig -nt $i ]; then
             echo "Skipping signing of $i"
             continue
         elif [ -e $i.sig ] && gpg2 --verify $i.sig; then
