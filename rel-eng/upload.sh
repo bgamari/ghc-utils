@@ -50,6 +50,7 @@ usage() {
     echo "  gen_hashes         generated signed hashes of the release tarballs"
     echo "  prepare_docs       prepare the documentation directory"
     echo "  upload             upload the tarballs and documentation to downloads.haskell.org"
+    echo "  purge_file file    purge a given file from the CDN"
     echo
 }
 
@@ -103,8 +104,12 @@ function upload() {
     # Purge CDN cache
     curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/
     for i in *; do
-        curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/$i
+        purge_file $i
     done
+}
+
+function purge_file() {
+    curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/$i
 }
 
 function prepare_docs() {
