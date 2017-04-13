@@ -47,7 +47,8 @@ usage() {
     echo "and <action> is one of,"
     echo "  [nothing]          do everything below"
     echo "  compress_to_xz     produce xz tarballs from bzip2 tarballs"
-    echo "  gen_hashes         generated signed hashes of the release tarballs"
+    echo "  gen_hashes         generated hashes of the release tarballs"
+    echo "  sign               sign hashes of the release tarballs"
     echo "  prepare_docs       prepare the documentation directory"
     echo "  upload             upload the tarballs and documentation to downloads.haskell.org"
     echo "  purge_file file    purge a given file from the CDN"
@@ -63,13 +64,15 @@ if [ -z "$rel_name" ]; then
 fi
 
 function gen_hashes() {
-    hash_files="$(find -iname '*.bz2') $(find -iname '*.xz') $(find -iname '*.patch')"
+    hash_files="$(find -maxdepth 0 -iname '*.bz2') $(find -maxdepth 0 -iname '*.xz') $(find -maxdepth 0 -iname '*.patch')"
 
     echo -n "Hashing..."
     sha1sum $hash_files >| SHA1SUMS
     sha256sum $hash_files >| SHA256SUMS
     echo "done"
+}
 
+function sign() {
     # Kill DISPLAY lest pinentry won't work
     DISPLAY=
     eval $(gpg-agent --daemon)
@@ -77,7 +80,7 @@ function gen_hashes() {
         if [ -e $i -a $i.sig -nt $i ]; then
             echo "Skipping signing of $i"
             continue
-        elif gpg2 --verify $i.sig; then
+        elif [ -e $i.sig ] && gpg2 --verify $i.sig; then
             # Don't resign if current signature is valid
             touch $i.sig
             continue
@@ -143,6 +146,7 @@ function compress_to_xz() {
 
 if [ "x$1" == "x" ]; then
     gen_hashes
+    sign
     if [ ! -d docs ]; then prepare_docs; fi
     upload
 else
