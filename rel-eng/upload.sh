@@ -78,8 +78,9 @@ function gen_hashes() {
     hash_files="$(find -maxdepth 1 -iname '*.bz2') $(find -maxdepth 1 -iname '*.xz') $(find -maxdepth 1 -iname '*.patch')"
 
     echo -n "Hashing..."
-    sha1sum $hash_files >| SHA1SUMS
-    sha256sum $hash_files >| SHA256SUMS
+    sha1sum $hash_files >| SHA1SUMS &
+    sha256sum $hash_files >| SHA256SUMS &
+    wait
     echo "done"
 }
 
