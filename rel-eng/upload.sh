@@ -33,6 +33,17 @@ if [ -z "$ghc_tree" ]; then
     ghc_tree=/opt/exp/ghc/ghc-7.10
 fi
 
+# Infer release name from directory name
+if [ -z "$rel_name" ]; then
+    rel_name="$(basename $(pwd))"
+fi
+
+# Infer version from tarball names
+if [ -z "$ver" ]; then
+    ver="$(ls ghc-*.tar.* | sed -ne 's/ghc-\([0-9]\+\.[0-9]\+\.[0-9]\+\(\.[0-9]\+\)\?\).\+/\1/p' | head -n1)"
+    if [ -z "$ver" ]; then echo "Failed to infer \$ver"; exit 1; fi
+fi
+
 host="downloads.haskell.org"
 
 usage() {
