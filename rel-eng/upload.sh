@@ -108,6 +108,11 @@ function sign() {
 }
 
 function verify() {
+    if [ $(find -iname '*.sig' | wc -l) -eq 0 ]; then
+        echo "No signatures to verify"
+        return
+    fi
+
     for i in *.sig; do
         echo
         echo Verifying $i
