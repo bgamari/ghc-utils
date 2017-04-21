@@ -229,7 +229,7 @@
         <h3>Windows (x86)</h3>
         {{#tarballs}}i386-unknown-mingw32{{/tarballs}}
         <p>
-          This is a complete build, and should work for Microsoft Windows XP
+          This is a complete build, and should work for Microsoft Windows Vista
           or later. It also includes support for compiling C++ files.
         </p>
         <p>

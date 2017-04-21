@@ -33,6 +33,17 @@ if [ -z "$ghc_tree" ]; then
     ghc_tree=/opt/exp/ghc/ghc-7.10
 fi
 
+# Infer release name from directory name
+if [ -z "$rel_name" ]; then
+    rel_name="$(basename $(pwd))"
+fi
+
+# Infer version from tarball names
+if [ -z "$ver" ]; then
+    ver="$(ls ghc-*.tar.* | sed -ne 's/ghc-\([0-9]\+\.[0-9]\+\.[0-9]\+\(\.[0-9]\+\)\?\).\+/\1/p' | head -n1)"
+    if [ -z "$ver" ]; then echo "Failed to infer \$ver"; exit 1; fi
+fi
+
 host="downloads.haskell.org"
 
 usage() {
@@ -47,9 +58,12 @@ usage() {
     echo "and <action> is one of,"
     echo "  [nothing]          do everything below"
     echo "  compress_to_xz     produce xz tarballs from bzip2 tarballs"
-    echo "  gen_hashes         generated signed hashes of the release tarballs"
+    echo "  gen_hashes         generated hashes of the release tarballs"
+    echo "  sign               sign hashes of the release tarballs"
     echo "  prepare_docs       prepare the documentation directory"
     echo "  upload             upload the tarballs and documentation to downloads.haskell.org"
+    echo "  purge_file file    purge a given file from the CDN"
+    echo "  verify             verify the signatures in this directory"
     echo
 }
 
@@ -61,22 +75,28 @@ if [ -z "$rel_name" ]; then
     rel_name="$ver"
 fi
 
+# returns the set of files that must have hashes generated.
+function hash_files() {
+    echo $(find -maxdepth 1 -iname '*.bz2') $(find -maxdepth 1 -iname '*.xz') $(find -maxdepth 1 -iname '*.patch')
+}
+
 function gen_hashes() {
-    hash_files="$(find -iname '*.bz2') $(find -iname '*.xz') $(find -iname '*.patch')"
-
     echo -n "Hashing..."
-    sha1sum $hash_files >| SHA1SUMS
-    sha256sum $hash_files >| SHA256SUMS
+    sha1sum $(hash_files) >| SHA1SUMS &
+    sha256sum $(hash_files) >| SHA256SUMS &
+    wait
     echo "done"
+}
 
+function sign() {
     # Kill DISPLAY lest pinentry won't work
     DISPLAY=
     eval $(gpg-agent --daemon)
-    for i in $hash_files SHA1SUMS SHA256SUMS; do
-        if [ -e $i -a $i.sig -nt $i ]; then
+    for i in $(hash_files) SHA1SUMS SHA256SUMS; do
+        if [ -e $i -a -e $i.sig -a $i.sig -nt $i ]; then
             echo "Skipping signing of $i"
             continue
-        elif gpg2 --verify $i.sig; then
+        elif [ -e $i.sig ] && gpg2 --verify $i.sig; then
             # Don't resign if current signature is valid
             touch $i.sig
             continue
@@ -88,6 +108,11 @@ function gen_hashes() {
 }
 
 function verify() {
+    if [ $(find -iname '*.sig' | wc -l) -eq 0 ]; then
+        echo "No signatures to verify"
+        return
+    fi
+
     for i in *.sig; do
         echo
         echo Verifying $i
@@ -98,13 +123,17 @@ function verify() {
 function upload() {
     verify
     chmod ugo+r,o-w -R .
-    rsync --progress -az $rsync_opts . $host:public_html/$rel_name
+    rsync --progress -aLz $rsync_opts . $host:public_html/$rel_name
     chmod ugo-w $(ls *.xz *.bz2)
     # Purge CDN cache
     curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/
     for i in *; do
-        curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/$i
+        purge_file $i
     done
+}
+
+function purge_file() {
+    curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/$i
 }
 
 function prepare_docs() {
@@ -138,6 +167,7 @@ function compress_to_xz() {
 
 if [ "x$1" == "x" ]; then
     gen_hashes
+    sign
     if [ ! -d docs ]; then prepare_docs; fi
     upload
 else

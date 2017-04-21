@@ -24,30 +24,35 @@ relDelta a b
 
 data DeltaType = Relative | Absolute
 data FieldChoice = Alloc | Allocd | Entries deriving Show
+data ShowUnchanged = ShowUnchanged | HideUnchanged
 
-calculateDeltas :: (Ord id, Real metric)
-                => DeltaType
+calculateDeltas :: (Ord id, Real metric, Eq a)
+                => ShowUnchanged
+                -> DeltaType
                 -> (a -> metric)
                 -> M.Map id a -> M.Map id a -> M.Map id (Double, a, a)
-calculateDeltas deltaType measure =
-  M.intersectionWith $ \x y -> let !delta = combine x y in (delta, x, y)
+calculateDeltas showUnchanged deltaType measure xs ys =
+  filterUnchanged $ M.intersectionWith (\x y -> let !delta = combine x y in (delta, x, y)) xs ys
   where
+    filterUnchanged = case showUnchanged of
+        ShowUnchanged -> id
+        HideUnchanged -> M.filter (\(_,x, y) -> x /= y)
     combine = case deltaType of
         Relative -> relDelta `on` measure
         Absolute -> \x y -> realToFrac (measure y - measure x)
 
-tabulateDeltas :: (Ord id, Real metric)
-                => DeltaType
+tabulateDeltas :: (Ord id, Real metric, Eq a)
+                => ShowUnchanged -> DeltaType
                 -> (a -> metric)
                 -> M.Map id a -> M.Map id a -> [(id, Double, a, a)]
-tabulateDeltas deltaType metric as bs =
+tabulateDeltas showUnchanged deltaType metric as bs =
     -- Sort by delta from greatest to smallest
     sortBy (flip compare `on` (\(_id, delta, _a, _b) -> delta)) 
 
     -- get rid of nesting we don't need
   . map ( \ (k, (delta, a, b)) -> (k, delta, a, b) )
   . M.toList
-  $ calculateDeltas deltaType metric as bs
+  $ calculateDeltas showUnchanged deltaType metric as bs
 
 calculateMissing :: Ord id
                  => (a -> metric)
@@ -83,13 +88,14 @@ missingTable name as bs (metricName, metric) cols = header ++ dataRows
         Cells $ [ show (metric a) ]
                 ++ map (\(_,f) -> f k a) cols
 
-deltasTable :: (Ord id, Real metric, Show metric)
-            => DeltaType                           -- ^ relative or absolute changes
+deltasTable :: (Ord id, Real metric, Show metric, Eq a)
+            => ShowUnchanged
+            -> DeltaType                           -- ^ relative or absolute changes
             -> M.Map id a -> M.Map id a
             -> (String, a -> metric)               -- ^ metric to examine change in
             -> [(String, id -> a -> a -> String)]  -- ^ other columns to include
             -> [Row]
-deltasTable deltaType as bs (metricName, metric) cols = header ++ dataRows
+deltasTable showUnchanged deltaType as bs (metricName, metric) cols = header ++ dataRows
   where
     header = [ Cells $ [ case deltaType of
                            Relative -> "% change"
@@ -102,7 +108,7 @@ deltasTable deltaType as bs (metricName, metric) cols = header ++ dataRows
 
     dataRows =
         map formatRow
-        $ tabulateDeltas deltaType metric as bs
+        $ tabulateDeltas showUnchanged deltaType metric as bs
 
     formatRow (k, delta, a, b) =
         Cells $ [ delta', show (metric a), show (metric b) ]
@@ -153,9 +159,9 @@ formatTable unpaddedRows = unlines $ map formatRow rows
 
     colSep = "|"
 
-args :: O.Parser (FieldChoice, DeltaType, Bool, FilePath, FilePath)
+args :: O.Parser (FieldChoice, ShowUnchanged, DeltaType, Bool, FilePath, FilePath)
 args =
-    (,,,,) <$> fieldChoice <*> deltaType <*> byModule <*> tickyProfile <*> tickyProfile
+    (,,,,,) <$> fieldChoice <*> showUnchanged <*> deltaType <*> byModule <*> tickyProfile <*> tickyProfile
   where
     fieldChoice = O.option (p =<< O.str) ( O.long "field" <> O.short 'f' <> O.metavar "FIELD"
                                 <> O.value Alloc <> O.help "Select alloc, allocd, or entries"
@@ -165,6 +171,8 @@ args =
             p "allocd" = pure Allocd
             p "entries" = pure Entries
             p _ = fail "FIELD must be alloc, allocd, or entries"
+    showUnchanged = O.flag HideUnchanged ShowUnchanged
+                    (O.short 'u' <> O.long "show-unchanged" <> O.help "Show counters which didn't change")
     deltaType = O.flag Absolute Relative (O.long "relative" <> O.short 'r' <> O.help "relative changes")
     byModule = O.switch (O.long "by-module" <> O.short 'm' <> O.help "aggregate statistics by module")
     tickyProfile = O.argument O.str (O.metavar "FILE" <> O.help "ticky profile output")
@@ -181,7 +189,8 @@ chosenFieldSelector Entries = entries
 
 main :: IO ()
 main = do
-    (chosenField, deltaType, byModule, fa, fb) <- O.execParser $ O.info (O.helper <*> args) mempty
+    (chosenField, showUnchanged, deltaType, byModule, fa, fb) <-
+        O.execParser $ O.info (O.helper <*> args) mempty
     a <- parseReport <$> T.readFile fa
     b <- parseReport <$> T.readFile fb
     let tabulate :: [TickyFrame] -> M.Map String TickyStats
@@ -193,7 +202,8 @@ main = do
               | otherwise = pprStgName . stgName
         a' = tabulate $ frames a
         b' = tabulate $ frames b
-        table = deltasTable deltaType a' b' (chosenFieldName chosenField, chosenFieldSelector chosenField)
+        table = deltasTable showUnchanged deltaType a' b'
+                   (chosenFieldName chosenField, chosenFieldSelector chosenField)
                    [ ("name", \k _a _b -> k) ]
         tableA = missingTable "A" a' b' (chosenFieldName chosenField, chosenFieldSelector chosenField)
                    [ ("name", \k _a -> k) ]
