@@ -11,7 +11,7 @@ done
 md5sum `find ghc-tarballs -type f -a -not -iname '*.sig'` >| mk/win32-tarballs.md5sum
 
 chmod -R ugo+rX ghc-tarballs
-rsync -av ghc-tarballs/mingw-w64/* ghc-downloads.haskell.org:public_html/mingw
+rsync -av ghc-tarballs/mingw-w64/* downloads.haskell.org:public_html/mingw
 for f in $(find ghc-tarballs/mingw-w64); do
     curl -XPURGE http://downloads.haskell.org/~ghc/mingw/$f
 done
