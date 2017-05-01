@@ -5,10 +5,11 @@ import os
 import re
 
 f = sys.argv[1]
+base = os.path.splitext(f)[0]
 i = 0
 
 os.mkdir('%s.split' % f)
-output = open('%s.split/out-00' % f, 'w')
+output = open('%s.split/%s-00' % (f, base), 'w')
 for ln in open(f):
     if ln.startswith('======='):
         name = ln.strip('= ')
@@ -16,7 +17,7 @@ for ln in open(f):
         name = name.strip().replace(' ', '-')
         i += 1
         print i, name
-        output = open('%s.split/out-%02d-%s' % (f, i, name), 'w')
+        output = open('%s.split/%s.%02d-%s' % (f, base, i, name), 'w')
 
     output.write(ln)
 
