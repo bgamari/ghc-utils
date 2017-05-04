@@ -1,3 +1,4 @@
+#!/usr/bin/env runghc
 import System.Process
 import qualified Data.Set as S
 import System.Environment
