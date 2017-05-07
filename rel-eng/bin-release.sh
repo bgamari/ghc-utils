@@ -1,6 +1,7 @@
-#!/usr/bin/env bash -e
+#!/usr/bin/env bash
 
 set -o pipefail
+set -e
 
 args="$@"
 
