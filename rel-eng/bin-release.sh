@@ -5,6 +5,8 @@ set -e
 
 args="$@"
 
+if [ -z "$make" ]; then make=make; fi
+
 function log() {
     echo "bin-release: $@"
     echo "$@" >> $log
@@ -164,9 +166,9 @@ EOF
 
 function do_build() {
     cd ghc
-    make -j$NTHREADS 2>&1 | tee $root/make.log
-    make binary-dist 2>&1 | tee $root/binary-dist.log
-    make test_bindist 2>&1 | tee $root/test-bindist.log
+    $make -j$NTHREADS 2>&1 | tee $root/make.log
+    $make binary-dist 2>&1 | tee $root/binary-dist.log
+    $make test_bindist 2>&1 | tee $root/test-bindist.log
     cd ..
     log "binary dist build finished"
 }
@@ -174,7 +176,7 @@ function do_build() {
 function testsuite() {
     cd ghc
     log "running testsuite"
-    make test THREADS=$NTHREADS 2>&1 | tee $root/testsuite.log
+    $make test THREADS=$NTHREADS 2>&1 | tee $root/testsuite.log
 }
 
 function test_install() {
@@ -190,7 +192,7 @@ function test_install() {
     test_root=$root/test/inst
     ./configure --prefix=$test_root $configure_opts | tee $root/test-rebuild.log
     log "installing test rebuild"
-    make install | tee $root/test-install.log
+    $make install | tee $root/test-install.log
 
     cat > $root/test/hi.hs <<-EOF
 main = print "hello world!"
@@ -203,7 +205,7 @@ EOF
 
 function upload() {
     upload_dir="ben@home.smart-cactus.org:public_html/ghc/release-prep/$rel_name"
-    eval $(make -C $root/ghc show VALUE=ProjectVersion | grep ^ProjectVersion)
+    eval $($make -C $root/ghc show VALUE=ProjectVersion | grep ^ProjectVersion)
     tarball="$(ls $root/ghc/ghc-*.tar.xz)"
     dest_tarball="$upload_dir/$(basename $tarball | sed "s/$ProjectVersion/$ver/")"
     log "Uploading to $dest_tarball"
