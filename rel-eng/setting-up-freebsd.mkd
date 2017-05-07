@@ -1,7 +1,7 @@
 # Setting up FreeBSD VM for GHC development
 
 ```
-$ pkg install bash vim ghc autoconf automake git gmake gmp python3 hs-cabal-install
+$ pkg install bash vim ghc autoconf automake git gmake gmp python3 hs-cabal-install wget
 $ # Create user, setup networking
 $ bsdconfig
 ```

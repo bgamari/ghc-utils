@@ -5,8 +5,6 @@ set -e
 
 args="$@"
 
-if [ -z "$make" ]; then make=make; fi
-
 function log() {
     echo "bin-release: $@"
     echo "$@" >> $log
@@ -78,15 +76,24 @@ function setup_darwin() {
 function prepare() {
     if [ ! -z "$skip_pkgs" ]; then
         if ! grep CentOS /etc/issue; then
+            opsys=linux
             setup_redhat
         elif ! grep Debian /etc/issue; then
+            opsys=linux
             setup_debian
         elif ! grep Ubuntu /etc/issue; then
+            opsys=linux
             setup_debian
         elif test "$OS" = "Windows_NT"; then
+            opsys=windows
             setup_windows
         elif test "`uname`" = "Darwin"; then
+            opsys=darwin
             setup_darwin
+        elif test "`uname`" = "FreeBSD"; then
+            opsys=freebsd
+        elif test "`uname`" = "OpenBSD"; then
+            opsys=openbsd
         else
             log "Unknown distribution"
         fi
@@ -100,15 +107,18 @@ function prepare() {
     if [ -d ghc ]; then
         log "Using existing tree"
     else
-        tar -Jxf ghc-$ver-src.tar.xz
-        tar -Jxf ghc-$ver-testsuite.tar.xz
+        $tar -Jxf ghc-$ver-src.tar.xz
+        $tar -Jxf ghc-$ver-testsuite.tar.xz
 
-        root_dir="$(basename $(tar -Jtf ghc-$ver-src.tar.xz | head -n1))"
+        root_dir="$(basename $($tar -Jtf ghc-$ver-src.tar.xz | head -n1))"
         mv $root_dir ghc
     fi
 }
 
 setup_env() {
+    if [ -z "$tar" ]; then tar=tar; fi
+    if [ -z "$make" ]; then make=make; fi
+
     PATH="$bin_dir:$PATH"
     case $(uname) in
         MINGW*)
@@ -127,6 +137,19 @@ setup_env() {
             log "Disabling large address space support."
             configure_opts="$configure_opts --disable-large-address-space"
             make=gmake
+            tar=gtar
+            ;;
+        OpenBSD)
+            log "Disabling large address space support."
+            configure_opts="$configure_opts --disable-large-address-space"
+            make=gmake
+            tar=gtar
+            ;;
+        DragonFly)
+            log "Disabling large address space support."
+            configure_opts="$configure_opts --disable-large-address-space"
+            make=gmake
+            tar=gtar
             ;;
     esac
 }
@@ -191,7 +214,7 @@ function test_install() {
     fi
     rm -Rf $root/test
     mkdir $root/test
-    tar -C test -Jxf $root/ghc/ghc-*.tar.xz
+    $tar -C test -Jxf $root/ghc/ghc-*.tar.xz
     cd $root/test/ghc*
     log "configuring test rebuild"
     test_root=$root/test/inst
