@@ -123,6 +123,11 @@ setup_env() {
             configure_opts="$configure_opts CC=/usr/local/bin/gcc-6"
             log "Using Homebrew's gcc $(gcc -dumpversion)"
             ;;
+        FreeBSD)
+            log "Disabling large address space support."
+            configure_opts="$configure_opts --disable-large-address-space"
+            make=gmake
+            ;;
     esac
 }
 
