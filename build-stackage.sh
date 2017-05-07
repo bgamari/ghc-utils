@@ -5,6 +5,9 @@
 dir="stackage-build"
 mkdir -p $dir
 
+sed "s/constraints://" cabal.config | sed '/^--/d' | sed 's/^\s\+//' | grep '==' > $dir/constraints.list
+cat $dir/constraints.list | cut -d'=' -f1 > $dir/packages.list
+
 cat > $dir/stackage-test.cabal <<EOF
 name: stackage-test
 version: 1.0
@@ -13,12 +16,12 @@ build-type: Simple
 library
   build-depends:
 EOF
-sed "s/constraints://" cabal.config | sed 's/^\s\+/    /' | sed '/^--/d' | grep -v ' installed,' >> $dir/stackage-test.cabal
-sed "s/constraints://" cabal.config | sed 's/^\s\+//' | grep '==' | cut -d'=' -f1 > $dir/packages.list
+cat $dir/constraints.list | sed 's/^/    /' >> $dir/stackage-test.cabal
 
+mkdir -p $dir/packages
 cat > $dir/cabal.project <<EOF
-packages: .
+packages: ., packages/
 EOF
 
 cd $dir
-cabal new-build -j16
+cabal new-build -j16 --keep-going
