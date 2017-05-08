@@ -19,3 +19,5 @@ $ ./configure --with-iconv-includes=/usr/local/include --with-iconv-libraries=/u
 $ gmake -j4
 ```
 
+Also, due to #9904 it is necessary to increase the default `datasize` limits in
+`/etc/login.conf` to `infinity`.

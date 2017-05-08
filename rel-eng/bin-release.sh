@@ -147,6 +147,7 @@ setup_env() {
                             --with-system-libffi --with-ffi-includes=/usr/local/include --with-ffi-libraries=/usr/local/lib"
             make=gmake
             tar=gtar
+            export AUTOCONF_VERSION=2.69
             ;;
         DragonFly)
             log "Disabling large address space support."
