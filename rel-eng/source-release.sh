@@ -19,6 +19,5 @@ find -iname '*.hi' -delete
 find -iname '*.dyn_hi' -delete
 find -iname '*.dyn_o' -delete
 git clean -fxd testsuite/tests
-find -type f -executable -exec file -i '{}' \; | grep 'x-executable; charset=binary' | cut -d: -f1 | xargs rm
 
 make sdist
