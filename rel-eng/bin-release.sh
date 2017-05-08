@@ -143,15 +143,15 @@ setup_env() {
             log "Disabling large address space support."
             configure_opts="$configure_opts --disable-large-address-space \
                             --with-iconv-includes=/usr/local/include --with-iconv-libraries=/usr/local/lib \
-  --with-system-libffi --with-ffi-includes=/usr/local/include --with-ffi-libraries=/usr/local/lib"
+                            --with-system-libffi --with-ffi-includes=/usr/local/include --with-ffi-libraries=/usr/local/lib"
             make=gmake
             tar=gtar
             ;;
         DragonFly)
             log "Disabling large address space support."
-            configure_opts="$configure_opts --disable-large-address-space"
+            configure_opts="$configure_opts --disable-large-address-space \
+                            --with-curses-includes=/usr/local/include --with-curses-libraries=/usr/local/lib"
             make=gmake
-            tar=gtar
             ;;
     esac
 }
