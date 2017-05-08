@@ -116,6 +116,7 @@ function prepare() {
 }
 
 setup_env() {
+    if [ -z "$NTHREADS" ]; then NTHREADS=1; fi
     if [ -z "$tar" ]; then tar=tar; fi
     if [ -z "$make" ]; then make=make; fi
 
@@ -157,10 +158,6 @@ setup_env() {
 }
 
 function do_configure() {
-    if [ -z "$NTHREADS" ]; then
-        NTHREADS=1
-    fi
-
     cd ghc
     cat > mk/build.mk <<EOF
 V=1
