@@ -141,7 +141,6 @@ setup_env() {
             tar=gtar
             ;;
         OpenBSD)
-            log "Disabling large address space support."
             configure_opts="$configure_opts \
                             --with-iconv-includes=/usr/local/include --with-iconv-libraries=/usr/local/lib \
                             --with-gmp-libraries=/usr/local/lib --with-gmp-includes=/usr/local/include \
