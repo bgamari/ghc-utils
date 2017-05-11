@@ -1,0 +1,31 @@
+#!/bin/bash -e
+
+# 
+#
+# Usage:
+#     github_token=... ghc-utils/ghc-submodules
+
+branch_name="upstream"
+grep -v '^#' packages | while IFS= read -r line; do
+    path=$(echo $line | awk '{print $1}')
+    upstream=$(echo $line | awk '{print $4}')
+    name=$(basename $path .git)
+    if [ "x$path" == "x." ]; then continue; fi
+    if [ ! -d $path ]; then continue; fi
+    if [ "x$upstream" != "x-" ]; then
+        echo "Added $upstream"
+        git -C $path remote add upstream $upstream || true
+    fi
+
+    for repo in bgamari/$name bgamari/packages-$name; do
+        if ! curl -H "Authorization: token $github_token" -s https://api.github.com/repos/$repo | jq '.message' ; then
+           echo "Added $repo"
+           git -C $path remote rm bgamari || true
+           git -C $path remote add bgamari git@github.com:$repo
+           break
+        fi
+    done
+    #git -C $path remote add bgamari git@github.com:bgamari/$name
+done
+
+git submodule foreach git remote update
