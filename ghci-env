@@ -1,0 +1,10 @@
+-- :source this file from GHCi to setup your environment to conveniently play
+-- around with the GHC API.
+
+:set -package=ghc
+:set -XOverloadedStrings
+:m + Outputable BasicTypes
+instance Outputable SDoc where ppr = id
+
+let printPpr = putStrLn . showSDocUnsafe . ppr :: Outputable a => a -> IO ()
+:set -interactive-print=printPpr
