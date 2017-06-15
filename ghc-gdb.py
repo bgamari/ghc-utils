@@ -1,6 +1,7 @@
 import gdb
 import gdb.printing
 from collections import namedtuple
+import traceback
 
 bits = 64
 
@@ -171,6 +172,27 @@ def build_closure_printers():
     p[C.IND_STATIC] = indirect
     p[C.BLACKHOLE] = indirect
 
+    def ret_small(closure, showSpAddrs=True):
+        c = closure.cast(StgWord.pointer().pointer()).dereference()
+        info = get_itbl(closure)
+        bitmap = info['layout']['bitmap']
+        s = 'RET_SMALL'
+        s += '  return = %s (%s)\n' % (c, gdb.find_pc_line(int(c.cast(StgWord))))
+        for i, isWord in enumerate(iter_small_bitmap(bitmap)):
+            w = closure.cast(StgWord.pointer()) + i
+            if showSpAddrs:
+                s += '  field %d (%x): ' % (i, w.cast(StgWord))
+            else:
+                s += '  field %d: ' % i
+            if isWord:
+                s += 'Word %d' % (w.dereference())
+            else:
+                ptr = w.dereference().cast(StgClosurePtr)
+                s += 'Ptr  0x%-12x: %s' % (ptr, print_closure(untag(ptr)))
+            s += '\n'
+        return s
+    p[C.RET_SMALL] = ret_small
+
     return p
 
 closurePrinters = build_closure_printers()
@@ -223,6 +245,7 @@ def print_closure(closure):
         else:
             return printer(closure)
     except Exception as e:
+        print(traceback.format_exc())
         return 'Error(%s)' % e
 
 ProfInfo = namedtuple('ProfInfo', 'closure_desc,type')
@@ -293,21 +316,7 @@ class PrintGhcStackCmd(gdb.Command):
                 break
 
             elif ty == ClosureType.RET_SMALL:
-                c = sp.cast(StgWord.pointer().pointer()).dereference()
-                bitmap = info['layout']['bitmap']
-                print('RET_SMALL')
-                print('  return = %s (%s)' % (c, gdb.find_pc_line(int(c.cast(StgWord)))))
-                for i, isWord in enumerate(iter_small_bitmap(bitmap)):
-                    w = sp.cast(StgWord.pointer()) + i
-                    if showSpAddrs:
-                        print('  field %d (%x): ' % (i, w.cast(StgWord)), end='')
-                    else:
-                        print('  field %d: ' % i, end='')
-                    if isWord:
-                        print('Word %d' % (w.dereference()))
-                    else:
-                        ptr = w.dereference().cast(StgClosurePtr)
-                        print('Ptr  %s' % ptr, print_closure(untag(ptr)))
+                print(print_closure(sp.cast(StgClosurePtr)))
 
             elif ty == ClosureType.RET_BCO:
                 print('RET_BCO')
