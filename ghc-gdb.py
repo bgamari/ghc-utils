@@ -1,19 +1,26 @@
 import gdb
 import gdb.printing
+from collections import namedtuple
 
 bits = 64
-profiled = False
+
+
+# tables-next-to-code?
 tntc = True
 
 StgClosure = gdb.lookup_type('StgClosure')
-StgClosurePtr = gdb.lookup_type('StgClosure').pointer()
+StgClosurePtr = StgClosure.pointer()
 StgInfoTable = gdb.lookup_type('StgInfoTable')
+StgInfoTablePtr = StgInfoTable.pointer()
 StgConInfoTable = gdb.lookup_type('StgConInfoTable')
 StgRetInfoTable = gdb.lookup_type('StgRetInfoTable')
 StgFunInfoTable = gdb.lookup_type('StgFunInfoTable')
 StgClosureInfo = gdb.lookup_type('StgClosureInfo')
 StgWord = gdb.lookup_type('uintptr_t')
 StgPtr = gdb.lookup_type('void').pointer()
+
+# profiled rts?
+profiled = 'prof' in (f.name for f in StgInfoTable.fields())
 
 if bits == 32:
     BITMAP_SIZE_MASK = 0x1f
@@ -104,7 +111,7 @@ def build_closure_printers():
 
     def constr(closure):
         con_info = get_con_itbl(closure)
-        s = 'constr' % con_info
+        s = 'constr%s' % (get_prof_info(get_itbl(closure)),)
         # TODO
         return s
     for ty in [C.CONSTR,
@@ -120,7 +127,10 @@ def build_closure_printers():
         p[ty] = fun
 
     def thunk(closure):
-        return 'THUNK'
+        s = 'THUNK'
+        if profiled:
+            s += '(' + get_prof_info(get_itbl(closure)) + ')'
+        return s
     for ty in [C.THUNK, C.THUNK_1_0, C.THUNK_0_1, C.THUNK_1_1,
                C.THUNK_0_2, C.THUNK_2_0, C.THUNK_STATIC]:
         p[ty] = thunk
@@ -133,9 +143,9 @@ def build_closure_printers():
 
     def application(ty, closure):
         ap_ = closure.cast(ty).dereference()
-        things = [ap_['fun']]
-        for i in ap['n_args']:
-            things.append((ap_['payload'] + i).dereference())
+        things = [str(ap_['fun'])]
+        for i in range(int(ap_['n_args'])):
+            things.append(str((ap_['payload'] + i).dereference()))
         return 'AP(%s)' % ', '.join(things)
     p[C.AP] = lambda closure: application(gdb.lookup_type('StgAP').pointer(), closure)
     p[C.PAP] = lambda closure: application(gdb.lookup_type('StgPAP').pointer(), closure)
@@ -156,7 +166,7 @@ def build_closure_printers():
     def indirect(closure):
         ty = gdb.lookup_type('StgInd').pointer()
         ind = closure.cast(ty)['indirectee']
-        return 'BLACKHOLE(%s: %s)' % (ind, print_closure(ind))
+        return 'BLACKHOLE(%s: %s)' % (ind, print_closure(untag(ind)))
     p[C.IND] = indirect
     p[C.IND_STATIC] = indirect
     p[C.BLACKHOLE] = indirect
@@ -202,11 +212,35 @@ def get_fun_itbl(closure):
     return info_ptr.cast(StgFunInfoTable.pointer()) - 1
 
 def print_closure(closure):
-    assert closure.type == StgClosurePtr
-    closure = untag(closure)
-    info = get_itbl(closure)
-    ty = int(info['type'])
-    return closurePrinters[ty](closure)
+    try:
+        assert closure.type == StgClosurePtr
+        closure = untag(closure)
+        info = get_itbl(closure)
+        ty = int(info['type'])
+        printer = closurePrinters.get(ty)
+        if printer is None:
+            raise RuntimeError("Invalid closure type %d: closure=%s" % (ty, closure))
+        else:
+            return printer(closure)
+    except Exception as e:
+        return 'Error(%s)' % e
+
+ProfInfo = namedtuple('ProfInfo', 'closure_desc,type')
+
+def get_prof_info(info_tbl_ptr):
+    assert info_tbl_ptr.type == StgInfoTablePtr
+    if not profiled:
+        return None
+    else:
+        char_ptr_ty = gdb.lookup_type('char').pointer()
+        if tntc:
+            closure_desc = ((info_tbl_ptr + 1).cast(StgWord) + info_tbl_ptr.dereference()['prof']['closure_desc_off']).cast(char_ptr_ty).string()
+            closure_type = ((info_tbl_ptr + 1).cast(StgWord) + info_tbl_ptr.dereference()['prof']['closure_type_off']).cast(char_ptr_ty).string()
+        else:
+            closure_type = info_tbl_ptr.dereference()['prof']['closure_type'].string()
+            closure_desc = info_tbl_ptr.dereference()['prof']['closure_desc'].string()
+
+        return ProfInfo(closure_desc, closure_type)
 
 def iter_small_bitmap(bitmap):
     size = bitmap & BITMAP_SIZE_MASK
@@ -221,6 +255,14 @@ class PrintInfoCmd(gdb.Command):
 
     def invoke(self, arg, from_tty):
         print(get_itbl(gdb.parse_and_eval(arg)))
+
+class PrintGhcClosureCmd(gdb.Command):
+    def __init__(self):
+        super(PrintGhcClosureCmd, self).__init__ ("closure", gdb.COMMAND_USER)
+
+    def invoke(self, arg, from_tty):
+        closure = gdb.parse_and_eval('$rbp').cast(StgClosurePtr)
+        print(print_closure(closure))
 
 class PrintGhcStackCmd(gdb.Command):
     def __init__(self):
@@ -264,7 +306,8 @@ class PrintGhcStackCmd(gdb.Command):
                     if isWord:
                         print('Word %d' % (w.dereference()))
                     else:
-                        print('Ptr  %s' % (w.dereference().cast(StgPtr)))
+                        ptr = w.dereference().cast(StgClosurePtr)
+                        print('Ptr  %s' % ptr, print_closure(untag(ptr)))
 
             elif ty == ClosureType.RET_BCO:
                 print('RET_BCO')
@@ -305,6 +348,7 @@ def build_pretty_printer():
     #pp.add_printer('StgInfoTable', '^StgInfoTable$', InfoTablePrinter)
     return pp
 
+PrintGhcClosureCmd()
 PrintGhcStackCmd()
 PrintInfoCmd()
 gdb.printing.register_pretty_printer(gdb.current_objfile(), build_pretty_printer(), replace=True)
