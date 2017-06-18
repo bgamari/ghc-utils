@@ -266,10 +266,12 @@ def get_prof_info(info_tbl_ptr):
         return ProfInfo(closure_desc, closure_type)
 
 def iter_small_bitmap(bitmap):
+    """ Iterate over fields of a small bitmap, yield True for fields which are
+    words and False for pointers. """
     size = bitmap & BITMAP_SIZE_MASK
     bits = bitmap >> BITMAP_SIZE_SHIFT
     for i in range(size):
-        isWord = bitmap & (1 << i) != 0
+        isWord = bits & (1 << i) != 0
         yield isWord
 
 class PrintInfoCmd(gdb.Command):
