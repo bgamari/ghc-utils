@@ -112,8 +112,10 @@ def build_closure_printers():
 
     def constr(closure):
         con_info = get_con_itbl(closure)
-        s = 'constr%s' % (get_prof_info(get_itbl(closure)),)
-        # TODO
+        s = 'constr'
+        prof_info = get_prof_info(get_itbl(closure))
+        if prof_info is not None:
+            s += '(closure_desc=%s, type=%s)' % prof_info
         return s
     for ty in [C.CONSTR,
                C.CONSTR_1_0, C.CONSTR_0_1,
@@ -122,15 +124,20 @@ def build_closure_printers():
         p[ty] = constr
 
     def fun(closure):
-        return 'FUN'
+        s = 'FUN'
+        prof_info = get_prof_info(get_itbl(closure))
+        if prof_info is not None:
+            s += '(closure_desc=%s, type=%s)' % prof_info
+        return s
     for ty in [C.FUN, C.FUN_1_0, C.FUN_0_1, C.FUN_1_1,
                C.FUN_0_2, C.FUN_2_0, C.FUN_STATIC]:
         p[ty] = fun
 
     def thunk(closure):
         s = 'THUNK'
-        if profiled:
-            s += '(' + get_prof_info(get_itbl(closure)) + ')'
+        prof_info = get_prof_info(get_itbl(closure))
+        if prof_info is not None:
+            s += '(%s)' % str(prof_info)
         return s
     for ty in [C.THUNK, C.THUNK_1_0, C.THUNK_0_1, C.THUNK_1_1,
                C.THUNK_0_2, C.THUNK_2_0, C.THUNK_STATIC]:
@@ -179,7 +186,7 @@ def build_closure_printers():
         s = 'RET_SMALL'
         s += '  return = %s (%s)\n' % (c, gdb.find_pc_line(int(c.cast(StgWord))))
         for i, isWord in enumerate(iter_small_bitmap(bitmap)):
-            w = closure.cast(StgWord.pointer()) + i
+            w = closure.cast(StgWord.pointer()) + i + 1
             if showSpAddrs:
                 s += '  field %d (%x): ' % (i, w.cast(StgWord))
             else:
@@ -245,7 +252,7 @@ def print_closure(closure):
         else:
             return printer(closure)
     except Exception as e:
-        print(traceback.format_exc())
+        #print(traceback.format_exc(10))
         return 'Error(%s)' % e
 
 ProfInfo = namedtuple('ProfInfo', 'closure_desc,type')
