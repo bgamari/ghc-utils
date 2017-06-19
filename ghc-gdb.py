@@ -206,7 +206,7 @@ def build_closure_printers():
         c = closure.cast(StgWord.pointer().pointer()).dereference()
         info = get_itbl(closure)
         s = 'RET_SMALL'
-        s += '  return = %s (%s)\n' % (c, gdb.find_pc_line(int(c.cast(StgWord))))
+        s += '  return = %s\n' % print_addr(c)
         s += print_small_bitmap(bitmap=info['layout']['bitmap'],
                                 payload=closure.cast(StgWord.pointer()) + 1,
                                 depth=depth-1)
@@ -222,6 +222,13 @@ def heap_alloced(ptr):
     w = ptr.cast(StgWord)
     aspace = gdb.parse_and_eval('mblock_address_space')
     return (w >= aspace['begin']) and (w < aspace['end'])
+
+def print_addr(ptr):
+    sym = gdb.find_pc_line(int(ptr.cast(StgWord)))
+    if sym.symtab:
+        return '%s (%s:%d)' % (ptr, sym.symtab.filename, sym.line)
+    else:
+        return '%s' % (ptr)
 
 class InfoTablePrinter(object):
     def __init__(self, val):
@@ -260,7 +267,7 @@ def get_fun_itbl(closure):
 
 def print_closure(closure, depth=1):
     if not heap_alloced(closure):
-        return 'off-heap'
+        return 'off-heap(%s)' % print_addr(closure)
 
     try:
         assert closure.type == StgClosurePtr
