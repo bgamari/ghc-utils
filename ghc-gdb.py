@@ -133,11 +133,19 @@ class HSep(Doc):
     def _render_lines(self):
         accum = []
         last = ''
-        for child in self.children():
+        for child in self.children:
             lines = child._render_lines()
-            accum += [last + accum[0]]
-            accum += lines[1:-1]
-            last = lines[0] + ' '
+            if len(lines) == 0:
+                continue
+            elif len(lines) == 1:
+                last += lines[0] + ' '
+            if len(lines) > 1:
+                accum += [last + lines[0]]
+                accum += lines[1:-1]
+                last = lines[-1]
+
+        if last != '':
+            accum += [last]
         return accum
 
 class VSep(Doc):
@@ -247,16 +255,18 @@ def build_closure_printers():
         p[ty] = fun
 
     def thunk(closure, depth):
-        s = 'THUNK'
         info = get_itbl(closure)
+        s = 'THUNK (%s)' % print_addr(closure.dereference().cast(StgPtr))
         prof_info = get_prof_info(info)
         if prof_info is not None:
             s += '(%s)' % str(prof_info)
 
         hang = Hang(s)
-        hang += print_small_bitmap(bitmap=info['layout']['bitmap'],
-                                   payload=closure.cast(StgWord.pointer()),
-                                   depth=depth-1)
+        ptrs = int(info['layout']['payload']['ptrs'])
+        for i in range(ptrs):
+            hang += HSep('Ptr:', print_closure(closure.dereference()['payload'][i], depth=depth-1))
+        for i in range(int(info['layout']['payload']['nptrs'])):
+            hang += Text('Word: %s' % closure.dereference()['payload'][ptrs + i])
         return hang
     for ty in [C.THUNK, C.THUNK_1_0, C.THUNK_0_1, C.THUNK_1_1,
                C.THUNK_0_2, C.THUNK_2_0, C.THUNK_STATIC]:
@@ -320,6 +330,7 @@ def heap_alloced(ptr):
     return (w >= aspace['begin']) and (w < aspace['end'])
 
 def print_addr(ptr):
+    ptr = ptr.cast(StgPtr)
     sym = gdb.find_pc_line(int(ptr.cast(StgWord)))
     if sym.symtab:
         return Text('%s (%s:%d)' % (ptr, sym.symtab.filename, sym.line))
@@ -420,25 +431,34 @@ class PrintGhcClosureCmd(gdb.Command):
     def __init__(self):
         super(PrintGhcClosureCmd, self).__init__ ("closure", gdb.COMMAND_USER)
 
-    def invoke(self, arg, from_tty):
-        closure = gdb.parse_and_eval(arg).cast(StgClosurePtr)
-        print(print_closure(untag(closure)))
+    def invoke(self, args, from_tty):
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-d', '--depth', type=int, default=2)
+        parser.add_argument('closure')
+        opts = parser.parse_args(args.split())
+
+        closure = gdb.parse_and_eval(opts.closure).cast(StgClosurePtr)
+        print(print_closure(untag(closure), depth=opts.depth))
 
 class PrintGhcStackCmd(gdb.Command):
     def __init__(self):
         super(PrintGhcStackCmd, self).__init__ ("ghc-backtrace", gdb.COMMAND_USER)
 
-    def invoke(self, arg, from_tty):
+    def invoke(self, args, from_tty):
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-d', '--depth', type=int, default=1)
+        parser.add_argument('-n', '--frames', type=int, default=10)
+        opts = parser.parse_args(args.split())
+
         sp = gdb.parse_and_eval('$rbp').cast(StgPtr)
-        maxDepth = 10
-        depth=1
-        if arg:
-            maxDepth = int(arg)
+        depth = opts.depth
 
         doc = VSep()
-        for i in range(maxDepth):
+        for i in range(opts.frames):
             d = HSep()
-            d += Text('%d: ' % i)
+            d += Text('%d:' % i)
             stop = False
             #info = (sp.cast(StgInfoTable.pointer().pointer()).dereference() - 1).dereference()
             #info = get_info_table(sp.cast(StgClosurePtr.pointer()).dereference())
@@ -469,7 +489,8 @@ class PrintGhcStackCmd(gdb.Command):
             else:
                 raise RuntimeError('unknown stack frame type %d' % ty)
 
-            doc += frame
+            d += frame
+            doc += d
             if stop:
                 break
             size = stack_frame_size(sp.cast(StgClosurePtr))
