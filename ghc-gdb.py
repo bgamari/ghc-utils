@@ -97,6 +97,98 @@ class ClosureType(object):
     SMALL_MUT_ARR_PTRS_FROZEN     = 62
     COMPACT_NFDATA                = 63
 
+def doc(thing):
+    if isinstance(thing, str):
+        return Text(thing)
+    elif isinstance(thing, Doc):
+        return thing
+    else:
+        print(thing)
+        raise ArgumentError("Unknown thing")
+
+class Doc(object):
+    def render(self, indentation=0):
+        return '\n'.join(self._render_lines())
+
+    def _render_lines(self):
+        raise NotImplementedError('%s' % self.__class__)
+
+    def __str__(self):
+        return self.render()
+
+    def indented(self, indentation=2):
+        return Indent(indentation, self)
+
+class HSep(Doc):
+    def __init__(self, *children):
+        self.children = [doc(x) for x in children]
+
+    def append(self, thing):
+        self.children += [doc(thing)]
+
+    def __iadd__(self, thing):
+        self.append(thing)
+        return self
+
+    def _render_lines(self):
+        accum = []
+        last = ''
+        for child in self.children():
+            lines = child._render_lines()
+            accum += [last + accum[0]]
+            accum += lines[1:-1]
+            last = lines[0] + ' '
+        return accum
+
+class VSep(Doc):
+    def __init__(self, *children):
+        self.children = [doc(x) for x in children]
+
+    def append(self, thing):
+        assert isinstance(thing, Doc)
+        self.children += [doc(thing)]
+
+    def __iadd__(self, thing):
+        self.append(thing)
+        return self
+
+    def _render_lines(self):
+        return [ line
+                 for child in self.children
+                 for line in child._render_lines()
+               ]
+
+class Indent(Doc):
+    def __init__(self, indentation, child):
+        self.indentation = indentation
+        self.child = child
+
+    def _render_lines(self):
+        return [' '*self.indentation + x for x in self.child._render_lines()]
+
+class Text(Doc):
+    def __init__(self, text):
+        self.text = text
+
+    def _render_lines(self):
+        return [self.text]
+
+class Hang(Doc):
+    def __init__(self, head, indentation=2, *children):
+        self.head = doc(head)
+        self.indentation = int(indentation)
+        self.children = VSep(*(doc(c) for c in children))
+
+    def _render_lines(self):
+        return self.head._render_lines() + Indent(self.indentation, self.children)._render_lines()
+
+    def append(self, thing):
+        self.children += doc(thing)
+
+    def __iadd__(self, thing):
+        self.append(thing)
+        return self
+
 def build_closure_printers():
     C = ClosureType
     p = {}
@@ -109,20 +201,23 @@ def build_closure_printers():
 
     def print_small_bitmap(bitmap, payload, depth):
         assert payload.type == StgWord.pointer()
-        s = ''
+        doc = VSep()
         for i, isWord in enumerate(iter_small_bitmap(bitmap)):
             w = payload + i
             if showSpAddrs:
-                s += '  field %d (%x): ' % (i, w.cast(StgWord))
+                s = 'field %d (%x): ' % (i, w.cast(StgWord))
             else:
-                s += '  field %d: ' % i
+                s = 'field %d: ' % i
+
             if isWord:
                 s += 'Word %d' % (w.dereference())
             else:
                 ptr = w.dereference().cast(StgClosurePtr)
                 s += 'Ptr  0x%-12x: %s' % (ptr, print_closure(untag(ptr), depth))
-            s += '\n'
-        return s
+
+            doc += Text(s)
+
+        return doc
 
     def invalid_object(closure, depth):
         raise RuntimeError('invalid object')
@@ -134,7 +229,7 @@ def build_closure_printers():
         prof_info = get_prof_info(get_itbl(closure))
         if prof_info is not None:
             s += '(closure_desc=%s, type=%s)' % prof_info
-        return s
+        return Text(s)
     for ty in [C.CONSTR,
                C.CONSTR_1_0, C.CONSTR_0_1,
                C.CONSTR_1_1, C.CONSTR_0_2, C.CONSTR_2_0,
@@ -146,7 +241,7 @@ def build_closure_printers():
         prof_info = get_prof_info(get_itbl(closure))
         if prof_info is not None:
             s += '(closure_desc=%s, type=%s)' % prof_info
-        return s
+        return Text(s)
     for ty in [C.FUN, C.FUN_1_0, C.FUN_0_1, C.FUN_1_1,
                C.FUN_0_2, C.FUN_2_0, C.FUN_STATIC]:
         p[ty] = fun
@@ -157,11 +252,12 @@ def build_closure_printers():
         prof_info = get_prof_info(info)
         if prof_info is not None:
             s += '(%s)' % str(prof_info)
-        s += '\n'
-        s += print_small_bitmap(bitmap=info['layout']['bitmap'],
-                                payload=closure.cast(StgWord.pointer()),
-                                depth=depth-1)
-        return s
+
+        hang = Hang(s)
+        hang += print_small_bitmap(bitmap=info['layout']['bitmap'],
+                                   payload=closure.cast(StgWord.pointer()),
+                                   depth=depth-1)
+        return hang
     for ty in [C.THUNK, C.THUNK_1_0, C.THUNK_0_1, C.THUNK_1_1,
                C.THUNK_0_2, C.THUNK_2_0, C.THUNK_STATIC]:
         p[ty] = thunk
@@ -169,7 +265,7 @@ def build_closure_printers():
     def thunk_sel(closure, depth):
         ty = gdb.lookup_type('StgSelector').pointer()
         selectee = closure.cast(ty)['selectee']
-        return 'THUNK_SELECTOR(%s, %s)' % (selectee, print_closure(selectee, depth-1))
+        return Text('THUNK_SELECTOR(%s, %s)' % (selectee, print_closure(selectee, depth-1)))
     p[C.THUNK_SELECTOR] = thunk_sel
 
     def application(ty, closure, depth):
@@ -177,27 +273,27 @@ def build_closure_printers():
         things = [str(ap_['fun'])]
         for i in range(int(ap_['n_args'])):
             things.append(str((ap_['payload'] + i).dereference()))
-        return 'AP(%s)' % ', '.join(things)
+        return Text('AP(%s)' % ', '.join(things))
     p[C.AP] = lambda closure, depth: application(gdb.lookup_type('StgAP').pointer(), closure, depth)
     p[C.PAP] = lambda closure, depth: application(gdb.lookup_type('StgPAP').pointer(), closure, depth)
 
     def ap_stack(closure, depth):
         ty = gdb.lookup_type('StgAP_STACK').pointer()
         ap_ = closure.cast(ty).dereference()
-        return 'AP_STACK(size=%s, fun=%s, payload=%s)' % \
-            (ap_['size'], print_closure(ap_['fun'], depth-1), ap_['payload'])
+        return Text('AP_STACK(size=%s, fun=%s, payload=%s)' % \
+            (ap_['size'], print_closure(ap_['fun'], depth-1), ap_['payload']))
     p[C.AP_STACK] = ap_stack
 
     def update_frame(closure, depth):
         ty = gdb.lookup_type('StgUpdateFrame').pointer()
         updatee = closure.cast(ty)['updatee']
-        return 'UPDATE_FRAME(%s: %s)' % (updatee, print_closure(updatee, depth-1))
+        return Text('UPDATE_FRAME(%s: %s)' % (updatee, print_closure(updatee, depth-1)))
     p[C.UPDATE_FRAME] = update_frame
 
     def indirect(closure, depth):
         ty = gdb.lookup_type('StgInd').pointer()
         ind = closure.cast(ty)['indirectee']
-        return 'BLACKHOLE(%s: %s)' % (ind, print_closure(untag(ind), depth-1))
+        return Text('BLACKHOLE(%s: %s)' % (ind, print_closure(untag(ind), depth-1)))
     p[C.IND] = indirect
     p[C.IND_STATIC] = indirect
     p[C.BLACKHOLE] = indirect
@@ -205,8 +301,8 @@ def build_closure_printers():
     def ret_small(closure, depth, showSpAddrs=True):
         c = closure.cast(StgWord.pointer().pointer()).dereference()
         info = get_itbl(closure)
-        s = 'RET_SMALL'
-        s += '  return = %s\n' % print_addr(c)
+        s = Hang('RET_SMALL')
+        s += Text('return=%s' % print_addr(c))
         s += print_small_bitmap(bitmap=info['layout']['bitmap'],
                                 payload=closure.cast(StgWord.pointer()) + 1,
                                 depth=depth-1)
@@ -226,9 +322,9 @@ def heap_alloced(ptr):
 def print_addr(ptr):
     sym = gdb.find_pc_line(int(ptr.cast(StgWord)))
     if sym.symtab:
-        return '%s (%s:%d)' % (ptr, sym.symtab.filename, sym.line)
+        return Text('%s (%s:%d)' % (ptr, sym.symtab.filename, sym.line))
     else:
-        return '%s' % (ptr)
+        return Text('%s' % (ptr))
 
 class InfoTablePrinter(object):
     def __init__(self, val):
@@ -266,11 +362,11 @@ def get_fun_itbl(closure):
     return info_ptr.cast(StgFunInfoTable.pointer()) - 1
 
 def print_closure(closure, depth=1):
+    assert closure.type == StgClosurePtr
     if not heap_alloced(closure):
-        return 'off-heap(%s)' % print_addr(closure)
+        return Text('off-heap(%s)' % print_addr(closure))
 
     try:
-        assert closure.type == StgClosurePtr
         closure = untag(closure)
         info = get_itbl(closure)
         ty = int(info['type'])
@@ -325,7 +421,7 @@ class PrintGhcClosureCmd(gdb.Command):
         super(PrintGhcClosureCmd, self).__init__ ("closure", gdb.COMMAND_USER)
 
     def invoke(self, arg, from_tty):
-        closure = gdb.parse_and_eval('$rbp').cast(StgClosurePtr)
+        closure = gdb.parse_and_eval(arg).cast(StgClosurePtr)
         print(print_closure(untag(closure)))
 
 class PrintGhcStackCmd(gdb.Command):
@@ -335,42 +431,51 @@ class PrintGhcStackCmd(gdb.Command):
     def invoke(self, arg, from_tty):
         sp = gdb.parse_and_eval('$rbp').cast(StgPtr)
         maxDepth = 10
-        depth=2
+        depth=1
         if arg:
             maxDepth = int(arg)
+
+        doc = VSep()
         for i in range(maxDepth):
-            print('%d: ' % i, end='')
+            d = HSep()
+            d += Text('%d: ' % i)
+            stop = False
             #info = (sp.cast(StgInfoTable.pointer().pointer()).dereference() - 1).dereference()
             #info = get_info_table(sp.cast(StgClosurePtr.pointer()).dereference())
             info = get_itbl(sp.cast(StgClosurePtr))
             ty = info['type']
             if ty in [ ClosureType.UPDATE_FRAME,
                        ClosureType.CATCH_FRAME ]:
-                print(print_closure(sp.cast(StgClosurePtr), depth))
+                frame = print_closure(sp.cast(StgClosurePtr), depth)
 
             elif ty == ClosureType.UNDERFLOW_FRAME:
-                print(print_closure(sp.cast(StgClosurePtr), depth))
-                break
+                frame = print_closure(sp.cast(StgClosurePtr), depth)
+                stop = True
 
             elif ty == ClosureType.STOP_FRAME:
-                print(print_closure(sp.cast(StgClosurePtr), depth))
-                break
+                frame = print_closure(sp.cast(StgClosurePtr), depth)
+                stop = True
 
             elif ty == ClosureType.RET_SMALL:
-                print(print_closure(sp.cast(StgClosurePtr), depth))
+                frame = print_closure(sp.cast(StgClosurePtr), depth)
 
             elif ty == ClosureType.RET_BCO:
-                print('RET_BCO')
-                raise NotImplemented
+                frame = Text('RET_BCO')
+                raise NotImplementedError()
 
             elif ty == ClosureType.RET_FUN:
-                print('RET_FUN')
-                raise NotImplemented
+                frame = Text('RET_FUN')
+                raise NotImplementedError()
             else:
                 raise RuntimeError('unknown stack frame type %d' % ty)
 
+            doc += frame
+            if stop:
+                break
             size = stack_frame_size(sp.cast(StgClosurePtr))
             sp = sp + StgPtr.sizeof * size
+
+        print(doc)
 
 def untag(ptr):
     assert ptr.type == StgClosurePtr
