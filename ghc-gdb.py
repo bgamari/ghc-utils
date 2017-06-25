@@ -506,9 +506,8 @@ def all_threads():
     for i in range(gens):
         t_ptr = gdb.parse_and_eval('generations[%d].threads' % i)
         while t_ptr != end_tso_queue:
-            t = t_ptr.dereference()
-            yield t
-            t_ptr = t['_link']
+            yield t_ptr
+            t_ptr = t_ptr.dereference()['_link']
 
 class PrintGhcThreadsCmd(gdb.Command):
     def __init__(self):
@@ -521,12 +520,15 @@ class PrintGhcThreadsCmd(gdb.Command):
         opts = parser.parse_args(args.split())
 
         blocked_reasons = {
-            0: 'none',
+            0: lambda tso: 'nothing',
+            1: lambda tso: 'MVar@%s' % tso['block_info']['closure'],
+            2: lambda tso: 'blackhole@%s' % tso['block_info']['bh'],
         }
-        for thread in all_threads():
-            why_blocked = blocked_reasons.get(int(thread['why_blocked']), 'unknown')
-            print('id=%d\tblocked=%s' % (thread['id'], why_blocked))
-            sp = thread['stackobj'].dereference()['sp'].cast(StgPtr)
+        for tso_ptr in all_threads():
+            tso = tso_ptr.dereference()
+            why_blocked = blocked_reasons.get(int(tso['why_blocked']), lambda tso: 'unknown')(tso)
+            print('id=%d\tTSO=0x%08x\tblocked on %s' % (tso['id'], int(tso_ptr), why_blocked))
+            sp = tso['stackobj'].dereference()['sp'].cast(StgPtr)
             print(print_stack(sp, max_frames=opts.frames, depth=1).indented())
             print()
 
