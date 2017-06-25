@@ -514,7 +514,7 @@ def all_threads():
         t_ptr = gdb.parse_and_eval('generations[%d].threads' % i)
         while t_ptr != end_tso_queue:
             yield t_ptr
-            t_ptr = t_ptr.dereference()['_link']
+            t_ptr = t_ptr.dereference()['global_link']
 
 class PrintGhcThreadsCmd(gdb.Command):
     def __init__(self):
