@@ -204,7 +204,7 @@ def build_closure_printers():
         if isinstance(v, int):
             # damn you python and your terrible scoping
             def get_printer(ty):
-                return lambda closure: str(ty)
+                return lambda closure, depth: str(ty)
             p[v] = get_printer(ty)
 
     def print_small_bitmap(bitmap, payload, depth):
@@ -392,7 +392,7 @@ def print_closure(closure, depth=1):
 
     except Exception as e:
         #print(traceback.format_exc(10))
-        return 'Error(%s)' % e
+        return 'Error(%d: %s)' % (closure, e)
 
 ProfInfo = namedtuple('ProfInfo', 'closure_desc,type')
 
