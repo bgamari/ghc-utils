@@ -453,50 +453,82 @@ class PrintGhcStackCmd(gdb.Command):
         opts = parser.parse_args(args.split())
 
         sp = gdb.parse_and_eval('$rbp').cast(StgPtr)
-        depth = opts.depth
+        print(print_stack(sp, depth=opts.depth, max_frames=opts.frames))
 
-        doc = VSep()
-        for i in range(opts.frames):
-            d = HSep()
-            d += Text('%d:' % i)
-            stop = False
-            #info = (sp.cast(StgInfoTable.pointer().pointer()).dereference() - 1).dereference()
-            #info = get_info_table(sp.cast(StgClosurePtr.pointer()).dereference())
-            info = get_itbl(sp.cast(StgClosurePtr))
-            ty = info['type']
-            if ty in [ ClosureType.UPDATE_FRAME,
-                       ClosureType.CATCH_FRAME ]:
-                frame = print_closure(sp.cast(StgClosurePtr), depth)
+def print_stack(sp, max_frames, depth=1):
+    assert sp.type == StgPtr
+    doc = VSep()
+    for i in range(max_frames):
+        d = HSep()
+        d += Text('%d:' % i)
+        stop = False
+        #info = (sp.cast(StgInfoTable.pointer().pointer()).dereference() - 1).dereference()
+        #info = get_info_table(sp.cast(StgClosurePtr.pointer()).dereference())
+        info = get_itbl(sp.cast(StgClosurePtr))
+        ty = info['type']
+        if ty in [ ClosureType.UPDATE_FRAME,
+                    ClosureType.CATCH_FRAME ]:
+            frame = print_closure(sp.cast(StgClosurePtr), depth)
 
-            elif ty == ClosureType.UNDERFLOW_FRAME:
-                frame = print_closure(sp.cast(StgClosurePtr), depth)
-                stop = True
+        elif ty == ClosureType.UNDERFLOW_FRAME:
+            frame = print_closure(sp.cast(StgClosurePtr), depth)
+            stop = True
 
-            elif ty == ClosureType.STOP_FRAME:
-                frame = print_closure(sp.cast(StgClosurePtr), depth)
-                stop = True
+        elif ty == ClosureType.STOP_FRAME:
+            frame = print_closure(sp.cast(StgClosurePtr), depth)
+            stop = True
 
-            elif ty == ClosureType.RET_SMALL:
-                frame = print_closure(sp.cast(StgClosurePtr), depth)
+        elif ty == ClosureType.RET_SMALL:
+            frame = print_closure(sp.cast(StgClosurePtr), depth)
 
-            elif ty == ClosureType.RET_BCO:
-                frame = Text('RET_BCO')
-                raise NotImplementedError()
+        elif ty == ClosureType.RET_BCO:
+            frame = Text('RET_BCO')
+            raise NotImplementedError()
 
-            elif ty == ClosureType.RET_FUN:
-                frame = Text('RET_FUN')
-                raise NotImplementedError()
-            else:
-                raise RuntimeError('unknown stack frame type %d' % ty)
+        elif ty == ClosureType.RET_FUN:
+            frame = Text('RET_FUN')
+            raise NotImplementedError()
+        else:
+            raise RuntimeError('unknown stack frame type %d' % ty)
 
-            d += frame
-            doc += d
-            if stop:
-                break
-            size = stack_frame_size(sp.cast(StgClosurePtr))
-            sp = sp + StgPtr.sizeof * size
+        d += frame
+        doc += d
+        if stop:
+            break
+        size = stack_frame_size(sp.cast(StgClosurePtr))
+        sp = sp + StgPtr.sizeof * size
 
-        print(doc)
+    return doc
+
+def all_threads():
+    gens = int(gdb.parse_and_eval('RtsFlags.GcFlags.generations'))
+    end_tso_queue = int(gdb.parse_and_eval('&stg_END_TSO_QUEUE_closure'))
+    for i in range(gens):
+        t_ptr = gdb.parse_and_eval('generations[%d].threads' % i)
+        while t_ptr != end_tso_queue:
+            t = t_ptr.dereference()
+            yield t
+            t_ptr = t['_link']
+
+class PrintGhcThreadsCmd(gdb.Command):
+    def __init__(self):
+        super(PrintGhcThreadsCmd, self).__init__ ("ghc-threads", gdb.COMMAND_USER)
+
+    def invoke(self, args, from_tty):
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-n', '--frames', type=int, default=5)
+        opts = parser.parse_args(args.split())
+
+        blocked_reasons = {
+            0: 'none',
+        }
+        for thread in all_threads():
+            why_blocked = blocked_reasons.get(int(thread['why_blocked']), 'unknown')
+            print('id=%d\tblocked=%s' % (thread['id'], why_blocked))
+            sp = thread['stackobj'].dereference()['sp'].cast(StgPtr)
+            print(print_stack(sp, max_frames=opts.frames, depth=1).indented())
+            print()
 
 def untag(ptr):
     assert ptr.type == StgClosurePtr
@@ -527,4 +559,5 @@ def build_pretty_printer():
 PrintGhcClosureCmd()
 PrintGhcStackCmd()
 PrintInfoCmd()
+PrintGhcThreadsCmd()
 gdb.printing.register_pretty_printer(gdb.current_objfile(), build_pretty_printer(), replace=True)
