@@ -16,7 +16,7 @@ build_tags libraries/base
 build_tags libraries/ghc-boot
 build_tags libraries/ghc-prim
 build_tags libraries/ghci
-build_tags libraries/hoopl
+if [ -d libraries/hoopl ]; then build_tags libraries/hoopl; fi
 build_tags iserv
 
 pushd rts
