@@ -458,43 +458,50 @@ class PrintGhcStackCmd(gdb.Command):
 def print_stack(sp, max_frames, depth=1):
     assert sp.type == StgPtr
     doc = VSep()
+    doc += Text('Sp = 0x%08x' % sp)
     for i in range(max_frames):
         d = HSep()
-        d += Text('%d:' % i)
         stop = False
-        #info = (sp.cast(StgInfoTable.pointer().pointer()).dereference() - 1).dereference()
-        #info = get_info_table(sp.cast(StgClosurePtr.pointer()).dereference())
-        info = get_itbl(sp.cast(StgClosurePtr))
-        ty = info['type']
-        if ty in [ ClosureType.UPDATE_FRAME,
-                    ClosureType.CATCH_FRAME ]:
-            frame = print_closure(sp.cast(StgClosurePtr), depth)
+        try:
+            d += Text('%d:' % i)
+            #info = (sp.cast(StgInfoTable.pointer().pointer()).dereference() - 1).dereference()
+            #info = get_info_table(sp.cast(StgClosurePtr.pointer()).dereference())
+            info = get_itbl(sp.cast(StgClosurePtr))
+            ty = int(info['type'])
+            if ty == ClosureType.UNDERFLOW_FRAME:
+                frame = print_closure(sp.cast(StgClosurePtr), depth)
+                stop = True
 
-        elif ty == ClosureType.UNDERFLOW_FRAME:
-            frame = print_closure(sp.cast(StgClosurePtr), depth)
+            elif ty == ClosureType.STOP_FRAME:
+                frame = print_closure(sp.cast(StgClosurePtr), depth)
+                stop = True
+
+            elif ty == ClosureType.RET_SMALL:
+                frame = print_closure(sp.cast(StgClosurePtr), depth)
+
+            elif ty == ClosureType.RET_BCO:
+                frame = Text('RET_BCO')
+                raise NotImplementedError()
+
+            elif ty == ClosureType.RET_FUN:
+                frame = Text('RET_FUN')
+                raise NotImplementedError()
+            elif ty in closureTypeDict:
+                frame = print_closure(sp.cast(StgClosurePtr), depth)
+            else:
+                frame = Text('unknown stack frame type %d' % ty)
+                stop = True
+
+            d += frame
+        except Exception as e:
+            d += Text('Error(%s)' % e)
             stop = True
+        finally:
+            doc += d
 
-        elif ty == ClosureType.STOP_FRAME:
-            frame = print_closure(sp.cast(StgClosurePtr), depth)
-            stop = True
-
-        elif ty == ClosureType.RET_SMALL:
-            frame = print_closure(sp.cast(StgClosurePtr), depth)
-
-        elif ty == ClosureType.RET_BCO:
-            frame = Text('RET_BCO')
-            raise NotImplementedError()
-
-        elif ty == ClosureType.RET_FUN:
-            frame = Text('RET_FUN')
-            raise NotImplementedError()
-        else:
-            raise RuntimeError('unknown stack frame type %d' % ty)
-
-        d += frame
-        doc += d
         if stop:
             break
+
         size = stack_frame_size(sp.cast(StgClosurePtr))
         sp = sp + StgPtr.sizeof * size
 
