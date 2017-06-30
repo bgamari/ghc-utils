@@ -486,6 +486,12 @@ def print_stack(sp, max_frames, depth=1):
             elif ty == ClosureType.RET_FUN:
                 frame = Text('RET_FUN')
                 raise NotImplementedError()
+
+            elif ty == ClosureType.STACK:
+                # we will encounter this when dumping TSO stacks
+                frame = Text('STACK')
+                stop = True
+
             elif ty in closureTypeDict:
                 frame = print_closure(sp.cast(StgClosurePtr), depth)
             else:
@@ -524,6 +530,8 @@ class PrintGhcThreadsCmd(gdb.Command):
         import argparse
         parser = argparse.ArgumentParser()
         parser.add_argument('-n', '--frames', type=int, default=5)
+        parser.add_argument('-b', '--blocked-only', action='store_true')
+        parser.add_argument('-i', '--id', action='append', value=[])
         opts = parser.parse_args(args.split())
 
         blocked_reasons = {
@@ -534,6 +542,11 @@ class PrintGhcThreadsCmd(gdb.Command):
         for tso_ptr in all_threads():
             tso = tso_ptr.dereference()
             why_blocked = blocked_reasons.get(int(tso['why_blocked']), lambda tso: 'unknown')(tso)
+            if opts.blocked_only and tso['why_blocked'] == 0:
+                continue
+            if len(opts.id) > 0 and tso['id'] not in opts.id:
+                continue
+
             print('id=%d\tTSO=0x%08x\tblocked on %s' % (tso['id'], int(tso_ptr), why_blocked))
             sp = tso['stackobj'].dereference()['sp'].cast(StgPtr)
             print(print_stack(sp, max_frames=opts.frames, depth=1).indented())
