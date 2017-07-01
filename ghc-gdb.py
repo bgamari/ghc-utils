@@ -531,7 +531,7 @@ class PrintGhcThreadsCmd(gdb.Command):
         parser = argparse.ArgumentParser()
         parser.add_argument('-n', '--frames', type=int, default=5)
         parser.add_argument('-b', '--blocked-only', action='store_true')
-        parser.add_argument('-i', '--id', action='append', value=[])
+        parser.add_argument('-i', '--id', type=int, action='append', default=[])
         opts = parser.parse_args(args.split())
 
         blocked_reasons = {
@@ -544,7 +544,7 @@ class PrintGhcThreadsCmd(gdb.Command):
             why_blocked = blocked_reasons.get(int(tso['why_blocked']), lambda tso: 'unknown')(tso)
             if opts.blocked_only and tso['why_blocked'] == 0:
                 continue
-            if len(opts.id) > 0 and tso['id'] not in opts.id:
+            if len(opts.id) > 0 and int(tso['id']) not in opts.id:
                 continue
 
             print('id=%d\tTSO=0x%08x\tblocked on %s' % (tso['id'], int(tso_ptr), why_blocked))
