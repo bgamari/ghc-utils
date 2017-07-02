@@ -546,10 +546,10 @@ def print_stack(sp, max_frames, depth=1):
 
 def all_threads():
     gens = int(gdb.parse_and_eval('RtsFlags.GcFlags.generations'))
-    end_tso_queue = int(gdb.parse_and_eval('&stg_END_TSO_QUEUE_closure'))
+    end_tso_queue = gdb.parse_and_eval('&stg_END_TSO_QUEUE_closure').cast(StgClosurePtr)
     for i in range(gens):
         t_ptr = gdb.parse_and_eval('generations[%d].threads' % i)
-        while t_ptr != end_tso_queue:
+        while t_ptr.cast(StgClosurePtr) != end_tso_queue:
             yield t_ptr
             t_ptr = t_ptr.dereference()['global_link']
 
