@@ -319,6 +319,37 @@ def build_closure_printers():
         return s
     p[C.RET_SMALL] = ret_small
 
+    def tso(closure, depth):
+        tso = closure.cast(gdb.lookup_type('StgTSO').pointer()).dereference()
+        return Text('TSO(id=%d)' % tso['id'])
+    p[C.TSO] = tso
+
+    def blocking_queue(closure, depth):
+        s = Hang('BLOCKING_QUEUE')
+        ty = gdb.lookup_type('StgBlockingQueue').pointer()
+        queue = closure.cast(ty).dereference()
+        s += Text('BH %s owned by TSO %s ' % (queue['bh'], queue['owner']))
+
+        #msg = queue['queue']
+        #while msg != 0:
+        #    s += print_closure(msg)
+        #    msg = msg.dereference()['link']
+        return s
+    p[C.BLOCKING_QUEUE] = blocking_queue
+
+    def prim(closure, depth):
+        s = Hang('PRIM')
+        info = closure.dereference()['header']['info']
+        print(gdb.parse_and_eval('&stg_MSG_BLACKHOLE_info'))
+        if info == gdb.parse_and_eval('&stg_MSG_THROWTO_info'):
+            s += "MSG_THROWTO"
+        elif info == gdb.parse_and_eval('&stg_MSG_BLACKHOLE_info'):
+            ty = gdb.lookup_type('MessageBlackHole').pointer()
+            msg = closure.cast(ty).dereference()
+            s += "MSG_BLACKHOLE(BH=%s, to TSO %s)" % (msg['bh'], msg['tso'])
+        return s
+    p[C.PRIM] = prim
+
     return p
 
 closurePrinters = build_closure_printers()
@@ -537,7 +568,12 @@ class PrintGhcThreadsCmd(gdb.Command):
         blocked_reasons = {
             0: lambda tso: 'nothing',
             1: lambda tso: 'MVar@%s' % tso['block_info']['closure'],
+            14: lambda tso: 'MVar read@%s' % tso['block_info']['closure'],
             2: lambda tso: 'blackhole@%s' % tso['block_info']['bh'],
+            5: lambda tso: 'delay',
+            6: lambda tso: 'stm',
+            10: lambda tso: 'ccall',
+            12: lambda tso: 'interruptible ccall'
         }
         for tso_ptr in all_threads():
             tso = tso_ptr.dereference()
