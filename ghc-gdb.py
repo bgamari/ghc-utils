@@ -20,6 +20,7 @@ StgFunInfoTable = gdb.lookup_type('StgFunInfoTable')
 StgClosureInfo = gdb.lookup_type('StgClosureInfo')
 StgWord = gdb.lookup_type('uintptr_t')
 StgPtr = gdb.lookup_type('void').pointer()
+CharPtr = gdb.lookup_type('char').pointer()
 
 # profiled rts?
 profiled = 'prof' in (f.name for f in StgInfoTable.fields())
@@ -233,7 +234,8 @@ def build_closure_printers():
 
     def constr(closure, depth):
         con_info = get_con_itbl(closure)
-        s = 'constr'
+        con_desc = get_con_desc(con_info)
+        s = 'constr(%s)' % con_desc
         prof_info = get_prof_info(get_itbl(closure))
         if prof_info is not None:
             s += '(closure_desc=%s, type=%s)' % prof_info
@@ -402,6 +404,14 @@ def get_fun_itbl(closure):
     assert closure.type == StgClosurePtr
     info_ptr = closure.dereference()['header']['info']
     return info_ptr.cast(StgFunInfoTable.pointer()) - 1
+
+def get_con_desc(info_ptr):
+    assert info_ptr.type == StgConInfoTable.pointer()
+    if tntc:
+        offset = info_ptr.dereference()['con_desc']
+        return ((info_ptr + 1).cast(StgWord) + offset).cast(CharPtr).string()
+    else:
+        raise NotImplemented
 
 def print_closure(closure, depth=1):
     assert closure.type == StgClosurePtr
