@@ -468,9 +468,13 @@ class PrintInfoCmd(gdb.Command):
     def invoke(self, arg, from_tty):
         print(get_itbl(gdb.parse_and_eval(arg)))
 
+class GhcCmd(gdb.Command):
+    def __init__(self):
+        super(GhcCmd, self).__init__ ("ghc", gdb.COMMAND_USER, prefix=True)
+
 class PrintGhcClosureCmd(gdb.Command):
     def __init__(self):
-        super(PrintGhcClosureCmd, self).__init__ ("closure", gdb.COMMAND_USER)
+        super(PrintGhcClosureCmd, self).__init__ ("ghc closure", gdb.COMMAND_USER)
 
     def invoke(self, args, from_tty):
         import argparse
@@ -484,16 +488,17 @@ class PrintGhcClosureCmd(gdb.Command):
 
 class PrintGhcStackCmd(gdb.Command):
     def __init__(self):
-        super(PrintGhcStackCmd, self).__init__ ("ghc-backtrace", gdb.COMMAND_USER)
+        super(PrintGhcStackCmd, self).__init__ ("ghc backtrace", gdb.COMMAND_USER)
 
     def invoke(self, args, from_tty):
         import argparse
         parser = argparse.ArgumentParser()
         parser.add_argument('-d', '--depth', type=int, default=1)
         parser.add_argument('-n', '--frames', type=int, default=10)
+        parser.add_argument('addr', type=str)
         opts = parser.parse_args(args.split())
 
-        sp = gdb.parse_and_eval('$rbp').cast(StgPtr)
+        sp = gdb.parse_and_eval(opts.addr if opts.addr else '$rbp').cast(StgPtr)
         print(print_stack(sp, depth=opts.depth, max_frames=opts.frames))
 
 def print_stack(sp, max_frames, depth=1):
@@ -565,7 +570,7 @@ def all_threads():
 
 class PrintGhcThreadsCmd(gdb.Command):
     def __init__(self):
-        super(PrintGhcThreadsCmd, self).__init__ ("ghc-threads", gdb.COMMAND_USER)
+        super(PrintGhcThreadsCmd, self).__init__ ("ghc threads", gdb.COMMAND_USER)
 
     def invoke(self, args, from_tty):
         import argparse
@@ -598,6 +603,27 @@ class PrintGhcThreadsCmd(gdb.Command):
             print(print_stack(sp, max_frames=opts.frames, depth=1).indented())
             print()
 
+class PrintGhcInfoTableCmd(gdb.Command):
+    def __init__(self):
+        super(PrintGhcInfoTableCmd, self).__init__ ("ghc info", gdb.COMMAND_USER)
+
+    def invoke(self, args, from_tty):
+        info_ptr = gdb.parse_and_eval(args)
+        if info_ptr.type != StgInfoTablePtr:
+            info_ptr = get_itbl(info_ptr.cast(StgClosurePtr))
+
+        info = info_ptr.dereference()
+        layout = info['layout']
+        layout_doc = Hang(Text('Layout'))
+        layout_doc += Text('Heap: %d pointers, %d non-pointers' %
+                           (layout['payload']['ptrs'],
+                            layout['payload']['nptrs']))
+        layout_doc += Text('Stack: %s' % list(iter_small_bitmap(layout['bitmap'])))
+
+        docs = Hang(print_addr(info_ptr))
+        docs += layout_doc
+        print(docs)
+
 def untag(ptr):
     assert ptr.type == StgClosurePtr
     return (ptr.cast(StgWord) & ~7).cast(StgClosurePtr)
@@ -624,8 +650,10 @@ def build_pretty_printer():
     #pp.add_printer('StgInfoTable', '^StgInfoTable$', InfoTablePrinter)
     return pp
 
+GhcCmd()
 PrintGhcClosureCmd()
 PrintGhcStackCmd()
 PrintInfoCmd()
 PrintGhcThreadsCmd()
+PrintGhcInfoTableCmd()
 gdb.printing.register_pretty_printer(gdb.current_objfile(), build_pretty_printer(), replace=True)
