@@ -495,10 +495,10 @@ class PrintGhcStackCmd(gdb.Command):
         parser = argparse.ArgumentParser()
         parser.add_argument('-d', '--depth', type=int, default=1)
         parser.add_argument('-n', '--frames', type=int, default=10)
-        parser.add_argument('addr', type=str)
+        parser.add_argument('--sp', type=str, help='stack pointer')
         opts = parser.parse_args(args.split())
 
-        sp = gdb.parse_and_eval(opts.addr if opts.addr else '$rbp').cast(StgPtr)
+        sp = gdb.parse_and_eval(opts.sp if opts.sp else '$rbp').cast(StgPtr)
         print(print_stack(sp, depth=opts.depth, max_frames=opts.frames))
 
 def print_stack(sp, max_frames, depth=1):
