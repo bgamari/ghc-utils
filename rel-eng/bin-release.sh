@@ -29,7 +29,7 @@ Relevant environment variables:
   ver            the version of the source release (e.g. 7.10.2.20151105 or 7.10.2)
   rel_name       the official name of the release used to identify its download directory (e.g. 7.10.2, 7.10.2, or 7.10.3-rc2)
   NTHREADS       Number of CPUs to use
-  CONFIGURE_OPTS Other options to pass to `configure`
+  configure_opts Other options to pass to `configure`
                  On Windows these will be helpful
                      64-bit:   --host=x86_64-w64-mingw32
                      32-bit:   --host=i686-w64-mingw32
