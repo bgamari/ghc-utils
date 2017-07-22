@@ -11,7 +11,7 @@ function log() {
 }
 
 function usage() {
-    cat <<-"EOF"
+    cat <<-EOF
 Usage:
   $0 [action]
 
@@ -26,14 +26,16 @@ where [action] may be one of,
   upload         upload to staging directory
 
 Relevant environment variables:
-  ver            the version of the source release (e.g. 7.10.2.20151105 or 7.10.2)
-  rel_name       the official name of the release used to identify its download directory (e.g. 7.10.2, 7.10.2, or 7.10.3-rc2)
+  ver            the version of the source release
+                 (e.g. 7.10.2.20151105 or 7.10.2)
+  rel_name       the official name of the release used to identify its
+                 download directory (e.g. 7.10.2, 7.10.2, or 7.10.3-rc2)
   NTHREADS       number of CPUs to use
-  configure_opts other options to pass to `configure`
+  configure_opts other options to pass to \`configure\`
                  on Windows these will be helpful
                      64-bit:   --host=x86_64-w64-mingw32
                      32-bit:   --host=i686-w64-mingw32
-  dwarf          enable DWARF support and debug information
+  dwarf=1        enable DWARF support and debug information
 
 Example:
   export ver="7.10.2.20151105"
