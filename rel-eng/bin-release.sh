@@ -28,11 +28,12 @@ where [action] may be one of,
 Relevant environment variables:
   ver            the version of the source release (e.g. 7.10.2.20151105 or 7.10.2)
   rel_name       the official name of the release used to identify its download directory (e.g. 7.10.2, 7.10.2, or 7.10.3-rc2)
-  NTHREADS       Number of CPUs to use
-  configure_opts Other options to pass to `configure`
-                 On Windows these will be helpful
+  NTHREADS       number of CPUs to use
+  configure_opts other options to pass to `configure`
+                 on Windows these will be helpful
                      64-bit:   --host=x86_64-w64-mingw32
                      32-bit:   --host=i686-w64-mingw32
+  dwarf          enable DWARF support and debug information
 
 Example:
   export ver="7.10.2.20151105"
@@ -169,6 +170,13 @@ HSCOLOUR_SRCS=YES
 BUILD_DOCBOOK_HTML=YES
 BeConservative=YES
 EOF
+
+    # DWARF support
+    if [[ -n "$dwarf" ]]; then
+        echo "GhcLibHcOpts = -g3" >> mk/build.mk
+        configure_opts="$configure_opts --enable-dwarf-unwind"
+    fi
+
     case $(uname) in
         Darwin)
             log "using in-tree GMP"
