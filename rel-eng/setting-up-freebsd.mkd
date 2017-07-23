@@ -1,7 +1,8 @@
 # Setting up FreeBSD VM for GHC development
 
 ```
-$ pkg install bash vim ghc autoconf automake git gtar pxz gmake gmp python3 hs-cabal-install wget
+$ pkg install bash wget vim autoconf automake git gtar pxz lang/gcc devel/gmake gmp \
+  python3 ghc hs-cabal-install devel/llvm39
 $ # Create user, setup networking
 $ bsdconfig
 ```
@@ -24,3 +25,7 @@ $ ./configure --disable-large-address-space
 $ gmake -j5
 ```
 
+## Compatibility
+
+ABI compatibility was broken between 8.0 and 9.0. You can install the
+`misc/compat8x` package for a compatibility layer.
