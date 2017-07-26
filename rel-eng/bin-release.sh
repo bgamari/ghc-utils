@@ -177,6 +177,7 @@ EOF
     if [ -n "$dwarf" ]; then
         log "enabling DWARF support"
         echo "GhcLibHcOpts = -g3" >> mk/build.mk
+        echo "GhcRtsHcOpts = -g3" >> mk/build.mk
         configure_opts="$configure_opts --enable-dwarf-unwind"
     fi
 
