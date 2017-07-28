@@ -29,3 +29,14 @@ $ gmake -j5
 
 ABI compatibility was broken between 8.0 and 9.0. You can install the
 `misc/compat8x` package for a compatibility layer.
+
+## Avahi
+
+```
+$ pkg install avahi
+```
+Add enable the following in `/etc/rc.conf`,
+```
+dbus_enable="YES"
+avahi_daemon_enable="YES"
+```
