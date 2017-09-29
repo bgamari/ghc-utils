@@ -134,7 +134,7 @@ setup_env() {
             # Only Sierra supports clock_gettime. See #12858.
             log "Disabling clock_gettime"
             export ac_cv_func_clock_gettime=no
-            configure_opts="$configure_opts CC=/usr/local/bin/gcc-6"
+            configure_opts="$configure_opts CC=/usr/local/bin/gcc-7"
             log "Using Homebrew's gcc $(gcc -dumpversion)"
             ;;
         FreeBSD)
