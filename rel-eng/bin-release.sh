@@ -138,11 +138,6 @@ setup_env() {
             log "Using Homebrew's gcc $(gcc -dumpversion)"
             ;;
         FreeBSD)
-            if uname -a | grep "10.3-RELEASE"; then
-                # The gold version in FreeBSD 10.3 is affected by
-                # https://sourceware.org/bugzilla/show_bug.cgi?id=12771
-                configure_opts="$configure_opts --disable-ld-override"
-            fi
             log "Disabling large address space support."
             configure_opts="$configure_opts --disable-large-address-space"
             make=gmake
@@ -191,6 +186,13 @@ EOF
             log "using in-tree GMP"
             echo 'libraries/integer-gmp_CONFIGURE_OPTS += --configure-option=--with-intree-gmp' >> mk/build.mk
             ;;
+        FreeBSD)
+            if uname -a | grep "10.3-RELEASE"; then
+                # The gold version in FreeBSD 10.3 is affected by
+                # https://sourceware.org/bugzilla/show_bug.cgi?id=12771
+                echo "SplitSections=NO" >>build.mk
+                echo "Disabling SplitSections due to FreeBSD gold bug"
+            fi
     esac
 
     if which dblatex; then
