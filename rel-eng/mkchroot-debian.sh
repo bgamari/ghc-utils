@@ -49,9 +49,9 @@ $dest/activate-root adduser --uid=`id -u` $user
 $dest/activate-root apt-get update
 $dest/activate-root apt-get install -y \
                     build-essential realpath vim bash-completion bash locales autoconf \
-                    libncurses-dev git python sudo curl \
+                    libncurses-dev git python3 sudo curl \
                     console-data locales-all libgmp-dev zlib1g-dev \
-                    python-sphinx
+                    python3-sphinx
 
 $dest/activate-root bash -e <<EOF
 locale-gen en_US.UTF-8

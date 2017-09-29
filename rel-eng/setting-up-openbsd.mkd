@@ -26,5 +26,5 @@ $ export LANG=en_US.UTF-8
 $ gmake test THREADS=4
 ```
 
-Also, due to #9904 it is necessary to increase the default `datasize` limits in
-`/etc/login.conf` to `infinity`.
+Also, due to #9904 it is necessary to increase the default `datasize` limits of
+the `staff` and `default` logic classes in `/etc/login.conf` to `infinity`.
