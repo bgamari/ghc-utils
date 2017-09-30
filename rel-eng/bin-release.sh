@@ -140,6 +140,8 @@ setup_env() {
         FreeBSD)
             log "Disabling large address space support."
             configure_opts="$configure_opts --disable-large-address-space"
+            configure_opts="$configure_opts \
+                            --with-gmp-libraries=/usr/local/lib --with-gmp-includes=/usr/local/include"
             make=gmake
             tar=gtar
 
