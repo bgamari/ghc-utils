@@ -138,16 +138,13 @@ setup_env() {
             log "Using Homebrew's gcc $(gcc -dumpversion)"
             ;;
         FreeBSD)
-            if uname -a | grep "10.3-RELEASE"; then
-                # gold fails with,
-                #     fatal error: cannot mix -r with dynamic object /usr/lib/libthr.so
-                # on FreeBSD 10.3. See #14064
-                configure_opts="$configure_opts --disable-ld-override"
-            fi
             log "Disabling large address space support."
             configure_opts="$configure_opts --disable-large-address-space"
             make=gmake
             tar=gtar
+
+            log "Using $(gcc --version)"
+            export CC="$(which gcc)"
             ;;
         OpenBSD)
             configure_opts="$configure_opts \
@@ -197,7 +194,7 @@ EOF
                 # The gold version in FreeBSD 10.3 is affected by
                 # https://sourceware.org/bugzilla/show_bug.cgi?id=12771
                 echo "SplitSections=NO" >> mk/build.mk
-                echo "Disabling SplitSections due to FreeBSD gold bug"
+                log "Disabling SplitSections due to FreeBSD gold bug"
             fi
     esac
 
