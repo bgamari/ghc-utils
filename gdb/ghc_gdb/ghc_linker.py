@@ -46,7 +46,11 @@ class LinkerSymbols(object):
     def lookupNearestSymbol(self, addr):
         import bisect
         i = bisect.bisect_left(self.addrs, addr)
-        return (self.addrs[i-1], self.symbols[i-1]) if i else None
+        if i is None:
+            return None
+        if self.addrs[i] > addr:
+            i -= 1
+        return (self.addrs[i], self.symbols[i])
 
     def lookupAddr(self, symbol):
         return self.symbolToAddr[symbol]
