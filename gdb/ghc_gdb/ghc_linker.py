@@ -63,6 +63,8 @@ def getLinkerSymbols():
     return _linkerSymbols
 
 class LookupGhcSymbolCmd(gdb.Command):
+    """ Lookup the symbol an address falls with (assuming the symbol was loaded
+        by the RTS linker) """
     def __init__(self):
         super(LookupGhcSymbolCmd, self).__init__ ("ghc symbol", gdb.COMMAND_USER)
 
@@ -72,8 +74,9 @@ class LookupGhcSymbolCmd(gdb.Command):
         print("%d bytes into %s (starts at 0x%x)" % (addr - foundAddr, sym, foundAddr))
 
 class LookupGhcAddrCmd(gdb.Command):
+    """ Lookup the address of a symbol loaded by the RTS linker """
     def __init__(self):
-        super(LookupGhcAddrCmd, self).__init__ ("ghc addr", gdb.COMMAND_USER)
+        super(LookupGhcAddrCmd, self).__init__ ("ghc address", gdb.COMMAND_USER)
 
     def invoke(self, args, from_tty):
         sym = args
