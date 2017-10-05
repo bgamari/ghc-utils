@@ -134,14 +134,19 @@ setup_env() {
             # Only Sierra supports clock_gettime. See #12858.
             log "Disabling clock_gettime"
             export ac_cv_func_clock_gettime=no
-            configure_opts="$configure_opts CC=/usr/local/bin/gcc-6"
+            configure_opts="$configure_opts CC=/usr/local/bin/gcc-7"
             log "Using Homebrew's gcc $(gcc -dumpversion)"
             ;;
         FreeBSD)
             log "Disabling large address space support."
             configure_opts="$configure_opts --disable-large-address-space"
+            configure_opts="$configure_opts \
+                            --with-gmp-libraries=/usr/local/lib --with-gmp-includes=/usr/local/include"
             make=gmake
             tar=gtar
+
+            log "Using $(gcc --version)"
+            export CC="$(which gcc)"
             ;;
         OpenBSD)
             configure_opts="$configure_opts \
@@ -186,6 +191,13 @@ EOF
             log "using in-tree GMP"
             echo 'libraries/integer-gmp_CONFIGURE_OPTS += --configure-option=--with-intree-gmp' >> mk/build.mk
             ;;
+        FreeBSD)
+            if uname -a | grep "10.3-RELEASE"; then
+                # The gold version in FreeBSD 10.3 is affected by
+                # https://sourceware.org/bugzilla/show_bug.cgi?id=12771
+                echo "SplitSections=NO" >> mk/build.mk
+                log "Disabling SplitSections due to FreeBSD gold bug"
+            fi
     esac
 
     if which dblatex; then
