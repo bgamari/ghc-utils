@@ -4,11 +4,11 @@ null = gdb.Value(0).cast(gdb.lookup_type('void').pointer())
 
 def walk_hashtable(table):
     assert table.type == gdb.lookup_type('HashTable')
-    HSEGSIZE = 1024
+    HSEGSIZE = 1024 # Must match rts/Hash.c
 
     # Derived from Hash.c:mapHashTable
-    segment = int((table['max'] - table['split'] - 1) / HSEGSIZE)
-    index = int((table['max'] - table['split'] - 1) % HSEGSIZE)
+    segment = int(table['max'] + table['split'] - 1) / HSEGSIZE
+    index = int(table['max'] + table['split'] - 1) % HSEGSIZE
     while segment >= 0:
         while index >= 0:
             hl = table['dir'][segment][index]
