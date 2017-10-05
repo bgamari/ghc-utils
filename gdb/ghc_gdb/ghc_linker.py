@@ -53,7 +53,7 @@ class LinkerSymbols(object):
         return (self.addrs[i], self.symbols[i])
 
     def lookupAddr(self, symbol):
-        return self.symbolToAddr[symbol]
+        return self.symbolToAddr.get(symbol)
 
 _linkerSymbols = None
 def getLinkerSymbols():
@@ -71,5 +71,23 @@ class LookupGhcSymbolCmd(gdb.Command):
         foundAddr, sym = getLinkerSymbols().lookupNearestSymbol(addr)
         print("%d bytes into %s (starts at 0x%x)" % (addr - foundAddr, sym, foundAddr))
 
+class LookupGhcAddrCmd(gdb.Command):
+    def __init__(self):
+        super(LookupGhcAddrCmd, self).__init__ ("ghc addr", gdb.COMMAND_USER)
+
+    def invoke(self, args, from_tty):
+        sym = args
+        foundAddr = getLinkerSymbols().lookupAddr(sym)
+        if foundAddr is None:
+            print("Failed to find %s" % sym)
+        else:
+            print("%s starts at 0x%x" % (sym, foundAddr))
+
+    def complete(self, text, word):
+        syms = getLinkerSymbols().symbolToAddr.keys()
+        matches = [ sym for sym in syms if text in sym ]
+        return matches
+
 
 LookupGhcSymbolCmd()
+LookupGhcAddrCmd()
