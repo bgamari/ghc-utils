@@ -363,6 +363,7 @@ def iter_small_bitmap(bitmap):
         yield isWord
 
 class PrintInfoCmd(gdb.Command):
+    """ Display the info table located at an address """
     def __init__(self):
         super(PrintInfoCmd, self).__init__ ("print_info", gdb.COMMAND_USER)
 
@@ -374,6 +375,7 @@ class GhcCmd(gdb.Command):
         super(GhcCmd, self).__init__ ("ghc", gdb.COMMAND_USER, prefix=True)
 
 class PrintGhcClosureCmd(gdb.Command):
+    """ Display the closure at an address """
     def __init__(self):
         super(PrintGhcClosureCmd, self).__init__ ("ghc closure", gdb.COMMAND_USER)
 
@@ -388,6 +390,7 @@ class PrintGhcClosureCmd(gdb.Command):
         print(print_closure(untag(closure), depth=opts.depth))
 
 class PrintGhcStackCmd(gdb.Command):
+    """ Display the STG evaluation stack starting at an address """
     def __init__(self):
         super(PrintGhcStackCmd, self).__init__ ("ghc backtrace", gdb.COMMAND_USER)
 
@@ -470,6 +473,7 @@ def all_threads():
             t_ptr = t_ptr.dereference()['global_link']
 
 class PrintGhcThreadsCmd(gdb.Command):
+    """ List Haskell threads """
     def __init__(self):
         super(PrintGhcThreadsCmd, self).__init__ ("ghc threads", gdb.COMMAND_USER)
 
@@ -505,6 +509,7 @@ class PrintGhcThreadsCmd(gdb.Command):
             print()
 
 class PrintGhcInfoTableCmd(gdb.Command):
+    """ Display the info table of a closure """
     def __init__(self):
         super(PrintGhcInfoTableCmd, self).__init__ ("ghc info", gdb.COMMAND_USER)
 

@@ -4,11 +4,11 @@ null = gdb.Value(0).cast(gdb.lookup_type('void').pointer())
 
 def walk_hashtable(table):
     assert table.type == gdb.lookup_type('HashTable')
-    HSEGSIZE = 1024
+    HSEGSIZE = 1024 # Must match rts/Hash.c
 
     # Derived from Hash.c:mapHashTable
-    segment = int((table['max'] - table['split'] - 1) / HSEGSIZE)
-    index = int((table['max'] - table['split'] - 1) % HSEGSIZE)
+    segment = int(table['max'] + table['split'] - 1) / HSEGSIZE
+    index = int(table['max'] + table['split'] - 1) % HSEGSIZE
     while segment >= 0:
         while index >= 0:
             hl = table['dir'][segment][index]
@@ -46,10 +46,14 @@ class LinkerSymbols(object):
     def lookupNearestSymbol(self, addr):
         import bisect
         i = bisect.bisect_left(self.addrs, addr)
-        return (self.addrs[i-1], self.symbols[i-1]) if i else None
+        if i is None:
+            return None
+        if self.addrs[i] > addr:
+            i -= 1
+        return (self.addrs[i], self.symbols[i])
 
     def lookupAddr(self, symbol):
-        return self.symbolToAddr[symbol]
+        return self.symbolToAddr.get(symbol)
 
 _linkerSymbols = None
 def getLinkerSymbols():
@@ -59,6 +63,8 @@ def getLinkerSymbols():
     return _linkerSymbols
 
 class LookupGhcSymbolCmd(gdb.Command):
+    """ Lookup the symbol an address falls with (assuming the symbol was loaded
+        by the RTS linker) """
     def __init__(self):
         super(LookupGhcSymbolCmd, self).__init__ ("ghc symbol", gdb.COMMAND_USER)
 
@@ -67,5 +73,24 @@ class LookupGhcSymbolCmd(gdb.Command):
         foundAddr, sym = getLinkerSymbols().lookupNearestSymbol(addr)
         print("%d bytes into %s (starts at 0x%x)" % (addr - foundAddr, sym, foundAddr))
 
+class LookupGhcAddrCmd(gdb.Command):
+    """ Lookup the address of a symbol loaded by the RTS linker """
+    def __init__(self):
+        super(LookupGhcAddrCmd, self).__init__ ("ghc address", gdb.COMMAND_USER)
+
+    def invoke(self, args, from_tty):
+        sym = args
+        foundAddr = getLinkerSymbols().lookupAddr(sym)
+        if foundAddr is None:
+            print("Failed to find %s" % sym)
+        else:
+            print("%s starts at 0x%x" % (sym, foundAddr))
+
+    def complete(self, text, word):
+        syms = getLinkerSymbols().symbolToAddr.keys()
+        matches = [ sym for sym in syms if text in sym ]
+        return matches
+
 
 LookupGhcSymbolCmd()
+LookupGhcAddrCmd()
