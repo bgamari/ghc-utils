@@ -8,6 +8,7 @@ if [[ $(git clean -dn | wc -l) > 1 ]]; then
 fi
 git clean -dxf
 git submodule foreach git clean -dxf
+git submodule update
 
 mk/get-win32-tarballs.sh download all
 ./boot
