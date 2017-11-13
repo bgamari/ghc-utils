@@ -9,7 +9,7 @@ def split_file(f):
     i = 0
 
     print(f)
-    os.mkdir('%s.split' % f)
+    os.makedirs('%s.split' % f)
     output = open('%s.split/%s-00' % (f, base), 'w')
     for ln in open(f):
         if ln.startswith('======='):
