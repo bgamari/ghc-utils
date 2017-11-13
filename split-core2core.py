@@ -1,11 +1,11 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import sys
 import os
 import re
 
 def split_file(f):
-    base = os.path.splitext(f)[0]
+    base = os.path.basename(f)[0]
     i = 0
 
     print(f)
