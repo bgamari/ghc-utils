@@ -1,15 +1,15 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import sys
 import os
 import re
 
 def split_file(f):
-    base = os.path.splitext(f)[0]
+    base = os.path.basename(f)[0]
     i = 0
 
     print(f)
-    os.mkdir('%s.split' % f)
+    os.makedirs('%s.split' % f)
     output = open('%s.split/%s-00' % (f, base), 'w')
     for ln in open(f):
         if ln.startswith('======='):
