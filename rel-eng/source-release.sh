@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -e
 
 make distclean
 if [[ $(git clean -dn | wc -l) > 1 ]]; then

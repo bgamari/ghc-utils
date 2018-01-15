@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -e
 
 branch=$1
 if [ "x$branch" == "x" ]; then
