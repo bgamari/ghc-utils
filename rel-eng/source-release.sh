@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -e
 
 make distclean
 if [[ $(git clean -dn | wc -l) > 1 ]]; then
@@ -8,6 +10,7 @@ if [[ $(git clean -dn | wc -l) > 1 ]]; then
 fi
 git clean -dxf
 git submodule foreach git clean -dxf
+git submodule update
 
 mk/get-win32-tarballs.sh download all
 ./boot
@@ -19,6 +22,5 @@ find -iname '*.hi' -delete
 find -iname '*.dyn_hi' -delete
 find -iname '*.dyn_o' -delete
 git clean -fxd testsuite/tests
-find -type f -executable -exec file -i '{}' \; | grep 'x-executable; charset=binary' | cut -d: -f1 | xargs rm
 
 make sdist

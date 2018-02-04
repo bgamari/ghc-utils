@@ -22,7 +22,7 @@ do_commit() {
     cd nofib
     cabal install --with-ghc=$root/inplace/bin/ghc-stage2 --disable-library-profiling --force-reinstalls regex-compat html >log 2>&1
     make clean >log 2>&1
-    make -j8 boot >$logs/nofib-boot-$seq-$commit.log 2>&1
+    make -j8 boot >$logs/nofib_boot-$seq-$commit.log 2>&1
     for run in $(seq $nruns); do
         echo "  run $i"
         (
@@ -44,3 +44,4 @@ for commit in $commits; do
     do_commit $commit
 done
 
+nofib/nofib-analyse/nofib-analyse logs/nofib-*.log > nofib-analyse.log

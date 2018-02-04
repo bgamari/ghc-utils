@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -e
 
 branch=$(git rev-parse --abbrev-ref HEAD)
 utils=$(dirname $(realpath $0))

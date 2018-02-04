@@ -1,4 +1,6 @@
 dist/
+dist-newstyle/
+bin/
 .stack-work/
 .cabal-sandbox/
 *.hi

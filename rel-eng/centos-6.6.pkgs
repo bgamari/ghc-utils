@@ -13,4 +13,4 @@ gmp-devel
 
 git vim
 
-libxslt docbook-dtds docbook-utils docbook-style-xsl
+python-sphinx texlive

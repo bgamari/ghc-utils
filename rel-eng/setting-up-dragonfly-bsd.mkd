@@ -1,0 +1,26 @@
+# Setting up Dragonfly BSD 8.4
+
+Download recent install USB image
+(e.g.
+<http://mirror-master.dragonflybsd.org/iso-images/dfly-x86_64-4.8.0_REL.img.bz2>)
+
+Login as `root`,
+```
+$ pkg install bash wget autoconf automake python3 git gcc py-sphinx gmp libiconv libffi libncurses gmake ghc
+$ vi /etc/ssh/sshd_config
+... enable PasswordAuthentication
+$ /etc/rc.d/sshd restart
+```
+
+Login as unprivileged user,
+```
+$ git clone git://github.com/haskell/cabal
+$ cd cabal/cabal-install
+$ ./bootstrap.sh
+$ cd
+$ git clone --recursive git://git.haskell.org/ghc
+$ ./boot
+$ ./configure --with-curses-includes=/usr/local/include --with-curses-libraries=/usr/local/lib
+$ gmake -j4
+```
+

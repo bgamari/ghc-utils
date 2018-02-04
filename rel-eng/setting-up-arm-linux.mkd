@@ -1,0 +1,10 @@
+# Setting up Aarch64 Linux
+
+Assuming Debian 9.
+
+## Cross-compiling to armhf
+
+```
+$ sudo dpkg --add-architecture armhf
+$ sudo apt-get install libgmp-dev:armhf gcc-arm-linux-gnueabihf libtinfo-dev:armhf
+```

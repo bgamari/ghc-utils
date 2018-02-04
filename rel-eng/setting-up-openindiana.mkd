@@ -1,0 +1,17 @@
+# Setting up OpenIndiana
+
+Here we are using the `hipster` release.
+
+1. Install the distribution.
+
+2. `sshd` is running in the installation by default.
+   Login, find the IP address, and `ssh` in.
+
+3. Install 
+```
+sudo pkg install \
+    library/gmp \
+    git developer/gcc-6 autoconf automake \
+    python-34
+```
+Here is where I stopped.
