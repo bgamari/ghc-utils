@@ -176,7 +176,7 @@ LATEX_DOCS=YES
 HSCOLOUR_SRCS=YES
 BUILD_DOCBOOK_HTML=YES
 BeConservative=YES
-EXTRA_HADDOCK_OPTS += --hyperlinked-source
+EXTRA_HADDOCK_OPTS += --hyperlinked-source --quickjump
 EOF
 
     # DWARF support
