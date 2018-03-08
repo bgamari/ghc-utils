@@ -271,6 +271,12 @@ if [ -z "$ver" ]; then
    exit 1
 fi
 
+if [ ! -z "$configure_args" ]; then
+   echo "error: it's configure_opts, not configure_args"
+   usage
+   exit 1
+fi
+
 root="$(pwd)/bin-dist-$ver-$(uname)"
 bin_dir="$root/bin"
 mkdir -p $root $root/bin
