@@ -371,7 +371,7 @@ class CommandWithArgs(gdb.Command):
         self.__class__.__doc__ += '\n' + self._parser.format_help()
 
     def invoke(self, args, from_tty):
-        opts = parser.parse_args(args.split())
+        opts = self._parser.parse_args(args.split())
         self.run(opts, from_tty)
 
     def build_parser(self, parser):
