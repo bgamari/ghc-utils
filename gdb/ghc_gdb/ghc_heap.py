@@ -392,7 +392,7 @@ class GhcCmd(gdb.Command):
     def __init__(self):
         super(GhcCmd, self).__init__ ("ghc", gdb.COMMAND_USER, prefix=True)
 
-class PrintGhcClosureCmd(gdb.Command):
+class PrintGhcClosureCmd(CommandWithArgs):
     """ Display the closure at an address """
     command_name = 'ghc closure'
 
