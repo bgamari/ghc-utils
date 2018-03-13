@@ -1,6 +1,10 @@
 import gdb
 
-null = gdb.Value(0).cast(gdb.lookup_type('void').pointer())
+void = gdb.lookup_type('void')
+null = gdb.Value(0).cast(void.pointer())
+
+def isNull(ptr):
+    return ptr.cast(void.pointer()) == null
 
 def walk_hashtable(table):
     assert table.type == gdb.lookup_type('HashTable')
@@ -62,9 +66,31 @@ def getLinkerSymbols():
         _linkerSymbols = LinkerSymbols()
     return _linkerSymbols
 
+def printMappings():
+    objectsPtr = gdb.parse_and_eval('objects')
+    while not isNull(objectsPtr):
+        obj = objectsPtr.dereference()
+        print(obj['fileName'].string())
+        print('  Sections')
+        print('  %20s    %-8s      %-16s' % ('name', 'size', 'start'))
+        for i in range(int(obj['n_sections'])):
+            sect = obj['sections'][i]
+            name = sect['info'].dereference()['name'].string()
+            print('  %20s    0x%-8x    0x%-16x' % (name, sect['size'], sect['start']))
+
+        print('')
+        objectsPtr = obj['next']
+
+class GhcMappingsCmd(gdb.Command):
+    """ Show sections mapped by the RTS linker """
+    def __init__(self):
+        super(GhcMappingsCmd, self).__init__ ("ghc mappings", gdb.COMMAND_USER)
+
+    def invoke(self, args, from_tty):
+        printMappings()
+
 class LookupGhcSymbolCmd(gdb.Command):
-    """ Lookup the symbol an address falls with (assuming the symbol was loaded
-        by the RTS linker) """
+    """ Lookup the symbol an address falls with (assuming the symbol was loaded by the RTS linker) """
     def __init__(self):
         super(LookupGhcSymbolCmd, self).__init__ ("ghc symbol", gdb.COMMAND_USER)
 
@@ -94,3 +120,4 @@ class LookupGhcAddrCmd(gdb.Command):
 
 LookupGhcSymbolCmd()
 LookupGhcAddrCmd()
+GhcMappingsCmd()
