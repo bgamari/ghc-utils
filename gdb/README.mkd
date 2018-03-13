@@ -1,4 +1,4 @@
-# GDB extension for debugging GHC
+# GDB extension for debugging GHC-compiled programs
 
 For best results compile the program with `-debug` to link against the
 debug-enabled runtime system.
