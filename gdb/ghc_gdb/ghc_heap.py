@@ -371,7 +371,14 @@ class CommandWithArgs(gdb.Command):
         self.__class__.__doc__ += '\n' + self._parser.format_help()
 
     def invoke(self, args, from_tty):
-        opts = self._parser.parse_args(args.split())
+        try:
+            opts = self._parser.parse_args(args.split())
+        except:
+            # we don't know what exceptions parse_args() throws so we have to
+            # catch all
+            # ignore the exception because  parse_args() already prints an
+            # error message
+            return
         self.run(opts, from_tty)
 
     def build_parser(self, parser):
