@@ -123,7 +123,7 @@ def build_closure_printers():
                 s += 'Word %d' % (w.dereference())
             else:
                 ptr = w.dereference().cast(StgClosurePtr)
-                s += 'Ptr  0x%-12x: %s' % (ptr, print_closure(untag(ptr), depth))
+                s += 'Ptr  0x%-12x: %s' % (int(ptr), print_closure(untag(ptr), depth))
 
             doc += Text(s)
 
@@ -356,6 +356,7 @@ def get_prof_info(info_tbl_ptr):
 def iter_small_bitmap(bitmap):
     """ Iterate over fields of a small bitmap, yield True for fields which are
     words and False for pointers. """
+    bitmap = int(bitmap)
     size = bitmap & BITMAP_SIZE_MASK
     bits = bitmap >> BITMAP_SIZE_SHIFT
     for i in range(size):
@@ -371,7 +372,14 @@ class CommandWithArgs(gdb.Command):
         self.__class__.__doc__ += '\n' + self._parser.format_help()
 
     def invoke(self, args, from_tty):
-        opts = self._parser.parse_args(args.split())
+        try:
+            opts = self._parser.parse_args(args.split())
+        except:
+            # we don't know what exceptions parse_args() throws so we have to
+            # catch all
+            # ignore the exception because  parse_args() already prints an
+            # error message
+            return
         self.run(opts, from_tty)
 
     def build_parser(self, parser):
@@ -420,7 +428,7 @@ class PrintGhcStackCmd(CommandWithArgs):
 def print_stack(sp, max_frames, depth=1):
     assert sp.type == StgPtr
     doc = VSep()
-    doc += Text('Sp = 0x%08x' % sp)
+    doc += Text('Sp = 0x%08x' % int(sp))
     for i in range(max_frames):
         d = HSep()
         stop = False
