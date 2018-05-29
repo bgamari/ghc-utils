@@ -230,7 +230,7 @@ function do_build() {
 function testsuite() {
     cd ghc
     log "running testsuite"
-    $make test THREADS=$NTHREADS 2>&1 | tee $root/testsuite.log
+    LANG=en_US.UTF-8 $make test THREADS=$NTHREADS 2>&1 | tee $root/testsuite.log
 }
 
 function test_install() {

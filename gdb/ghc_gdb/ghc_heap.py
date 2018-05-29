@@ -520,7 +520,7 @@ class PrintGhcThreadsCmd(CommandWithArgs):
             if len(opts.id) > 0 and int(tso['id']) not in opts.id:
                 continue
 
-            print('id=%d\tTSO=0x%08x\tblocked on %s' % (tso['id'], int(tso_ptr), why_blocked))
+            print('id=%d\tTSO=0x%08x\tblocked on %s' % (tso['id'], int(tso_ptr.address), why_blocked))
             sp = tso['stackobj'].dereference()['sp'].cast(StgPtr)
             print(print_stack(sp, max_frames=opts.frames, depth=1).indented())
             print()

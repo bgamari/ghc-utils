@@ -16,6 +16,9 @@ if [ $# == 0 ]; then
     # Review all submodules
     git submodule foreach --quiet "cd \$toplevel; $0 \$path"
 
+elif [ "$1" == "-a" ]; then
+    git submodule foreach --quiet "cd \$toplevel; yes no | $0 \$path"
+
 elif [ $# == 1 ]; then
     # Review single submodule
     path=$1
