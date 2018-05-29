@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -e
 
 # This is a script for preparing and uploading a release of GHC.
 #
@@ -133,7 +135,8 @@ function upload() {
 }
 
 function purge_file() {
-    curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/$i
+    curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/$i/
+    curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/$i/docs/
 }
 
 function prepare_docs() {
@@ -144,8 +147,10 @@ function prepare_docs() {
         echo "Perhaps you need to override ghc_tree?"
         exit 1
     fi
-    windows_bindist="$(ls ghc-*-x86_64-unknown-mingw*.tar.xz | head -n1)"
-    linux_bindist="$(ls ghc-*-x86_64-*deb8*.tar.xz | head -n1)"
+    windows_bindist="$(ls ghc-$ver-x86_64-unknown-mingw32.tar.xz | head -n1)"
+    linux_bindist="$(ls ghc-$ver-x86_64-deb8-linux.tar.xz | head -n1)"
+    echo "Windows bindist: $windows_bindist"
+    echo "Linux bindist: $linux_bindist"
     $mkdocs $linux_bindist $windows_bindist
 
     mkdir -p docs/html
