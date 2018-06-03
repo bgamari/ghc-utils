@@ -22,7 +22,7 @@ data TickyStats = TickyStats { entries   :: Integer
                              , alloc     :: Integer
                              , allocd    :: Integer
                              }
-                deriving (Show)
+                deriving (Show, Eq)
 
 instance Monoid TickyStats where
     mempty = TickyStats 0 0 0
