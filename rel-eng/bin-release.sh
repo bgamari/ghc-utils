@@ -176,7 +176,7 @@ LATEX_DOCS=YES
 HSCOLOUR_SRCS=YES
 BUILD_DOCBOOK_HTML=YES
 BeConservative=YES
-EXTRA_HADDOCK_OPTS += --hyperlinked-source
+EXTRA_HADDOCK_OPTS += --hyperlinked-source --quickjump
 EOF
 
     # DWARF support
@@ -230,7 +230,7 @@ function do_build() {
 function testsuite() {
     cd ghc
     log "running testsuite"
-    $make test THREADS=$NTHREADS 2>&1 | tee $root/testsuite.log
+    LANG=en_US.UTF-8 $make test THREADS=$NTHREADS 2>&1 | tee $root/testsuite.log
 }
 
 function test_install() {
@@ -267,6 +267,12 @@ function upload() {
 }
 
 if [ -z "$ver" ]; then
+   usage
+   exit 1
+fi
+
+if [ ! -z "$configure_args" ]; then
+   echo "error: it's configure_opts, not configure_args"
    usage
    exit 1
 fi

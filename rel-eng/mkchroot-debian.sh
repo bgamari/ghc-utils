@@ -3,7 +3,19 @@
 # setup a debootstrap-based debian chroot
 
 function usage() {
-    echo "Usage: ARCH=[i386|amd64] DIST=[jessie|wheezy] $0 [dest]"
+    cat <<EOF
+Usage: ARCH=[i386|amd64] DIST=[jessie|wheezy] $0 [dest]"
+
+Options:
+    ARCH:       Architecture
+    DIST:       Distribution name
+    SCRIPT:     debootstrap script name
+    deb_repo:   Which .deb repository to fetch packages from
+                e.g. http://http.debian.net/debian/ for Debian
+                     https://mirrors.kernel.org/ubuntu/ for Ubuntu
+                     http://old-releases.ubuntu.com/ubuntu/ for older Ubuntu releases
+
+EOF
 }
 
 case $ARCH in
@@ -26,10 +38,11 @@ dest=$1
 real_dest=$(realpath $dest)
 user=$(id -un)
 dist="$DIST"
+if [ -z "$deb_repo" ]; then deb_repo="http://http.debian.net/debian/"; fi
 if [ -z "$dist" ]; then dist="jessie"; fi
 
 mkdir $dest
-sudo debootstrap --arch=$arch $dist $dest http://http.debian.net/debian/
+sudo debootstrap --arch=$arch $dist $dest $deb_repo $SCRIPT
 sudo chown $user $dest
 
 cat >$dest/activate-root <<EOF
@@ -45,13 +58,17 @@ EOF
 
 chmod ugo+rx $dest/activate-root $dest/activate
 
+# Debian-only
+#other_pkgs="console-data all-locales"
+
 $dest/activate-root adduser --uid=`id -u` $user
 $dest/activate-root apt-get update
 $dest/activate-root apt-get install -y \
                     build-essential realpath vim bash-completion bash locales autoconf \
                     libncurses-dev git python3 sudo curl \
                     console-data locales-all libgmp-dev zlib1g-dev \
-                    python3 python3-sphinx
+                    $other_pkgs libgmp-dev zlib1g-dev \
+                    python3-sphinx
 
 $dest/activate-root bash -e <<EOF
 locale-gen en_US.UTF-8

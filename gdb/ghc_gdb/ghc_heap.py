@@ -123,7 +123,7 @@ def build_closure_printers():
                 s += 'Word %d' % (w.dereference())
             else:
                 ptr = w.dereference().cast(StgClosurePtr)
-                s += 'Ptr  0x%-12x: %s' % (ptr, print_closure(untag(ptr), depth))
+                s += 'Ptr  0x%-12x: %s' % (int(ptr), print_closure(untag(ptr), depth))
 
             doc += Text(s)
 
@@ -356,11 +356,37 @@ def get_prof_info(info_tbl_ptr):
 def iter_small_bitmap(bitmap):
     """ Iterate over fields of a small bitmap, yield True for fields which are
     words and False for pointers. """
+    bitmap = int(bitmap)
     size = bitmap & BITMAP_SIZE_MASK
     bits = bitmap >> BITMAP_SIZE_SHIFT
     for i in range(size):
         isWord = bits & (1 << i) != 0
         yield isWord
+
+class CommandWithArgs(gdb.Command):
+    def __init__(self):
+        super(CommandWithArgs, self).__init__ (self.__class__.command_name, gdb.COMMAND_USER)
+        import argparse
+        self._parser = argparse.ArgumentParser()
+        self.build_parser(self._parser)
+        self.__class__.__doc__ += '\n' + self._parser.format_help()
+
+    def invoke(self, args, from_tty):
+        try:
+            opts = self._parser.parse_args(args.split())
+        except:
+            # we don't know what exceptions parse_args() throws so we have to
+            # catch all
+            # ignore the exception because  parse_args() already prints an
+            # error message
+            return
+        self.run(opts, from_tty)
+
+    def build_parser(self, parser):
+        raise NotImplementedError()
+
+    def run(self, opts, from_tty):
+        raise NotImplementedError()
 
 class PrintInfoCmd(gdb.Command):
     """ Display the info table located at an address """
@@ -374,41 +400,35 @@ class GhcCmd(gdb.Command):
     def __init__(self):
         super(GhcCmd, self).__init__ ("ghc", gdb.COMMAND_USER, prefix=True)
 
-class PrintGhcClosureCmd(gdb.Command):
+class PrintGhcClosureCmd(CommandWithArgs):
     """ Display the closure at an address """
-    def __init__(self):
-        super(PrintGhcClosureCmd, self).__init__ ("ghc closure", gdb.COMMAND_USER)
+    command_name = 'ghc closure'
 
-    def invoke(self, args, from_tty):
-        import argparse
-        parser = argparse.ArgumentParser()
+    def build_parser(self, parser):
         parser.add_argument('-d', '--depth', type=int, default=2)
         parser.add_argument('closure')
-        opts = parser.parse_args(args.split())
 
+    def run(self, opts, from_tty):
         closure = gdb.parse_and_eval(opts.closure).cast(StgClosurePtr)
         print(print_closure(untag(closure), depth=opts.depth))
 
-class PrintGhcStackCmd(gdb.Command):
+class PrintGhcStackCmd(CommandWithArgs):
     """ Display the STG evaluation stack starting at an address """
-    def __init__(self):
-        super(PrintGhcStackCmd, self).__init__ ("ghc backtrace", gdb.COMMAND_USER)
+    command_name = 'ghc backtrace'
 
-    def invoke(self, args, from_tty):
-        import argparse
-        parser = argparse.ArgumentParser()
+    def build_parser(self, parser):
         parser.add_argument('-d', '--depth', type=int, default=1)
         parser.add_argument('-n', '--frames', type=int, default=10)
         parser.add_argument('--sp', type=str, help='stack pointer')
-        opts = parser.parse_args(args.split())
 
+    def run(self, opts, from_tty):
         sp = gdb.parse_and_eval(opts.sp if opts.sp else '$rbp').cast(StgPtr)
         print(print_stack(sp, depth=opts.depth, max_frames=opts.frames))
 
 def print_stack(sp, max_frames, depth=1):
     assert sp.type == StgPtr
     doc = VSep()
-    doc += Text('Sp = 0x%08x' % sp)
+    doc += Text('Sp = 0x%08x' % int(sp))
     for i in range(max_frames):
         d = HSep()
         stop = False
@@ -472,19 +492,16 @@ def all_threads():
             yield t_ptr
             t_ptr = t_ptr.dereference()['global_link']
 
-class PrintGhcThreadsCmd(gdb.Command):
+class PrintGhcThreadsCmd(CommandWithArgs):
     """ List Haskell threads """
-    def __init__(self):
-        super(PrintGhcThreadsCmd, self).__init__ ("ghc threads", gdb.COMMAND_USER)
+    command_name = "ghc threads"
 
-    def invoke(self, args, from_tty):
-        import argparse
-        parser = argparse.ArgumentParser()
+    def build_parser(self, parser):
         parser.add_argument('-n', '--frames', type=int, default=5)
         parser.add_argument('-b', '--blocked-only', action='store_true')
         parser.add_argument('-i', '--id', type=int, action='append', default=[])
-        opts = parser.parse_args(args.split())
 
+    def run(self, opts, from_tty):
         blocked_reasons = {
             0: lambda tso: 'nothing',
             1: lambda tso: 'MVar@%s' % tso['block_info']['closure'],
@@ -503,7 +520,7 @@ class PrintGhcThreadsCmd(gdb.Command):
             if len(opts.id) > 0 and int(tso['id']) not in opts.id:
                 continue
 
-            print('id=%d\tTSO=0x%08x\tblocked on %s' % (tso['id'], int(tso_ptr), why_blocked))
+            print('id=%d\tTSO=0x%08x\tblocked on %s' % (tso['id'], int(tso_ptr.address), why_blocked))
             sp = tso['stackobj'].dereference()['sp'].cast(StgPtr)
             print(print_stack(sp, max_frames=opts.frames, depth=1).indented())
             print()

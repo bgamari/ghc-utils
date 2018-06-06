@@ -4,7 +4,7 @@ set -e
 
 branch=$1
 if [ "x$branch" == "x" ]; then
-        branch=$(git rev-parse --abbrev-ref HEAD)
+    branch=$(git rev-parse --abbrev-ref HEAD)
 fi
 
 git remote update origin
@@ -15,13 +15,21 @@ echo
 git log origin/$branch..$branch
 echo
 git diff --stat origin/$branch..$branch
-echo 
+echo
 echo -n "Push the above commits upstream? [no,yes] "
 read res
 if [ "x$res" == "xyes" ]; then
+    if true; then
+        # Push one commit at a time for CircleCI's sake
+        for commit in $(git rev-list --reverse origin/$branch..$branch); do
+            echo "Pushing $commit..."
+            git push origin-push $commit:$branch
+        done;
+    else
         git push origin-push $branch
-        echo "Pushed."
+    fi
+    echo "Pushed."
 else
-        echo "Not pushing."
+    echo "Not pushing."
 fi
 

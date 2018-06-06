@@ -1,0 +1,17 @@
+# GDB extension for debugging GHC-compiled programs
+
+For best results compile the program with `-debug` to link against the
+debug-enabled runtime system.
+
+To install,
+```
+$ python setup.py install
+```
+
+To use,
+```
+$ gdb $haskell_program
+>>> start
+>>> python import ghc_gdb
+>>> help ghc
+```
