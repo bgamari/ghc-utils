@@ -5,11 +5,13 @@ set -e
 args=
 build_tags() {
     d=$1
-    echo "generating tags for $d..."
-    pushd $d
-    hasktags -x -o TAGS -e .
-    popd
-    args="$args --include $d/TAGS"
+    if [ -d $d ]; then
+        echo "generating tags for $d..."
+        pushd $d
+        hasktags -x -o TAGS -e .
+        popd
+        args="$args --include $d/TAGS"
+    fi
 }
 
 build_tags compiler
@@ -18,7 +20,7 @@ build_tags libraries/base
 build_tags libraries/ghc-boot
 build_tags libraries/ghc-prim
 build_tags libraries/ghci
-if [ -d libraries/hoopl ]; then build_tags libraries/hoopl; fi
+build_tags libraries/hoopl
 build_tags iserv
 
 pushd rts
