@@ -14,6 +14,7 @@ build_tags() {
     fi
 }
 
+rm -f TAGS
 build_tags compiler
 build_tags ghc
 build_tags libraries/base
