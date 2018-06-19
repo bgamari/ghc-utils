@@ -35,6 +35,7 @@ shift
 args="$@"
 
 tmp=$(tempfile)
-sed -e "s/exec/exec $PROG/" $wrapper > $tmp
+sed -e "s/exec /exec $PROG /" $wrapper > $tmp
+cat $tmp
 bash $tmp
 rm $tmp
