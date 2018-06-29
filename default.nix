@@ -2,7 +2,7 @@
 
 with nixpkgs;
 let
-  bindistPrepEnv = self.pkgs.buildFHSUserEnv {
+  bindistPrepEnv = pkgs.buildFHSUserEnv {
     name = "enter-fhs";
     targetPkgs = pkgs: with pkgs; [
       gnupg m4 file gdb git zlib pkgconfig perl rsync gcc binutils gnumake gmp ncurses5 openssh curl
