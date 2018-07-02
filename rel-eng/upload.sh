@@ -173,7 +173,9 @@ function compress_to_xz() {
 if [ "x$1" == "x" ]; then
     gen_hashes
     sign
-    if [ ! -d docs ]; then prepare_docs; fi
+    if [ ! -d docs ]; then
+        prepare_docs || ( rm -R docs; exit 1 )
+    fi
     upload
 else
     $@
