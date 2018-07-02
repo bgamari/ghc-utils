@@ -58,6 +58,7 @@ usage() {
     echo "  rel_name           gives the release name (e.g. in the case of a release candidate 7.10.3-rc2"
     echo "                     otherwise just 7.10.3)"
     echo "and <action> is one of,"
+    echo "  fetch_s3           fetch artifacts from S3"
     echo "  [nothing]          do everything below"
     echo "  compress_to_xz     produce xz tarballs from bzip2 tarballs"
     echo "  gen_hashes         generated hashes of the release tarballs"
@@ -76,6 +77,23 @@ fi
 if [ -z "$rel_name" ]; then
     rel_name="$ver"
 fi
+
+function fetch_s3() {
+    declare -A builds
+    builds[x86_64-deb8-linux]=validate-x86_64-linux
+    builds[i386-deb8-linux]=validate-i386-linux
+    builds[x86_64-fedora-linux]=validate-x86_64-fedora
+    builds[x86_64-darwin]=validate-x86_64-darwin
+
+    for platform in "${!builds[@]}"; do
+        out_name="ghc-$ver-$platform.tar.xz"
+        if [ ! -e "$out_name" ]; then
+            name="${builds[$platform]}"
+            s3cmd get s3://ghc-artifacts/releases/$name/ghc-$rel_name/bindist.tar.xz
+            mv bindist.tar.xz $out_name
+        fi
+    done
+}
 
 # returns the set of files that must have hashes generated.
 function hash_files() {
