@@ -25,7 +25,7 @@ build_tags libraries/hoopl
 build_tags iserv
 
 pushd rts
-etags $(find -iname '*.c')
+etags $(find -iname '*.h') $(find -iname '*.c')
 args="$args --include rts/TAGS"
 popd
 
