@@ -11,7 +11,7 @@ let
     url = "https://github.com/NixOS/nixpkgs/archive/${rev}.tar.gz";
     sha256 = "088wzwgm7nqjv2bpirmjsncysjvzjd237z7d0lm2jzng81f4a6ll";
   };
-  nixpkgs = baseNixpkgs;
+  nixpkgs = import baseNixpkgs {};
 
 in with nixpkgs; rec {
   pythonPackages = python3Packages;
