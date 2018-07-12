@@ -5,11 +5,11 @@
 #{ nixpkgs ? (import <nixpkgs> {}) }:
 
 let
-  rev = "140ad12d71c57716b3ee3b777d53c27b019360f0";
+  rev = "08d245eb31a3de0ad73719372190ce84c1bf3aee";
   baseNixpkgs =
     builtins.fetchTarball {
     url = "https://github.com/NixOS/nixpkgs/archive/${rev}.tar.gz";
-    sha256 = "088wzwgm7nqjv2bpirmjsncysjvzjd237z7d0lm2jzng81f4a6ll";
+    sha256 = "1g22f8r3l03753s67faja1r0dq0w88723kkfagskzg9xy3qs8yw8";
   };
   nixpkgs = import baseNixpkgs {};
 
