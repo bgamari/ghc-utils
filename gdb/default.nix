@@ -1,8 +1,6 @@
-# Usage:  nix build gdbinit
+# Usage:  nix build -f ./. env
 #
-# `source` the resulting file in gdb.
-
-#{ nixpkgs ? (import <nixpkgs> {}) }:
+# Start `result/bin/gdb` and run `source result/gdbinit` once a Haskell executable is loaded.
 
 let
   rev = "08d245eb31a3de0ad73719372190ce84c1bf3aee";
@@ -26,13 +24,26 @@ in with nixpkgs; rec {
     python = python3;
   };
 
-  env = python.withPackages (_: [ ghc-gdb ]);
+  pythonEnv = python3.withPackages (_: [ ghc-gdb ]);
+
+  env = symlinkJoin {
+    name = "gdb-with-ghc-gdb";
+    paths = [ gdb pythonEnv gdbinit ];
+  };
 
   gdbinit = writeTextFile {
     name = "gdbinit";
+    destination = "/gdbinit";
     text = ''
-      python sys.path += ["${env}/lib/python2.7/site-packages"]
-      python import ghc_gdb
+      python sys.path = ["${pythonEnv}/lib/python3.6/site-packages"] + sys.path
+      python
+      try:
+          import importlib
+          importlib.reload(ghc_gdb)
+      except NameError:
+          import ghc_gdb
+      end
+
       echo The `ghc` command is now available.\n
     '';
   };
