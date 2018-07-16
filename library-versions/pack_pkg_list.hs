@@ -12,7 +12,7 @@ import System.IO
 -- | These are packages which are sometimes installed in the global package
 -- database (e.g. during @validate@) but aren't actually boot packages.
 nonBootPackages :: [String]
-nonBootPackages = [ "parallel", "stm" ]
+nonBootPackages = [ "parallel" ]
 
 main :: IO ()
 main = do
