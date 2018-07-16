@@ -82,7 +82,7 @@ function fetch_s3() {
     declare -A builds
     builds[x86_64-deb8-linux]=validate-x86_64-linux
     builds[i386-deb8-linux]=validate-i386-linux
-    builds[x86_64-fedora-linux]=validate-x86_64-fedora
+    builds[x86_64-fedora27-linux]=validate-x86_64-fedora
     builds[x86_64-darwin]=validate-x86_64-darwin
 
     for platform in "${!builds[@]}"; do
