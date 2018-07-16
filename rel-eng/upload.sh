@@ -82,7 +82,7 @@ function fetch_s3() {
     declare -A builds
     builds[x86_64-deb8-linux]=validate-x86_64-linux
     builds[i386-deb8-linux]=validate-i386-linux
-    builds[x86_64-fedora-linux]=validate-x86_64-fedora
+    builds[x86_64-fedora27-linux]=validate-x86_64-fedora
     builds[x86_64-darwin]=validate-x86_64-darwin
 
     for platform in "${!builds[@]}"; do
@@ -169,7 +169,7 @@ function prepare_docs() {
     linux_bindist="$(ls ghc-$ver-x86_64-deb8-linux.tar.xz | head -n1)"
     echo "Windows bindist: $windows_bindist"
     echo "Linux bindist: $linux_bindist"
-    $mkdocs $linux_bindist $windows_bindist
+    $ENTER_FHS_ENV $mkdocs $linux_bindist $windows_bindist
 
     mkdir -p docs/html
     tar -Jxf $linux_bindist
