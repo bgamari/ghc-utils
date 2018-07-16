@@ -66,6 +66,7 @@ $dest/activate-root apt-get update
 $dest/activate-root apt-get install -y \
                     build-essential realpath vim bash-completion bash locales autoconf \
                     libncurses-dev git python3 sudo curl \
+                    console-data locales-all libgmp-dev zlib1g-dev \
                     $other_pkgs libgmp-dev zlib1g-dev \
                     python3-sphinx
 

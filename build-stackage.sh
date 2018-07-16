@@ -24,4 +24,4 @@ packages: ., packages/
 EOF
 
 cd $dir
-cabal new-build -j16 --keep-going
+cabal new-build -j16 --allow-newer=base,template-haskell,ghc-prim,ghc,directory,time,binary

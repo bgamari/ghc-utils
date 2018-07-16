@@ -34,9 +34,8 @@ wrapper="$(which $exe)"
 shift
 args="$@"
 
-for l in $(grep -v '^exec ' $wrapper); do eval $l; done
-
-cmdline="$(sed -n 's/^exec \(.*\)$/\1/p' $wrapper)"
-echo "$PROG $(eval echo "$cmdline")"
-echo
-$PROG $(eval echo "$cmdline")
+tmp=$(tempfile)
+sed -e "s/exec /exec $PROG /" $wrapper > $tmp
+cat $tmp
+bash $tmp
+rm $tmp
