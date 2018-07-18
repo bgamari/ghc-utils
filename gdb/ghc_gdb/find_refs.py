@@ -144,16 +144,46 @@ def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
 
 closureTypeDict = { v: str(ty) for ty, v in closure.ClosureType.__dict__.items() }
 
-def refs_dot(closure_ptr: Ptr, depth: int):
+def get_bdescr(ptr: Ptr) -> Optional[Ptr]:
+    if ptr < 0x4200000000: return None # XXX
+
+    if True or gdb.parse_and_eval('HEAP_ALLOCED(%d)' % ptr):
+        return gdb.parse_and_eval('Bdescr(%d)' % ptr).dereference()
+    else:
+        return None
+
+BF_NONMOVING = 1024 # gdb.parse_and_eval('BF_NONMOVING')
+NONMOVING_SEGMENT_MASK = (1 << 15) - 1
+
+def get_nonmoving_segment(ptr: Ptr) -> Ptr:
+    bd = get_bdescr(ptr)
+    if bd is not None and bd['flags'] & BF_NONMOVING:
+        seg_base = int(ptr) & ~NONMOVING_SEGMENT_MASK
+        return gdb.parse_and_eval('(struct nonmoving_segment *) %d' % seg_base).dereference()
+    else:
+        return None
+
+def refs_dot(closure_ptr: Ptr, depth: int) -> str:
     node_name = lambda ptr: hex(ptr.referring_closure)
-    def node_attrs(ptr: Ptr):
-        print(ptr)
+    def node_attrs(ref: ClosureRef):
         try:
-            itbl = ghc_heap.get_itbl(gdb.parse_and_eval('(StgClosure *) %d' % (ptr.referring_closure,))).dereference()
+            itbl = ghc_heap.get_itbl(gdb.parse_and_eval('(StgClosure *) %d' % (ref.referring_closure,))).dereference()
             closure_type = closureTypeDict.get(int(itbl['type']), 'unknown')
         except gdb.MemoryError:
             closure_type = 'invalid itbl'
-        return {'label': '0x%x\n%s' % (ptr.referring_closure, closure_type)}
+
+        bd = get_bdescr(ref.referring_closure)
+        if bd is not None and bd['flags'] & BF_NONMOVING:
+            if gdb.parse_and_eval('nonmoving_get_closure_mark_bit(%d)' % ref.referring_closure):
+                mark = 'blue'
+            else:
+                mark = 'red'
+        else:
+            mark = 'black'
+
+
+        return {'label': '0x%x\n%s' % (ref.referring_closure, closure_type),
+                'fontcolor': mark}
 
     graph = find_refs_rec(closure_ptr, depth=depth)
     return graph.to_dot(node_name, node_attrs=node_attrs)
