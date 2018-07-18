@@ -95,7 +95,7 @@ def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
         if sym is not None and sym.print_name.endswith('_info'): # and sym.value == addr:
             info = ghc_heap.get_itbl(gdb.parse_and_eval('(StgClosure *) %d' % start))
             nptrs = int(info['layout']['payload']['ptrs'])
-            if i <= nptrs:
+            if i <= nptrs + 5: # A bit of fudge for the headers
                 return Ptr(start)
             else:
                 print('suspicious info table: too far (p=0x%08x, info=%s, nptrs=%d, i=%d)' % (start, sym.print_name, nptrs, i))
