@@ -60,7 +60,8 @@ def find_refs(closure_ptr: Ptr) -> List[Ptr]:
     closure_ptr = Ptr(closure_ptr).untagged()
     for tag in range(0,7):
         val = pack_pointer(closure_ptr | tag)
-        yield from search_memory_many(inf, heap_start, heap_end, val)
+        yield from search_memory_many(inf, 0, 0x1000000, val) # static mappings
+        yield from search_memory_many(inf, heap_start, heap_end, val) # heap
 
 RecRefs = List[Tuple[Ptr, 'RecRefs']]
 
