@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from . import ghc_heap
 import gdb
 
@@ -62,7 +62,9 @@ def find_refs(closure_ptr: Ptr) -> List[Ptr]:
         val = pack_pointer(closure_ptr | tag)
         yield from search_memory_many(inf, heap_start, heap_end, val)
 
-def find_refs_rec(closure_ptr: Ptr, depth: int):
+RecRefs = List[Tuple[Ptr, 'RecRefs']]
+
+def find_refs_rec(closure_ptr: Ptr, depth: int) -> RecRefs:
     """
     Recursively search for references to a closure up to the given depth.
     """
@@ -98,3 +100,15 @@ def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
                 print('suspicious info table: too far (p=0x%08x, info=%s, nptrs=%d, i=%d)' % (start, sym.print_name, nptrs, i))
 
     return None
+
+def render_tree(rec_refs: RecRefs) -> str:
+    def gos(xs, n):
+        return [r
+                for x in xs
+                for r in go(x, n)]
+
+    def go(x, n):
+        ptr, xs = x
+        return ['%s0x%x:' % (' '*(2*n), ptr)] + gos(xs, n+1)
+
+    return '\n'.join(gos(rec_refs, 0))
