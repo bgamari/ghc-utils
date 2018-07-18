@@ -1,7 +1,8 @@
 import typing
-from typing import List, Optional, Tuple, TypeVar, Callable, NamedTuple
+from typing import List, Optional, Tuple, TypeVar, Callable, NamedTuple, Set, Dict
 from . import ghc_heap
 from .types import *
+from . import closure
 import gdb
 
 T = TypeVar('T')
@@ -69,6 +70,12 @@ class Tree(typing.Generic[T]):
     def render(self, render_node: Callable[[T], str]) -> str:
         return self._render(render_node, 0)
 
+    def nodes(self) -> Set[T]:
+        """ List all nodes """
+        nodes = { a for (a,_) in self.edges() }
+        nodes |= { a for (_,a) in self.edges() }
+        return nodes
+
     def edges(self) -> List[Tuple[T, T]]:
         return [ (self.node, child.node)
                  for child in self.children ] + \
@@ -76,8 +83,16 @@ class Tree(typing.Generic[T]):
                  for child in self.children
                  for edge in child.edges() ]
 
-    def to_dot(self, node_name: Callable[[T], str]) -> str:
-        lines = ['digraph {'] + ['"%s" -> "%s";' % (node_name(a), node_name(b)) for (a,b) in self.edges()] + ['}']
+    def to_dot(self, node_name: Callable[[T], str], node_attrs: Callable[[T], Dict[str, str]] = lambda _: {}) -> str:
+        def format_attrs(attrs):
+            return ', '.join('"%s"="%s"' % (name, val) for name, val in attrs.items())
+
+        lines = ['digraph {']
+        lines += ['  "%s" -> "%s";' % (node_name(a), node_name(b))
+                  for (a,b) in self.edges()]
+        lines += ['  "%s" [%s];' % (node_name(n), format_attrs(node_attrs(n)))
+                  for n in self.nodes()]
+        lines += ['}']
         return '\n'.join(lines)
 
 
@@ -95,12 +110,13 @@ def find_refs_rec(closure_ptr: Ptr, depth: int) -> Tree[ClosureRef]:
             return []
         else:
             return [Tree(ClosureRef(ref, find_containing_closure(inf, ref)),
-                         go(ref_start, seen.union({closure_ptr}), depth-1))
+                         go(ref_start, seen | {closure_ptr}, depth-1))
                     for ref in find_refs(closure_ptr)
                     for ref_start in [find_containing_closure(inf, ref)]
                     if ref_start is not None]
 
-    return Tree(ClosureRef(0,0), go(closure_ptr, set(), depth))
+    # Root is a bit of a hack
+    return Tree(ClosureRef(closure_ptr, closure_ptr), go(closure_ptr, set(), depth))
 
 def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
     """
@@ -125,3 +141,19 @@ def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
                 print('suspicious info table: too far (p=0x%08x, info=%s, nptrs=%d, i=%d)' % (start, sym.print_name, nptrs, i))
 
     return None
+
+closureTypeDict = { v: str(ty) for ty, v in closure.ClosureType.__dict__.items() }
+
+def refs_dot(closure_ptr: Ptr, depth: int):
+    node_name = lambda ptr: hex(ptr.referring_closure)
+    def node_attrs(ptr: Ptr):
+        print(ptr)
+        try:
+            itbl = ghc_heap.get_itbl(gdb.parse_and_eval('(StgClosure *) %d' % (ptr.referring_closure,))).dereference()
+            closure_type = closureTypeDict.get(int(itbl['type']), 'unknown')
+        except gdb.MemoryError:
+            closure_type = 'invalid itbl'
+        return {'label': '0x%x\n%s' % (ptr.referring_closure, closure_type)}
+
+    graph = find_refs_rec(closure_ptr, depth=depth)
+    return graph.to_dot(node_name, node_attrs=node_attrs)
