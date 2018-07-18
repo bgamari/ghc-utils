@@ -1,20 +1,10 @@
-from typing import List, Optional, Tuple
+import typing
+from typing import List, Optional, Tuple, TypeVar, Callable, NamedTuple
 from . import ghc_heap
+from .types import *
 import gdb
 
-word_size = 8
-if word_size == 8:
-    TAG_MASK = 7
-else:
-    TAG_MASK = 3
-
-class Ptr(int):
-    def __str__(self):
-        return hex(self)
-    def __repr__(self):
-        return hex(self)
-    def untagged(self):
-        return self & ~TAG_MASK
+T = TypeVar('T')
 
 # This is a terrible hack but it's better than searching through 1TB of address space.
 # Unfortunately while gdb's `find` command seems to be smart enough to only search
@@ -65,18 +55,52 @@ def find_refs(closure_ptr: Ptr) -> List[Ptr]:
 
 RecRefs = List[Tuple[Ptr, 'RecRefs']]
 
-def find_refs_rec(closure_ptr: Ptr, depth: int) -> RecRefs:
+class Tree(typing.Generic[T]):
+    def __init__(self, node: T, children: List['Tree[T]']):
+        self.node = node
+        self.children = children
+
+    def _render(self, render_node: Callable[[T], str], indent: int) -> str:
+        indentation = ' ' * (2*indent)
+        return '\n'.join([indentation + render_node(self.node)] +
+                         [child._render(render_node, indent+1)
+                          for child in self.children])
+
+    def render(self, render_node: Callable[[T], str]) -> str:
+        return self._render(render_node, 0)
+
+    def edges(self) -> List[Tuple[T, T]]:
+        return [ (self.node, child.node)
+                 for child in self.children ] + \
+               [ edge
+                 for child in self.children
+                 for edge in child.edges() ]
+
+    def to_dot(self, node_name: Callable[[T], str]) -> str:
+        lines = ['digraph {'] + ['"%s" -> "%s";' % (node_name(a), node_name(b)) for (a,b) in self.edges()] + ['}']
+        return '\n'.join(lines)
+
+
+class ClosureRef(NamedTuple):
+    referring_field: Ptr
+    referring_closure: Ptr
+
+def find_refs_rec(closure_ptr: Ptr, depth: int) -> Tree[ClosureRef]:
     """
     Recursively search for references to a closure up to the given depth.
     """
     inf = gdb.selected_inferior()
-    if depth == 0:
-        return []
-    else:
-        return [(ref, find_refs_rec(ref_start, depth-1))
-                for ref in find_refs(closure_ptr)
-                for ref_start in [find_containing_closure(inf, ref)]
-                if ref_start is not None]
+    def go(closure_ptr, seen, depth) -> List[Tree[ClosureRef]]:
+        if depth == 0 or closure_ptr in seen:
+            return []
+        else:
+            return [Tree(ClosureRef(ref, find_containing_closure(inf, ref)),
+                         go(ref_start, seen.union({closure_ptr}), depth-1))
+                    for ref in find_refs(closure_ptr)
+                    for ref_start in [find_containing_closure(inf, ref)]
+                    if ref_start is not None]
+
+    return Tree(ClosureRef(0,0), go(closure_ptr, set(), depth))
 
 def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
     """
@@ -101,15 +125,3 @@ def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
                 print('suspicious info table: too far (p=0x%08x, info=%s, nptrs=%d, i=%d)' % (start, sym.print_name, nptrs, i))
 
     return None
-
-def render_tree(rec_refs: RecRefs) -> str:
-    def gos(xs, n):
-        return [r
-                for x in xs
-                for r in go(x, n)]
-
-    def go(x, n):
-        ptr, xs = x
-        return ['%s0x%x:' % (' '*(2*n), ptr)] + gos(xs, n+1)
-
-    return '\n'.join(gos(rec_refs, 0))
