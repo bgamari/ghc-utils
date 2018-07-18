@@ -1,3 +1,4 @@
+from typing import List
 from .types import *
 
 class ClosureType(object):
