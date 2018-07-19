@@ -4,3 +4,4 @@
 
 from . import ghc_heap
 from . import ghc_linker
+from . import block
