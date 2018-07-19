@@ -23,14 +23,6 @@ def search_memory_many(inferior: gdb.Inferior, start: Ptr, end: Ptr, val: Ptr) -
             yield Ptr(addr)
             start = addr + 1
 
-def pack_pointer(ptr: Ptr) -> bytes:
-    import struct
-    return struct.pack('@P', ptr)
-
-def unpack_pointer(bs: bytes) -> Ptr:
-    import struct
-    return struct.unpack('@P', bs)[0]
-
 def find_symbol(addr: Ptr) -> Optional[gdb.Symbol]:
     """ Find the top-level Symbol associated with an address. """
     try:
@@ -50,7 +42,7 @@ def find_refs(closure_ptr: Ptr) -> List[Ptr]:
     inf = gdb.selected_inferior()
     closure_ptr = Ptr(closure_ptr).untagged()
     for tag in range(0,7):
-        val = pack_pointer(closure_ptr | tag)
+        val = closure_ptr.tagged(tag).pack()
         yield from search_memory_many(inf, 0, 0x1000000, val) # static mappings
         yield from search_memory_many(inf, heap_start, heap_end, val) # heap
 
@@ -129,7 +121,7 @@ def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
     for i in range(max_closure_size // word_size):
         start = ptr - i * word_size
         bs = inferior.read_memory(start, word_size)
-        addr = unpack_pointer(bs)
+        addr = Ptr.unpack(bs)
         sym = find_symbol(addr)
         # Is this an info table pointer?
         if sym is not None and sym.print_name.endswith('_info'): # and sym.value == addr:
