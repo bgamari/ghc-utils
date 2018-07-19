@@ -308,10 +308,6 @@ class PrintInfoCmd(gdb.Command):
     def invoke(self, arg, from_tty):
         print(get_itbl(gdb.parse_and_eval(arg)))
 
-class GhcCmd(gdb.Command):
-    def __init__(self):
-        super(GhcCmd, self).__init__ ("ghc", gdb.COMMAND_USER, prefix=True)
-
 class PrintGhcClosureCmd(CommandWithArgs):
     """ Display the closure at an address """
     command_name = 'ghc closure'
@@ -485,7 +481,6 @@ def build_pretty_printer():
     #pp.add_printer('StgInfoTable', '^StgInfoTable$', InfoTablePrinter)
     return pp
 
-GhcCmd()
 PrintGhcClosureCmd()
 PrintGhcStackCmd()
 PrintInfoCmd()
