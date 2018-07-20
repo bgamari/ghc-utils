@@ -4,9 +4,21 @@ if word_size == 8:
 else:
     TAG_MASK = 3
 
-class Ptr(int):
-    def __init__(self, addr: int):
+class Ptr(object):
+    def __init__(self, addr: int) -> None:
         self.addr = addr
+
+    def __gt__(self, a: "Ptr"):
+        return self.addr > a.addr
+
+    def __lt__(self, a: "Ptr"):
+        return self.addr < a.addr
+
+    def __ge__(self, a: "Ptr"):
+        return self.addr >= a.addr
+
+    def __le__(self, a: "Ptr"):
+        return self.addr <= a.addr
 
     def __str__(self):
         return hex(self.addr)
@@ -14,12 +26,15 @@ class Ptr(int):
     def __repr__(self):
         return hex(self.addr)
 
+    def offset_bytes(self, n: int) -> "Ptr":
+        return Ptr(self.addr + n)
+
     def untagged(self):
         return Ptr(self.addr & ~TAG_MASK)
 
     def tagged(self, tag: int) -> "Ptr":
-        assert tag < TAG_MASK+1
-        return Ptr(self.addr | ~tag)
+        assert tag >= 0 and tag < TAG_MASK+1
+        return Ptr((self.addr & ~TAG_MASK) | tag)
 
     def pack(self) -> bytes:
         import struct

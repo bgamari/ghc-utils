@@ -68,7 +68,7 @@ class ClosureType(object):
     COMPACT_NFDATA                = 63
 
 class Closure(object):
-    def __init__(self, addr: Ptr, info_ptr: Ptr, type_desc = None):
+    def __init__(self, addr: Ptr, info_ptr: Ptr, type_desc = None) -> None:
         self.addr = addr
         self.type_desc = type_desc if type_desc else "Closure"
         self.info_ptr = info_ptr
@@ -77,7 +77,7 @@ class Closure(object):
         return r'{type_desc}@{addr}'.format(**self.__dict__)
 
 class Constr(Closure):
-    def __init__(self, addr: Ptr, info_ptr: Ptr, ptrs: List[Ptr], nptrs: List[Word]):
+    def __init__(self, addr: Ptr, info_ptr: Ptr, ptrs: List[Ptr], nptrs: List[Word]) -> None:
         Closure.__init__(self, addr, info_ptr, "Constr(%s)" % constr_name)
         self.ptrs = ptrs
         self.nptrs = nptrs
