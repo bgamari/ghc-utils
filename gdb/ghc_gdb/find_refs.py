@@ -3,6 +3,7 @@ from typing import List, Optional, Tuple, TypeVar, Callable, NamedTuple, Set, Di
 from . import ghc_heap
 from .types import *
 from . import closure
+from .utils import CommandWithArgs
 import gdb
 
 T = TypeVar('T')
@@ -179,3 +180,19 @@ def refs_dot(closure_ptr: Ptr, depth: int) -> str:
 
     graph = find_refs_rec(closure_ptr, depth=depth)
     return graph.to_dot(node_name, node_attrs=node_attrs)
+
+class ExportClosureDepsDot(CommandWithArgs):
+    """ Print a chain of block descriptors """
+    command_name = "ghc closure-deps"
+
+    def build_parser(self, parser):
+        parser.add_argument('-d', '--depth', default=5, type=str, help='Maximum search depth')
+        parser.add_argument('-o', '--output', metavar='FILE', type=str, help='Output dot file path')
+        parser.add_argument('closure-ptr', type=str, help='A pointer to a closure')
+
+    def run(self, opts, from_tty):
+        closure_ptr = gdb.parse_and_eval(opts.closure_ptr)
+        with open(opts.output, 'w') as f:
+            f.write(refs_dot(closure_ptr, opts.depth))
+
+ExportClosureDepsDot()
