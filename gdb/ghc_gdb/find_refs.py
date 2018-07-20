@@ -132,7 +132,7 @@ def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
             if i <= nptrs + 5: # A bit of fudge for the headers
                 return Ptr(start)
             else:
-                print('suspicious info table: too far (p=0x%08x, info=%s, nptrs=%d, i=%d)' % (start, sym.print_name, nptrs, i))
+                print('suspicious info table: too far (field=0x%08x, info@0x%08x=%s, nptrs=%d, i=%d)' % (ptr, start, sym.print_name, nptrs, i))
 
     return None
 
