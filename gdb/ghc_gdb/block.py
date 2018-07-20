@@ -3,9 +3,10 @@ from enum import Enum
 from .utils import CommandWithArgs
 
 Bdescr = gdb.lookup_type('bdescr')
+BdescrPtr = Bdescr.pointer()
 
 def block_chain_elems(bd):
-    assert bd.type == Bdescr.pointer()
+    assert bd.type == BdescrPtr
     while int(bd) != 0:
         yield bd
         bd = bd['link']
@@ -23,7 +24,7 @@ class BlockFlags(Enum):
     BF_NONMOVING  = 1024
 
 def format_bdescr(bd):
-    assert bd.type == Bdescr.pointer()
+    assert bd.type == BdescrPtr
     gen = int(bd.dereference()['gen_no'])
     blocks = int(bd.dereference()['blocks'])
     flags = int(bd.dereference()['flags'])
@@ -42,7 +43,7 @@ class PrintBlockChain(CommandWithArgs):
 
     def run(self, opts, from_tty):
         bd = gdb.parse_and_eval(opts.bdescr)
-        assert bd.type == Bdescr.pointer()
+        assert bd.type == BdescrPtr
         for b in block_chain_elems(bd):
             print(format_bdescr(b))
 
