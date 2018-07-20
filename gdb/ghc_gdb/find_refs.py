@@ -187,7 +187,8 @@ class ExportClosureDepsDot(CommandWithArgs):
 
     def build_parser(self, parser):
         parser.add_argument('-d', '--depth', default=5, type=str, help='Maximum search depth')
-        parser.add_argument('-o', '--output', metavar='FILE', type=str, help='Output dot file path')
+        parser.add_argument('-o', '--output', default='deps.dot',
+                            metavar='FILE', type=str, help='Output dot file path')
         parser.add_argument('closure-ptr', type=str, help='A pointer to a closure')
 
     def run(self, opts, from_tty):
