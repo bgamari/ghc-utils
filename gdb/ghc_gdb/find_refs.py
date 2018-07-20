@@ -99,18 +99,25 @@ def find_refs_rec(closure_ptr: Ptr, depth: int) -> Tree[ClosureRef]:
     Recursively search for references to a closure up to the given depth.
     """
     inf = gdb.selected_inferior()
-    def go(closure_ptr, seen, depth) -> List[Tree[ClosureRef]]:
-        if depth == 0 or closure_ptr in seen:
+    seen_closures = set()
+
+    def go(closure_ptr, depth) -> List[Tree[ClosureRef]]:
+        nonlocal seen_closures
+        if depth == 0 or closure_ptr in seen_closures:
             return []
         else:
-            return [Tree(ClosureRef(ref, find_containing_closure(inf, ref)),
-                         go(ref_start, seen | {closure_ptr}, depth-1))
-                    for ref in find_refs(closure_ptr)
-                    for ref_start in [find_containing_closure(inf, ref)]
-                    if ref_start is not None]
+            refs = []
+            seen_closures |= {closure_ptr}
+            for ref in find_refs(closure_ptr):
+                ref_start = find_containing_closure(inf, ref)
+                if ref_start is not None:
+                    refs += [Tree(ClosureRef(ref, find_containing_closure(inf, ref)),
+                                  go(ref_start, depth-1))]
+
+            return refs
 
     # Root is a bit of a hack
-    return Tree(ClosureRef(closure_ptr, closure_ptr), go(closure_ptr, set(), depth))
+    return Tree(ClosureRef(closure_ptr, closure_ptr), go(closure_ptr, depth))
 
 def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
     """
