@@ -36,7 +36,8 @@ def find_symbol(addr: Ptr) -> Optional[gdb.Symbol]:
 
     while block and not block.function:
         block = block.superblock
-    return block.function
+
+    return block.function if block is not None else None
 
 def find_refs(closure_ptr: Ptr) -> List[Ptr]:
     """ Find all references to a closure. """
@@ -189,10 +190,10 @@ class ExportClosureDepsDot(CommandWithArgs):
         parser.add_argument('-d', '--depth', default=5, type=str, help='Maximum search depth')
         parser.add_argument('-o', '--output', default='deps.dot',
                             metavar='FILE', type=str, help='Output dot file path')
-        parser.add_argument('closure-ptr', type=str, help='A pointer to a closure')
+        parser.add_argument('closure_ptr', type=str, help='A pointer to a closure')
 
     def run(self, opts, from_tty):
-        closure_ptr = gdb.parse_and_eval(opts.closure_ptr)
+        closure_ptr = Ptr(gdb.parse_and_eval(opts.closure_ptr))
         with open(opts.output, 'w') as f:
             f.write(refs_dot(closure_ptr, opts.depth))
 
