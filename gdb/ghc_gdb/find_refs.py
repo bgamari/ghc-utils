@@ -203,5 +203,6 @@ class ExportClosureDepsDot(CommandWithArgs):
         closure_ptr = Ptr(gdb.parse_and_eval(opts.closure_ptr))
         with open(opts.output, 'w') as f:
             f.write(refs_dot(closure_ptr, opts.depth))
+        print('Written to %s' % opts.output)
 
 ExportClosureDepsDot()
