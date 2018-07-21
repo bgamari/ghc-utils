@@ -140,7 +140,7 @@ def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
             if i <= nptrs + 5: # A bit of fudge for the headers
                 return start
             else:
-                print('suspicious info table: too far (field=0x%08x, info@0x%08x=%s, nptrs=%d, i=%d)' % (ptr, start, sym.print_name, nptrs, i))
+                print('suspicious info table: too far (field=%s, info@%s=%s, nptrs=%d, i=%d)' % (ptr, start, sym.print_name, nptrs, i))
 
     return None
 
@@ -157,11 +157,13 @@ def get_bdescr(ptr: Ptr) -> Optional[Any]:
 BF_NONMOVING = 1024 # gdb.parse_and_eval('BF_NONMOVING')
 NONMOVING_SEGMENT_MASK = (1 << 15) - 1
 
-def get_nonmoving_segment(ptr: Ptr) -> Optional[Ptr]:
+def get_nonmoving_segment(ptr: Ptr) -> Optional[Tuple[gdb.Value, int]]:
     bd = get_bdescr(ptr)
     if bd is not None and bd['flags'] & BF_NONMOVING:
-        seg_base = int(ptr) & ~NONMOVING_SEGMENT_MASK
-        return gdb.parse_and_eval('(struct nonmoving_segment *) %d' % seg_base).dereference()
+        seg_base = ptr.addr & ~NONMOVING_SEGMENT_MASK
+        block_idx = int(gdb.parse_and_eval('nonmoving_get_block_idx(%s)' % ptr))
+        seg = gdb.parse_and_eval('(struct nonmoving_segment *) %s' % seg_base).dereference()
+        return (seg, block_idx)
     else:
         return None
 
@@ -174,18 +176,23 @@ def refs_dot(graph: Tree[ClosureRef]) -> str:
         except gdb.MemoryError:
             closure_type = 'invalid itbl'
 
+        extra = ''
         bd = get_bdescr(ref.referring_field)
         if bd is not None and bd['flags'] & BF_NONMOVING:
-            if gdb.parse_and_eval('nonmoving_get_closure_mark_bit(%d)' % ref.referring_closure.addr):
-                mark = 'blue'
+            seg, blk = get_nonmoving_segment(ref.referring_field)
+            mark = seg['bitmap'][blk]
+            if mark != 0:
+                color = 'blue'
+                extra += '\nepoch=%d' % mark
             else:
-                mark = 'red'
+                color = 'red'
+                extra += '\nunmarked'
         else:
-            mark = 'black'
+            color = 'black'
 
 
-        return {'label': '%s\n%s' % (ref.referring_closure, closure_type),
-                'fontcolor': mark}
+        return {'label': '%s\n%s%s' % (ref.referring_closure, closure_type, extra),
+                'fontcolor': color}
 
     return graph.to_dot(node_name, node_attrs=node_attrs)
 
