@@ -176,7 +176,7 @@ def get_nonmoving_segment(ptr: Ptr) -> Optional[Tuple[gdb.Value, int]]:
         return None
 
 def refs_dot(graph: Tree[ClosureRef]) -> str:
-    node_name = lambda ptr: str(ptr.referring_closure)
+    node_name = lambda ptr: str(ptr.referring_field)
     def node_attrs(ref: ClosureRef):
         try:
             if ref.referring_closure is not None:
