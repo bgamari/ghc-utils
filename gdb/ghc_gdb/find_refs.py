@@ -110,9 +110,10 @@ def find_refs_rec(closure_ptr: Ptr, depth: int, include_static = True) -> Tree[C
             refs = [] # type: List[Tree[ClosureRef]]
             for ref in find_refs(closure_ptr, include_static=include_static):
                 ref_start = find_containing_closure(inf, ref)
+                rec_refs = []
                 if ref_start is not None:
-                    refs += [Tree(ClosureRef(ref, find_containing_closure(inf, ref)),
-                                  go(ref_start, seen_closures | {closure_ptr}, depth-1))]
+                    ref_refs = go(ref_start, seen_closures | {closure_ptr}, depth-1)
+                refs += [Tree(ClosureRef(ref, ref_start), rec_refs)]
 
             return refs
 
@@ -171,8 +172,11 @@ def refs_dot(graph: Tree[ClosureRef]) -> str:
     node_name = lambda ptr: str(ptr.referring_closure)
     def node_attrs(ref: ClosureRef):
         try:
-            itbl = ghc_heap.get_itbl(gdb.parse_and_eval('(StgClosure *) %d' % (ref.referring_closure.addr,))).dereference()
-            closure_type = closureTypeDict.get(int(itbl['type']), 'unknown')
+            if ref.referring_closure is not None:
+                itbl = ghc_heap.get_itbl(gdb.parse_and_eval('(StgClosure *) %d' % (ref.referring_closure.addr,))).dereference()
+                closure_type = closureTypeDict.get(int(itbl['type']), 'unknown')
+            else:
+                closure_type = 'invalid'
         except gdb.MemoryError:
             closure_type = 'invalid itbl'
 
@@ -190,8 +194,13 @@ def refs_dot(graph: Tree[ClosureRef]) -> str:
         else:
             color = 'black'
 
-
-        return {'label': '%s\n%s%s' % (ref.referring_closure, closure_type, extra),
+        # ! means that we couldn't find the start of the containing closure;
+        # pointer identifies field
+        label = '\n'.join([str(ref.referring_closure)
+                           if ref.referring_closure is not None
+                           else '! %s' % ref.referring_field,
+                           '%s%s' % (closure_type, extra)])
+        return {'label': label,
                 'fontcolor': color}
 
     return graph.to_dot(node_name, node_attrs=node_attrs)
