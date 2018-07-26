@@ -92,7 +92,7 @@ class Tree(typing.Generic[T]):
             return ', '.join('"%s"="%s"' % (name, val) for name, val in attrs.items())
 
         lines = ['digraph {']
-        lines += ['  "%s" -> "%s";' % (node_name(a), node_name(b))
+        lines += ['  "%s" -> "%s" [dir=back];' % (node_name(a), node_name(b))
                   for (a,b) in self.edges()]
         lines += ['  "%s" [%s];' % (node_name(n), format_attrs(node_attrs(n)))
                   for n in self.nodes()]
