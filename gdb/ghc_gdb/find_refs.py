@@ -73,6 +73,13 @@ class Tree(typing.Generic[T]):
         nodes |= { a for (_,a) in self.edges() }
         return nodes
 
+    def depth(self) -> int:
+        depth = 0
+        for c in self.children:
+            depth = max(c.depth(), depth)
+
+        return depth + 1
+
     def edges(self) -> List[Tuple[T, T]]:
         return [ (self.node, child.node)
                  for child in self.children ] + \
@@ -222,6 +229,9 @@ class ExportClosureDepsDot(CommandWithArgs):
                               include_static=not opts.no_static)
         with open(opts.output, 'w') as f:
             f.write(refs_dot(graph))
+
+        print('Found %d referring closures to depth %d' %
+              (len(graph.nodes()), graph.depth()))
         print('Written to %s' % opts.output)
 
 ExportClosureDepsDot()
