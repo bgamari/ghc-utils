@@ -1,6 +1,7 @@
 import gdb
 from .types import Ptr
 from .utils import CommandWithArgs
+from .block import BlockFlags
 
 class PrintNonmovingClosure(CommandWithArgs):
     """ Print the segment descriptor of an object in the nonmoving heap """
@@ -11,11 +12,14 @@ class PrintNonmovingClosure(CommandWithArgs):
 
     def run(self, opts, from_tty):
         closure_ptr = Ptr(gdb.parse_and_eval(opts.closure_ptr))
-        segment = gdb.parse_and_eval('nonmoving_get_segment(%s)' % closure_ptr)
-        if int(segment) == 0:
-            print('Not in nonmoving heap')
-            return
+        bd = gdb.parse_and_eval('*Bdescr(%s)' % closure_ptr)
+        flags = int(bd['flags'])
+        if not flags & BlockFlags.BF_NONMOVING:
+            print("Not in the nonmoving heap")
+        elif flags & BlockFlags.BF_EVACUATED:
+            print("Large object in the nonmoving heap")
         else:
+            segment = gdb.parse_and_eval('nonmoving_get_segment(%s)' % closure_ptr)
             block = gdb.parse_and_eval('nonmoving_get_block_idx(%s)' % closure_ptr)
             print('Closure %s: segment 0x%x, block %d' % (closure_ptr, int(segment), int(block)))
             print(segment.dereference())

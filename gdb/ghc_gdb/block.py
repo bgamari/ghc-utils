@@ -1,5 +1,5 @@
 import gdb
-from enum import Enum
+from enum import IntFlag
 from .utils import CommandWithArgs
 
 Bdescr = gdb.lookup_type('bdescr')
@@ -11,7 +11,7 @@ def block_chain_elems(bd):
         yield bd
         bd = bd['link']
 
-class BlockFlags(Enum):
+class BlockFlags(IntFlag):
     BF_EVACUATED  = 1
     BF_LARGE      = 2
     BF_PINNED     = 4
