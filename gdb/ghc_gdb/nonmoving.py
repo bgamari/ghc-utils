@@ -21,7 +21,9 @@ class PrintNonmovingClosure(CommandWithArgs):
         else:
             segment = gdb.parse_and_eval('nonmoving_get_segment(%s)' % closure_ptr)
             block = gdb.parse_and_eval('nonmoving_get_block_idx(%s)' % closure_ptr)
-            print('Closure %s: segment 0x%x, block %d' % (closure_ptr, int(segment), int(block)))
+            block_start = gdb.parse_and_eval('nonmoving_segment_get_block(%s, %d)' %
+                                             (segment, block))
+            print('Closure %s: segment 0x%x, block %d @ 0x%x' % (closure_ptr, int(segment), int(block), block_start))
             print(segment.dereference())
             mark_bit = segment.dereference()['bitmap'][block]
             print('Mark bit @ 0x%x: %d' % (int(mark_bit.address), mark_bit))
