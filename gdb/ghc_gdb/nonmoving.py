@@ -16,7 +16,7 @@ class PrintNonmovingClosure(CommandWithArgs):
         flags = int(bd['flags'])
         if not flags & BlockFlags.BF_NONMOVING:
             print("Not in the nonmoving heap")
-        elif flags & BlockFlags.BF_EVACUATED:
+        elif flags & BlockFlags.BF_LARGE:
             print("Large object in the nonmoving heap")
         else:
             segment = gdb.parse_and_eval('nonmoving_get_segment(%s)' % closure_ptr)
