@@ -28,7 +28,7 @@ in with nixpkgs; rec {
 
   env = symlinkJoin {
     name = "gdb-with-ghc-gdb";
-    paths = [ gdb pythonEnv gdbinit ];
+    paths = [ gdb pythonEnv gdbinit rr ];
   };
 
   gdbinit = writeTextFile {
