@@ -149,6 +149,7 @@ def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
                 return start
             else:
                 print('suspicious info table: too far (field=%s, info@%s=%s, nptrs=%d, i=%d)' % (ptr, start, sym.print_name, nptrs, i))
+                return None
 
     return None
 
