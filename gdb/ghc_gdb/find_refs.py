@@ -119,7 +119,10 @@ def find_refs_rec(closure_ptr: Ptr, depth: int, include_static = True) -> Tree[C
                 ref_start = find_containing_closure(inf, ref)
                 rec_refs = []
                 if ref_start is not None:
-                    ref_refs = go(ref_start, seen_closures | {closure_ptr}, depth-1)
+                    rec_refs = go(ref_start, seen_closures | {closure_ptr}, depth-1)
+                else:
+                    print('Failed to find beginning of %s' % ref)
+
                 refs += [Tree(ClosureRef(ref, ref_start), rec_refs)]
 
             return refs
