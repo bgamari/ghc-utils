@@ -48,7 +48,7 @@ def find_refs(closure_ptr: Ptr, include_static=True) -> Iterator[Ptr]:
         val = closure_ptr.tagged(tag).pack() # type: bytes
 
         if include_static:
-            yield from search_memory_many(inf, Ptr(0), Ptr(0x1000000), val)
+            yield from search_memory_many(inf, Ptr(0), Ptr(0x10000000), val)
         yield from search_memory_many(inf, heap_start, heap_end, val) # heap
 
 RecRefs = List[Tuple[Ptr, 'RecRefs']]
@@ -134,7 +134,7 @@ def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
     Note that this is quite heuristic (looking for something that looks like an
     info table)
     """
-    max_closure_size = 4096
+    max_closure_size = 8*4096
     ptr = ptr.untagged()
     for i in range(max_closure_size // word_size):
         start = ptr.offset_bytes(- i * word_size)
