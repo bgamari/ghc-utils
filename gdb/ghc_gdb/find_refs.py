@@ -110,17 +110,21 @@ def find_refs_rec(closure_ptr: Ptr, depth: int, include_static = True) -> Tree[C
     """
     inf = gdb.selected_inferior()
 
-    def go(closure_ptr: Ptr, seen_closures: Set[Ptr], depth: int) -> List[Tree[ClosureRef]]:
+    seen_closures = set()
+    def go(closure_ptr: Ptr, depth: int) -> List[Tree[ClosureRef]]:
+        nonlocal seen_closures
         if depth == 0 or closure_ptr in seen_closures:
             return []
         else:
+            seen_closures |= {closure_ptr}
             refs = [] # type: List[Tree[ClosureRef]]
             for ref in find_refs(closure_ptr, include_static=include_static):
                 ref_start = find_containing_closure(inf, ref)
-                rec_refs = []
                 if ref_start is not None:
-                    rec_refs = go(ref_start, seen_closures | {closure_ptr}, depth-1)
+                    print('%s -> %s' % (ref, closure_ptr))
+                    rec_refs = go(ref_start, depth-1)
                 else:
+                    rec_refs = []
                     print('Failed to find beginning of %s' % ref)
 
                 refs += [Tree(ClosureRef(ref, ref_start), rec_refs)]
@@ -129,7 +133,7 @@ def find_refs_rec(closure_ptr: Ptr, depth: int, include_static = True) -> Tree[C
 
     # Root ClosureRef is a bit of a hack
     return Tree(ClosureRef(closure_ptr, closure_ptr),
-                go(closure_ptr, set(), depth))
+                go(closure_ptr, depth))
 
 def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
     """
