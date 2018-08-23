@@ -1,15 +1,32 @@
 import gdb
 from enum import IntFlag
+from typing import Optional, Any
 from .utils import CommandWithArgs
+from .types import *
 
 Bdescr = gdb.lookup_type('bdescr')
 BdescrPtr = Bdescr.pointer()
+
+# This is a terrible hack but it's better than searching through 1TB of address space.
+# Unfortunately while gdb's `find` command seems to be smart enough to only search
+# mapped memory, the same can't be said of Python's search_memory.
+heap_start = Ptr(0x4200000000)
+heap_end = Ptr(0x4210000000)
 
 def block_chain_elems(bd):
     assert bd.type == BdescrPtr
     while int(bd) != 0:
         yield bd
         bd = bd['link']
+
+def get_bdescr(ptr: Ptr) -> Optional[Any]:
+    if ptr < heap_start: return None # XXX
+
+    if gdb.parse_and_eval('HEAP_ALLOCED(%d)' % ptr.addr):
+        # _bdescr is only provided by the debug RTS
+        return gdb.parse_and_eval('_bdescr(%d)' % ptr.addr).dereference()
+    else:
+        return None
 
 class BlockFlags(IntFlag):
     BF_EVACUATED  = 1
