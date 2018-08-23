@@ -28,8 +28,17 @@ in with nixpkgs; rec {
 
   env = symlinkJoin {
     name = "gdb-with-ghc-gdb";
-    paths = [ gdb pythonEnv gdbinit rr ];
+    paths = [ gdb pythonEnv gdbinit rr dot2svg ];
   };
+
+  # useful to render `ghc closure-deps` output
+  dot2svg = writeScriptBin "dot2svg" ''
+    if [[ $# == 0 ]]; then
+      echo "Usage: $0 [dot file]"
+      exit 1
+    fi
+    ${graphviz}/bin/dot -T svg -o $1.svg $1
+  '';
 
   gdbinit = writeTextFile {
     name = "gdbinit";
