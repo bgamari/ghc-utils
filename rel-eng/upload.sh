@@ -83,7 +83,7 @@ function fetch_s3() {
     builds[x86_64-deb8-linux]=validate-x86_64-linux
     builds[i386-deb8-linux]=validate-i386-linux
     builds[x86_64-fedora27-linux]=validate-x86_64-fedora
-    builds[x86_64-darwin]=validate-x86_64-darwin
+    builds[x86_64-apple-darwin]=validate-x86_64-darwin
 
     for platform in "${!builds[@]}"; do
         out_name="ghc-$ver-$platform.tar.xz"
