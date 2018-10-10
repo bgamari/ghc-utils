@@ -20,9 +20,28 @@ in with nixpkgs; rec {
     src = ./.;
   };
 
+  run-ghc-gdb = writeScriptBin "ghc-gdb" " gdb -x ${gdbinit}/gdbinit ";
+
+  run-ghc-rr = writeScriptBin "ghc-rr" ''
+    args="$@"
+    if [[ "$1" == "replay" ]]; then
+      args="$args -x ${gdbinit}/gdbinit"
+    fi
+    ${rr}/bin/rr $args
+  '';
+
   gdb = nixpkgs.gdb.override {
     python = python3;
   };
+
+  rr = nixpkgs.rr.overrideAttrs (oldAttrs: {
+    src = fetchFromGitHub {
+      owner = "mozilla";
+      repo = "rr";
+      rev = "c76af22201985d53998c9d4fac9d29a59e2dcf1b";
+      sha256 = "1kc9vzij42a42mhd9fr7py122brcy5qmm557drapvmkh75jny7ff";
+    };
+  });
 
   pythonEnv = python3.withPackages (_: [ ghc-gdb ]);
 
