@@ -226,7 +226,7 @@ def refs_dot(graph: Tree[ClosureRef]) -> str:
     return graph.to_dot(node_name, node_attrs=node_attrs)
 
 class ExportClosureDepsDot(CommandWithArgs):
-    """ Print a chain of block descriptors """
+    """ Search for references to a closure """
     command_name = "ghc closure-deps"
 
     def build_parser(self, parser):
