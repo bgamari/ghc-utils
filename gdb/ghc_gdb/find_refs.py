@@ -4,15 +4,10 @@ from . import ghc_heap
 from .types import *
 from . import closure
 from .utils import CommandWithArgs
+from .block import get_bdescr, heap_start, heap_end
 import gdb
 
 T = TypeVar('T')
-
-# This is a terrible hack but it's better than searching through 1TB of address space.
-# Unfortunately while gdb's `find` command seems to be smart enough to only search
-# mapped memory, the same can't be said of Python's search_memory.
-heap_start = Ptr(0x4200000000)
-heap_end = Ptr(0x4210000000)
 
 def search_memory_many(inferior: gdb.Inferior, start: Ptr, end: Ptr, val: bytes) -> Iterator[Ptr]:
     #print('Searching for %s' % val)
@@ -26,19 +21,36 @@ def search_memory_many(inferior: gdb.Inferior, start: Ptr, end: Ptr, val: bytes)
             start = addr.offset_bytes(1)
 
 def find_symbol(addr: Ptr) -> Optional[gdb.Symbol]:
-    """ Find the top-level Symbol associated with an address. """
+    """
+    Find the top-level Symbol associated with an address.
+    Due to limitations of the GDB Python bindings this will only find
+    symbols with debug information (not what gdb calls "minimal symbols").
+    """
     try:
         block = gdb.block_for_pc(addr.addr)
     except RuntimeError:
         return None
 
-    if block is None:
-        return None
-
-    while block and not block.function:
+    while block is not None and not block.function:
         block = block.superblock
 
     return block.function if block is not None else None
+
+def find_symbol_name(addr: Ptr) -> Optional[str]:
+    sym = find_symbol(addr)
+    if sym:
+        return sym.print_name
+    else:
+        # hack to support non-code symbols
+        # see https://cygwin.com/ml/gdb/2017-12/msg00015.html
+        s = str(gdb.parse_and_eval('(void*) %s' % addr))
+        start = s.find('<')
+        end = s.find('>')
+        if start is not None and end is not None:
+            sym_name = s[start+1:end]
+            return sym_name
+        else:
+            return None
 
 def find_refs(closure_ptr: Ptr, include_static=True) -> Iterator[Ptr]:
     """ Find all references to a closure. """
@@ -147,28 +159,21 @@ def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
         start = ptr.offset_bytes(- i * word_size)
         bs = inferior.read_memory(start.addr, word_size)
         addr = Ptr.unpack(bs)
-        sym = find_symbol(addr)
+        sym = find_symbol_name(addr)
         # Is this an info table pointer?
-        if sym is not None and sym.print_name.endswith('_info'): # and sym.value == addr:
+        if sym is not None and sym.endswith('_info'): # and sym.value == addr:
             info = ghc_heap.get_itbl(gdb.parse_and_eval('(StgClosure *) %d' % start.addr))
             nptrs = int(info['layout']['payload']['ptrs'])
+            #print(ptr, i, info, nptrs)
             if i <= nptrs + 5: # A bit of fudge for the headers
                 return start
             else:
-                print('suspicious info table: too far (field=%s, info@%s=%s, nptrs=%d, i=%d)' % (ptr, start, sym.print_name, nptrs, i))
+                print('suspicious info table: too far (field=%s, info@%s=%s, nptrs=%d, i=%d)' % (ptr, start, sym, nptrs, i))
                 return None
 
     return None
 
 closureTypeDict = { v: str(ty) for ty, v in closure.ClosureType.__dict__.items() }
-
-def get_bdescr(ptr: Ptr) -> Optional[Any]:
-    if ptr < heap_start: return None # XXX
-
-    if True or gdb.parse_and_eval('HEAP_ALLOCED(%d)' % ptr.addr):
-        return gdb.parse_and_eval('Bdescr(%d)' % ptr.addr).dereference()
-    else:
-        return None
 
 BF_NONMOVING = 1024 # gdb.parse_and_eval('BF_NONMOVING')
 NONMOVING_SEGMENT_MASK = (1 << 15) - 1

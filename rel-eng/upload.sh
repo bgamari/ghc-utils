@@ -83,7 +83,7 @@ function fetch_s3() {
     builds[x86_64-deb8-linux]=validate-x86_64-linux
     builds[i386-deb8-linux]=validate-i386-linux
     builds[x86_64-fedora27-linux]=validate-x86_64-fedora
-    builds[x86_64-darwin]=validate-x86_64-darwin
+    builds[x86_64-apple-darwin]=validate-x86_64-darwin
 
     for platform in "${!builds[@]}"; do
         out_name="ghc-$ver-$platform.tar.xz"
@@ -143,10 +143,11 @@ function verify() {
 function upload() {
     verify
     chmod ugo+r,o-w -R .
-    rsync --progress -aLz $rsync_opts . $host:public_html/$rel_name
+    dir=$(echo $rel_name | sed s/-release//)
+    rsync --progress -aLz $rsync_opts . $host:public_html/$dir
     chmod ugo-w $(ls *.xz *.bz2)
     # Purge CDN cache
-    curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/
+    curl -X PURGE http://downloads.haskell.org/~ghc/$dir/
     for i in *; do
         purge_file $i
     done
