@@ -1,10 +1,12 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 
 # setup a debootstrap-based debian chroot
 
+set -e
+
 function usage() {
     cat <<EOF
-Usage: ARCH=[i386|amd64] DIST=[jessie|wheezy] $0 [dest]"
+Usage: ARCH=[i386|amd64] DIST=[jessie|wheezy|stretch] $0 [dest]"
 
 Options:
     ARCH:       Architecture
