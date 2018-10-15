@@ -2,6 +2,11 @@
 
 set -e
 
+grep TBA libraries/*/changelog.md && (
+    echo "Error: Found TBAs in changelogs."
+    exit 1
+)
+
 make distclean
 if [[ $(git clean -dn | wc -l) > 1 ]]; then
     echo "Dirty tree:"
