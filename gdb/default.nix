@@ -20,12 +20,14 @@ in with nixpkgs; rec {
     src = ./.;
   };
 
-  run-ghc-gdb = writeScriptBin "ghc-gdb" " gdb -x ${gdbinit}/gdbinit ";
+  run-ghc-gdb = writeScriptBin "ghc-gdb" ''
+    ${gdb}/bin/gdb -x ${gdbinit}/gdbinit
+  '';
 
   run-ghc-rr = writeScriptBin "ghc-rr" ''
     args="$@"
     if [[ "$1" == "replay" ]]; then
-      args="$args -x ${gdbinit}/gdbinit"
+      args="$args --gdb ${gdb}/bin/gdb -x ${gdbinit}/gdbinit"
     fi
     ${rr}/bin/rr $args
   '';
