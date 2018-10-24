@@ -40,8 +40,8 @@ in with nixpkgs; rec {
     src = fetchFromGitHub {
       owner = "mozilla";
       repo = "rr";
-      rev = "c76af22201985d53998c9d4fac9d29a59e2dcf1b";
-      sha256 = "1kc9vzij42a42mhd9fr7py122brcy5qmm557drapvmkh75jny7ff";
+      rev = "4b6a1edd321e057c4ae4c34e160bc5b7aa735c2d";
+      sha256 = "1jhadi07kl6qd44f55ndcmv1w7v0s4bp4h0y4svj5plaa0y9cawx";
     };
   });
 
