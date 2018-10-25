@@ -27,7 +27,7 @@ in with nixpkgs; rec {
   run-ghc-rr = writeScriptBin "ghc-rr" ''
     args="$@"
     if [[ "$1" == "replay" ]]; then
-      args="$args --gdb ${gdb}/bin/gdb -x ${gdbinit}/gdbinit"
+      args="$args --debugger ${gdb}/bin/gdb -x ${gdbinit}/gdbinit"
     fi
     ${rr}/bin/rr $args
   '';
@@ -49,7 +49,10 @@ in with nixpkgs; rec {
 
   env = symlinkJoin {
     name = "gdb-with-ghc-gdb";
-    paths = [ gdb pythonEnv gdbinit rr dot2svg ];
+    paths = [
+      gdb pythonEnv gdbinit rr dot2svg 
+      run-ghc-gdb run-ghc-rr
+    ];
   };
 
   # useful to render `ghc closure-deps` output
