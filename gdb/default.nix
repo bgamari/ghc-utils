@@ -70,11 +70,23 @@ in with nixpkgs; rec {
     text = ''
       python sys.path = ["${pythonEnv}/lib/python3.6/site-packages"] + sys.path
       python
-      try:
+      if 'ghc_gdb' in globals():
           import importlib
           importlib.reload(ghc_gdb)
-      except NameError:
-          import ghc_gdb
+      else:
+          try:
+              import ghc_gdb
+          except Exception as e:
+              import textwrap
+              print('Failed to load ghc_gdb:')
+              print('  ', e)
+              print("")
+              print(textwrap.dedent("""
+                If the failure is due to a missing symbol or type try
+                running `import ghc_gdb` after running the inferior.
+                This will load debug information that is lazily
+                loaded.
+              """))
       end
 
       echo The `ghc` command is now available.\n
