@@ -216,7 +216,9 @@ def refs_dot(graph: Tree[ClosureRef]) -> str:
 
         # ! means that we couldn't find the start of the containing closure;
         # pointer identifies field
-        label = '\n'.join([str(ref.referring_closure)
+        label = '\n'.join(["%s (fld %d)" %
+                             (ref.referring_closure,
+                              (ref.referring_field.addr() - ref.referring_closure.addr()) / 8)
                            if ref.referring_closure is not None
                            else '! %s' % ref.referring_field,
                            '%s%s' % (closure_type, extra)])
