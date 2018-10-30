@@ -122,7 +122,7 @@ def find_refs_rec(closure_ptr: Ptr, depth: int, include_static = True) -> Tree[C
     """
     inf = gdb.selected_inferior()
 
-    seen_closures = set()
+    seen_closures = set() # type: Set[Ptr]
     def go(closure_ptr: Ptr, depth: int) -> List[Tree[ClosureRef]]:
         nonlocal seen_closures
         if depth == 0 or closure_ptr in seen_closures:
@@ -201,9 +201,9 @@ def refs_dot(graph: Tree[ClosureRef]) -> str:
             closure_type = 'invalid itbl'
 
         extra = ''
-        bd = get_bdescr(ref.referring_field)
-        if bd is not None and bd['flags'] & BF_NONMOVING:
-            seg, blk = get_nonmoving_segment(ref.referring_field)
+        seg_blkIdx = get_nonmoving_segment(ref.referring_field)
+        if seg_blkIdx is not None:
+            seg, blk = seg_blkIdx
             mark = seg['bitmap'][blk]
             if mark != 0:
                 color = 'blue'
