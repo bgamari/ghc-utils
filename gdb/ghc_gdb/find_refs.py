@@ -12,7 +12,7 @@ T = TypeVar('T')
 def search_memory_many(inferior: gdb.Inferior, start: Ptr, end: Ptr, val: bytes) -> Iterator[Ptr]:
     #print('Searching for %s' % val)
     while True:
-        addr = inferior.search_memory(start.addr, end.addr - start.addr, val)
+        addr = inferior.search_memory(start.addr(), end.addr() - start.addr(), val)
         if addr is None:
             break
         else:
@@ -27,7 +27,7 @@ def find_symbol(addr: Ptr) -> Optional[gdb.Symbol]:
     symbols with debug information (not what gdb calls "minimal symbols").
     """
     try:
-        block = gdb.block_for_pc(addr.addr)
+        block = gdb.block_for_pc(addr.addr())
     except RuntimeError:
         return None
 
@@ -157,12 +157,12 @@ def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
     ptr = ptr.untagged()
     for i in range(max_closure_size // word_size):
         start = ptr.offset_bytes(- i * word_size)
-        bs = inferior.read_memory(start.addr, word_size)
+        bs = inferior.read_memory(start.addr(), word_size)
         addr = Ptr.unpack(bs)
         sym = find_symbol_name(addr)
         # Is this an info table pointer?
         if sym is not None and sym.endswith('_info'): # and sym.value == addr:
-            info = ghc_heap.get_itbl(gdb.parse_and_eval('(StgClosure *) %d' % start.addr))
+            info = ghc_heap.get_itbl(gdb.parse_and_eval('(StgClosure *) %d' % start.addr()))
             nptrs = int(info['layout']['payload']['ptrs'])
             #print(ptr, i, info, nptrs)
             if i <= nptrs + 5: # A bit of fudge for the headers
@@ -181,7 +181,7 @@ NONMOVING_SEGMENT_MASK = (1 << 15) - 1
 def get_nonmoving_segment(ptr: Ptr) -> Optional[Tuple[gdb.Value, int]]:
     bd = get_bdescr(ptr)
     if bd is not None and bd['flags'] & BF_NONMOVING:
-        seg_base = ptr.addr & ~NONMOVING_SEGMENT_MASK
+        seg_base = ptr.addr() & ~NONMOVING_SEGMENT_MASK
         block_idx = int(gdb.parse_and_eval('nonmoving_get_block_idx(%s)' % ptr))
         seg = gdb.parse_and_eval('(struct nonmoving_segment *) %s' % seg_base).dereference()
         return (seg, block_idx)
@@ -193,7 +193,7 @@ def refs_dot(graph: Tree[ClosureRef]) -> str:
     def node_attrs(ref: ClosureRef):
         try:
             if ref.referring_closure is not None:
-                itbl = ghc_heap.get_itbl(gdb.parse_and_eval('(StgClosure *) %d' % (ref.referring_closure.addr,))).dereference()
+                itbl = ghc_heap.get_itbl(gdb.parse_and_eval('(StgClosure *) %d' % (ref.referring_closure.addr(),))).dereference()
                 closure_type = closureTypeDict.get(int(itbl['type']), 'unknown')
             else:
                 closure_type = 'invalid'
