@@ -157,7 +157,12 @@ def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
     ptr = ptr.untagged()
     for i in range(max_closure_size // word_size):
         start = ptr.offset_bytes(- i * word_size)
-        bs = inferior.read_memory(start.addr(), word_size)
+        bs = None
+        try:
+            bs = inferior.read_memory(start.addr(), word_size)
+        except gdb.MemoryError:
+            continue
+
         addr = Ptr.unpack(bs)
         sym = find_symbol_name(addr)
         # Is this an info table pointer?
