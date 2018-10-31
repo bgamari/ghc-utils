@@ -73,7 +73,7 @@ def find_refs_rec(closure_ptr: Ptr,
                   max_depth: int,
                   max_closure_size: int,
                   include_static = True
-) -> Set[Edge]:
+) -> Iterator[Edge]:
     """
     Recursively search for references to a closure up to the given depth.
     """
@@ -81,7 +81,6 @@ def find_refs_rec(closure_ptr: Ptr,
 
     seen_closures = set() # type: Set[Ptr]
     todo = [(0, closure_ptr)] # type: List[Tuple[int, Ptr]]
-    edges = set() # type: Set[Edge]
     while len(todo) > 0:
         d, ptr = todo.pop()
         seen_closures |= {ptr}
@@ -96,11 +95,10 @@ def find_refs_rec(closure_ptr: Ptr,
             else:
                 print('Failed to find beginning of %s' % ref)
 
-            edges.add(Edge(referring_field=ref,
-                           referring_closure=ref_start,
-                           referree_closure=ptr))
-
-    return edges
+            edge = Edge(referring_field=ref,
+                        referring_closure=ref_start,
+                        referree_closure=ptr)
+            yield edge
 
 def find_containing_closure(inferior: gdb.Inferior,
                             ptr: Ptr,
@@ -150,7 +148,7 @@ def get_nonmoving_segment(ptr: Ptr) -> Optional[Tuple[gdb.Value, int]]:
     else:
         return None
 
-def refs_dot(edges: Set[Edge]) -> str:
+def refs_dot(edges: List[Edge]) -> str:
     def node_name(ref: Edge) -> str:
         return str(ref.referring_field)
 
@@ -202,6 +200,16 @@ def refs_dot(edges: Set[Edge]) -> str:
     lines += ['}']
     return '\n'.join(lines)
 
+def collect(iterator: Iterator[T]) -> List[T]:
+    xs = []  # type: List[T]
+    try:
+        for x in iterator:
+            xs.append(x)
+    except KeyboardInterrupt:
+        pass
+
+    return xs
+
 class ExportClosureDepsDot(CommandWithArgs):
     """ Search for references to a closure """
     command_name = "ghc closure-deps"
@@ -216,9 +224,9 @@ class ExportClosureDepsDot(CommandWithArgs):
 
     def run(self, opts, from_tty) -> None:
         closure_ptr = Ptr(gdb.parse_and_eval(opts.closure_ptr))
-        edges = find_refs_rec(closure_ptr, max_depth=opts.depth,
-                              include_static=not opts.no_static,
-                              max_closure_size=opts.max_closure_size)
+        edges = collect(find_refs_rec(closure_ptr, max_depth=opts.depth,
+                                      include_static=not opts.no_static,
+                                      max_closure_size=opts.max_closure_size))
         with open(opts.output, 'w') as f:
             f.write(refs_dot(edges))
 
