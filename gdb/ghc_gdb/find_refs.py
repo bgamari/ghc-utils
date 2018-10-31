@@ -192,7 +192,7 @@ def refs_dot(edges: List[Edge]) -> str:
                          for name, val in attrs.items())
 
     lines  = ['digraph {']
-    lines += ['  "%s" -> "%s" [dir=back];' %
+    lines += ['  "%s" -> "%s";' %
               (e.referring_closure, e.referree_closure)
               for e in edges]
     lines += ['  "%s" [%s];' % (e.referring_closure, format_attrs(node_attrs(e)))
