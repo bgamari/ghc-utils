@@ -63,94 +63,44 @@ def find_refs(closure_ptr: Ptr, include_static=True) -> Iterator[Ptr]:
             yield from search_memory_many(inf, Ptr(0), Ptr(0x10000000), val)
         yield from search_memory_many(inf, heap_start, heap_end, val) # heap
 
-RecRefs = List[Tuple[Ptr, 'RecRefs']]
 
-class Tree(typing.Generic[T]):
-    def __init__(self, node: T, children: List['Tree[T]']) -> None:
-        self.node = node
-        self.children = children
-
-    def _render(self, render_node: Callable[[T], str], indent: int) -> str:
-        indentation = ' ' * (2*indent)
-        return '\n'.join([indentation + render_node(self.node)] +
-                         [child._render(render_node, indent+1)
-                          for child in self.children])
-
-    def render(self, render_node: Callable[[T], str]) -> str:
-        return self._render(render_node, 0)
-
-    def nodes(self) -> Set[T]:
-        """ List all nodes """
-        nodes = { a for (a,_) in self.edges() }
-        nodes |= { a for (_,a) in self.edges() }
-        return nodes
-
-    def depth(self) -> int:
-        depth = 0
-        for c in self.children:
-            depth = max(c.depth(), depth)
-
-        return depth + 1
-
-    def edges(self) -> List[Tuple[T, T]]:
-        return [ (self.node, child.node)
-                 for child in self.children ] + \
-               [ edge
-                 for child in self.children
-                 for edge in child.edges() ]
-
-    def to_dot(self, node_name: Callable[[T], str], node_attrs: Callable[[T], Dict[str, str]] = lambda _: {}) -> str:
-        def format_attrs(attrs):
-            return ', '.join('"%s"="%s"' % (name, val) for name, val in attrs.items())
-
-        lines = ['digraph {']
-        lines += ['  "%s" -> "%s" [dir=back];' % (node_name(a), node_name(b))
-                  for (a,b) in self.edges()]
-        lines += ['  "%s" [%s];' % (node_name(n), format_attrs(node_attrs(n)))
-                  for n in self.nodes()]
-        lines += ['}']
-        return '\n'.join(lines)
-
-
-class ClosureRef(NamedTuple):
+class Edge(NamedTuple):
     referring_field: Ptr
     referring_closure: Optional[Ptr]
+    referree_closure: Ptr
 
 def find_refs_rec(closure_ptr: Ptr,
-                  depth: int,
+                  max_depth: int,
                   max_closure_size: int,
                   include_static = True
-) -> Tree[ClosureRef]:
+) -> Set[Edge]:
     """
     Recursively search for references to a closure up to the given depth.
     """
     inf = gdb.selected_inferior()
 
     seen_closures = set() # type: Set[Ptr]
-    def go(closure_ptr: Ptr, depth: int) -> List[Tree[ClosureRef]]:
-        nonlocal seen_closures
-        if depth == 0 or closure_ptr in seen_closures:
-            return []
-        else:
-            seen_closures |= {closure_ptr}
-            refs = [] # type: List[Tree[ClosureRef]]
-            for ref in find_refs(closure_ptr, include_static=include_static):
-                ref_start = find_containing_closure(inf, ref,
-                                                    max_closure_size=max_closure_size)
-                if ref_start is not None:
-                    print('%s -> %s' % (ref, closure_ptr))
-                    rec_refs = go(ref_start, depth-1)
-                else:
-                    rec_refs = []
-                    print('Failed to find beginning of %s' % ref)
+    todo = [(0, closure_ptr)] # type: List[Tuple[int, Ptr]]
+    edges = set() # type: Set[Edge]
+    while len(todo) > 0:
+        d, ptr = todo.pop()
+        seen_closures |= {ptr}
+        found_refs = find_refs(ptr, include_static=include_static)
+        for ref in found_refs:
+            ref_start = find_containing_closure(inf, ref,
+                                                max_closure_size=max_closure_size)
+            if ref_start is not None:
+                print('%s -> %s' % (ref, ptr))
+                if d < max_depth and ref_start not in seen_closures:
+                    todo.append((d+1, ref_start))
+            else:
+                print('Failed to find beginning of %s' % ref)
 
-                refs += [Tree(ClosureRef(ref, ref_start), rec_refs)]
+            edges.add(Edge(referring_field=ref,
+                           referring_closure=ref_start,
+                           referree_closure=ptr))
 
-            return refs
-
-    # Root ClosureRef is a bit of a hack
-    return Tree(ClosureRef(closure_ptr, closure_ptr),
-                go(closure_ptr, depth))
+    return edges
 
 def find_containing_closure(inferior: gdb.Inferior,
                             ptr: Ptr,
@@ -200,9 +150,11 @@ def get_nonmoving_segment(ptr: Ptr) -> Optional[Tuple[gdb.Value, int]]:
     else:
         return None
 
-def refs_dot(graph: Tree[ClosureRef]) -> str:
-    node_name = lambda ptr: str(ptr.referring_field)
-    def node_attrs(ref: ClosureRef):
+def refs_dot(edges: Set[Edge]) -> str:
+    def node_name(ref: Edge) -> str:
+        return str(ref.referring_field)
+
+    def node_attrs(ref: Edge) -> Dict[str,str]:
         try:
             if ref.referring_closure is not None:
                 itbl = ghc_heap.get_itbl(gdb.parse_and_eval('(StgClosure *) %d' % (ref.referring_closure.addr(),))).dereference()
@@ -237,7 +189,18 @@ def refs_dot(graph: Tree[ClosureRef]) -> str:
         return {'label': label,
                 'fontcolor': color}
 
-    return graph.to_dot(node_name, node_attrs=node_attrs)
+    def format_attrs(attrs: Dict[str,str]) -> str:
+        return ', '.join('"%s"="%s"' % (name, val)
+                         for name, val in attrs.items())
+
+    lines  = ['digraph {']
+    lines += ['  "%s" -> "%s" [dir=back];' %
+              (e.referring_closure, e.referree_closure)
+              for e in edges]
+    lines += ['  "%s" [%s];' % (e.referring_closure, format_attrs(node_attrs(e)))
+                for e in edges]
+    lines += ['}']
+    return '\n'.join(lines)
 
 class ExportClosureDepsDot(CommandWithArgs):
     """ Search for references to a closure """
@@ -251,16 +214,15 @@ class ExportClosureDepsDot(CommandWithArgs):
         parser.add_argument('-S', '--max-closure-size', type=int, help="The maximum distance in words to search for a closure header", default=4*4096)
         parser.add_argument('closure_ptr', type=str, help='A pointer to a closure')
 
-    def run(self, opts, from_tty):
+    def run(self, opts, from_tty) -> None:
         closure_ptr = Ptr(gdb.parse_and_eval(opts.closure_ptr))
-        graph = find_refs_rec(closure_ptr, depth=opts.depth,
+        edges = find_refs_rec(closure_ptr, max_depth=opts.depth,
                               include_static=not opts.no_static,
                               max_closure_size=opts.max_closure_size)
         with open(opts.output, 'w') as f:
-            f.write(refs_dot(graph))
+            f.write(refs_dot(edges))
 
-        print('Found %d referring closures to depth %d' %
-              (len(graph.nodes()), graph.depth()))
+        print('Found %d reference edges' % len(edges))
         print('Written to %s' % opts.output)
 
 ExportClosureDepsDot()
