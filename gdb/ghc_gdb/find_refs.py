@@ -116,7 +116,11 @@ class ClosureRef(NamedTuple):
     referring_field: Ptr
     referring_closure: Optional[Ptr]
 
-def find_refs_rec(closure_ptr: Ptr, depth: int, include_static = True) -> Tree[ClosureRef]:
+def find_refs_rec(closure_ptr: Ptr,
+                  depth: int,
+                  max_closure_size: int,
+                  include_static = True
+) -> Tree[ClosureRef]:
     """
     Recursively search for references to a closure up to the given depth.
     """
@@ -131,7 +135,8 @@ def find_refs_rec(closure_ptr: Ptr, depth: int, include_static = True) -> Tree[C
             seen_closures |= {closure_ptr}
             refs = [] # type: List[Tree[ClosureRef]]
             for ref in find_refs(closure_ptr, include_static=include_static):
-                ref_start = find_containing_closure(inf, ref)
+                ref_start = find_containing_closure(inf, ref,
+                                                    max_closure_size=max_closure_size)
                 if ref_start is not None:
                     print('%s -> %s' % (ref, closure_ptr))
                     rec_refs = go(ref_start, depth-1)
@@ -147,15 +152,17 @@ def find_refs_rec(closure_ptr: Ptr, depth: int, include_static = True) -> Tree[C
     return Tree(ClosureRef(closure_ptr, closure_ptr),
                 go(closure_ptr, depth))
 
-def find_containing_closure(inferior: gdb.Inferior, ptr: Ptr) -> Optional[Ptr]:
+def find_containing_closure(inferior: gdb.Inferior,
+                            ptr: Ptr,
+                            max_closure_size: int
+) -> Optional[Ptr]:
     """
     Try to identify the beginning of the closure containing the given address.
     Note that this is quite heuristic (looking for something that looks like an
     info table)
     """
-    max_closure_size = 8*4096
     ptr = ptr.untagged()
-    for i in range(max_closure_size // word_size):
+    for i in range(max_closure_size):
         start = ptr.offset_bytes(- i * word_size)
         bs = None
         try:
@@ -241,12 +248,14 @@ class ExportClosureDepsDot(CommandWithArgs):
         parser.add_argument('-o', '--output', default='deps.dot',
                             metavar='FILE', type=str, help='Output dot file path')
         parser.add_argument('-n', '--no-static', action='store_true', help="Don't search static maps")
+        parser.add_argument('-S', '--max-closure-size', type=int, help="The maximum distance in words to search for a closure header", default=4*4096)
         parser.add_argument('closure_ptr', type=str, help='A pointer to a closure')
 
     def run(self, opts, from_tty):
         closure_ptr = Ptr(gdb.parse_and_eval(opts.closure_ptr))
         graph = find_refs_rec(closure_ptr, depth=opts.depth,
-                              include_static=not opts.no_static)
+                              include_static=not opts.no_static,
+                              max_closure_size=opts.max_closure_size)
         with open(opts.output, 'w') as f:
             f.write(refs_dot(graph))
 
