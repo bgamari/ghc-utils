@@ -26,6 +26,9 @@ class Ptr(object):
     def __repr__(self):
         return hex(self._addr)
 
+    def __hash__(self) -> int:
+        return self._addr
+
     def offset_bytes(self, n: int) -> "Ptr":
         return Ptr(self._addr + n)
 
