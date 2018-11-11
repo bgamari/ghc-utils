@@ -9,6 +9,8 @@ import gdb
 
 T = TypeVar('T')
 
+stg_STACK_info = gdb.parse_and_eval('&stg_STACK_info')
+
 def search_memory_many(inferior: gdb.Inferior, start: Ptr, end: Ptr, val: bytes) -> Iterator[Ptr]:
     #print('Searching for %s' % val)
     while True:
@@ -100,6 +102,27 @@ def find_refs_rec(closure_ptr: Ptr,
                         referree_closure=ptr)
             yield edge
 
+def find_containing_stack(inferior: gdb.Inferior,
+                          ptr: Ptr
+                          ) -> Optional[Ptr]:
+    ptr = ptr.untagged()
+    for i in range(0x100000):
+        start = ptr.offset_bytes(- i * word_size)
+        if start <= Ptr(0):
+            break
+
+        bs = None
+        try:
+            bs = inferior.read_memory(start.addr(), word_size)
+        except gdb.MemoryError:
+            continue
+
+        addr = Ptr.unpack(bs)
+        if addr == stg_STACK_info.address:
+            return start
+
+    return None
+
 def find_containing_closure(inferior: gdb.Inferior,
                             ptr: Ptr,
                             max_closure_size: int
@@ -123,6 +146,9 @@ def find_containing_closure(inferior: gdb.Inferior,
         # Is this an info table pointer?
         if sym is not None and sym.endswith('_info'): # and sym.value == addr:
             info = ghc_heap.get_itbl(gdb.parse_and_eval('(StgClosure *) %d' % start.addr()))
+            if int(info['type']) in closure.stack_frame_types:
+                return find_containing_stack(inferior, addr)
+
             nptrs = int(info['layout']['payload']['ptrs'])
             #print(ptr, i, info, nptrs)
             if i <= nptrs + 5: # A bit of fudge for the headers
