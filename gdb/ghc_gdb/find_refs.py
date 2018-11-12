@@ -81,13 +81,15 @@ def find_refs_rec(closure_ptr: Ptr,
     """
     inf = gdb.selected_inferior()
 
+    # Objects we have found references to
     seen_closures = set() # type: Set[Ptr]
+    # Objects we have yet to search for references to
     todo = [(0, closure_ptr)] # type: List[Tuple[int, Ptr]]
     while len(todo) > 0:
         d, ptr = todo.pop()
         seen_closures |= {ptr}
         found_refs = find_refs(ptr, include_static=include_static)
-        for ref in found_refs:
+        for ref in set(found_refs):
             ref_start = find_containing_closure(inf, ref,
                                                 max_closure_size=max_closure_size)
             if ref_start is not None:
