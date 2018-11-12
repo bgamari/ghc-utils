@@ -118,7 +118,7 @@ def find_containing_stack(inferior: gdb.Inferior,
             continue
 
         addr = Ptr.unpack(bs)
-        if addr == stg_STACK_info.address:
+        if addr.addr() == stg_STACK_info.address:
             return start
 
     return None
