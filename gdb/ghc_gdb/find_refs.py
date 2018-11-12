@@ -198,6 +198,7 @@ def refs_dot(edges: List[Edge]) -> str:
         seg_blkIdx = get_nonmoving_segment(ref.referring_field)
         if seg_blkIdx is not None:
             seg, blk = seg_blkIdx
+            snap = int(seg['next_free_snap'])
             mark = seg['bitmap'][blk]
             if mark != 0:
                 color = 'blue'
@@ -205,6 +206,9 @@ def refs_dot(edges: List[Edge]) -> str:
             else:
                 color = 'red'
                 extra += '\nunmarked'
+            if snap <= blk:
+                # Allocated since the last time we took a snapshot
+                extra += " (new)"
         else:
             color = 'black'
 
