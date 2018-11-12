@@ -5,8 +5,13 @@ else:
     TAG_MASK = 3
 
 class Ptr(object):
+    __slots__ = ("_addr",)
+
     def __init__(self, addr: int) -> None:
         self._addr = int(addr)
+
+    def __eq__(self, a: "Ptr"):
+        return self._addr == a._addr
 
     def __gt__(self, a: "Ptr"):
         return self._addr > a._addr
