@@ -106,7 +106,7 @@ def find_containing_stack(inferior: gdb.Inferior,
                           ptr: Ptr
                           ) -> Optional[Ptr]:
     ptr = ptr.untagged()
-    for i in range(0x100000):
+    for i in range(0x10000):
         start = ptr.offset_bytes(- i * word_size)
         if start <= Ptr(0):
             break
