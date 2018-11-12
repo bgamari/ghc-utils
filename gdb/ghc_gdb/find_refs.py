@@ -153,7 +153,11 @@ def find_containing_closure(inferior: gdb.Inferior,
 
             nptrs = int(info['layout']['payload']['ptrs'])
             #print(ptr, i, info, nptrs)
-            if i <= nptrs + 5: # A bit of fudge for the headers
+            if int(info['type']) == closure.ClosureType.IND_STATIC:
+                if ptr.addr() - start.addr() > 8:
+                    # Only trace the indirectee of IND_STATICs
+                    return None
+            elif i <= nptrs + 5: # A bit of fudge for the headers
                 return start
             else:
                 print('suspicious info table: too far (field=%s, info@%s=%s, nptrs=%d, i=%d)' % (ptr, start, sym, nptrs, i))
