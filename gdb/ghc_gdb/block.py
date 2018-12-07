@@ -19,12 +19,16 @@ def block_chain_elems(bd):
         yield bd
         bd = bd['link']
 
+def is_heap_alloced(ptr: Ptr):
+    return heap_start <= ptr and ptr < heap_end
+    #return gdb.parse_and_eval('HEAP_ALLOCED(%d)' % ptr.addr)
+
 def get_bdescr(ptr: Ptr) -> Optional[Any]:
     if ptr < heap_start: return None # XXX
 
-    if gdb.parse_and_eval('HEAP_ALLOCED(%d)' % ptr.addr):
+    if is_heap_alloced(ptr):
         # _bdescr is only provided by the debug RTS
-        return gdb.parse_and_eval('_bdescr(%d)' % ptr.addr).dereference()
+        return gdb.parse_and_eval('_bdescr(%d)' % ptr.addr()).dereference()
     else:
         return None
 

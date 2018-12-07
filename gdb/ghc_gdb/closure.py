@@ -67,6 +67,21 @@ class ClosureType(object):
     SMALL_MUT_ARR_PTRS_FROZEN     = 62
     COMPACT_NFDATA                = 63
 
+stack_frame_types = {
+    ClosureType.UNDERFLOW_FRAME,
+    ClosureType.UPDATE_FRAME,
+    ClosureType.CATCH_FRAME,
+    ClosureType.STOP_FRAME,
+    ClosureType.RET_BCO,
+    ClosureType.RET_SMALL,
+    ClosureType.RET_BIG,
+    ClosureType.RET_FUN,
+    ClosureType.ATOMICALLY_FRAME,
+    ClosureType.CATCH_RETRY_FRAME,
+    ClosureType.CATCH_STM_FRAME,
+}
+
+
 class Closure(object):
     def __init__(self, addr: Ptr, info_ptr: Ptr, type_desc = None) -> None:
         self.addr = addr
