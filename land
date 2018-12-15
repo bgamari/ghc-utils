@@ -4,12 +4,18 @@ set -e
 
 branch=$(git rev-parse --abbrev-ref HEAD)
 utils=$(dirname $(realpath $0))
+no_submodules=
 
 RED="\[\e[0;31m\]"
 PURPLE="\[\e[0;35m\]"
 NO_COLOUR="\[\e[0m\]"
 
 for i in $@; do
+        if [ "$i" = "-a" ]; then
+                no_submodules="-a"
+                continue
+        fi
+
         echo
         echo "Landing $i..."
         base=$(git rev-parse HEAD)
@@ -27,7 +33,7 @@ for i in $@; do
         git checkout $base .gitmodules
         git commit --amend .gitmodules
 
-        $utils/review-submodules
+        $utils/review-submodules $no_submodules
 
         echo
         echo "Landed $i"
