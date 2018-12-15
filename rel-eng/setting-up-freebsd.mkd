@@ -1,8 +1,9 @@
 # Setting up FreeBSD VM for GHC development
 
+Starting with FreeBSD VM image.
 ```
 $ pkg install bash wget vim autoconf automake git gtar pxz lang/gcc devel/gmake gmp \
-  python3 ghc hs-cabal-install devel/llvm39
+  python3 ghc hs-cabal-install devel/llvm70
 $ # Create user, setup networking
 $ bsdconfig
 ```
