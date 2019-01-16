@@ -2,38 +2,57 @@ from pathlib import Path
 import subprocess
 import gitlab
 
-host = "https://gitlab.haskell.org"
-root_url = f"{host}/api/v4"
-token = 'MakRrr7JYo7wTqE1zT3x' # personal access token
-headers = { 'Private-Token': token }
 project_id = 1
 
-def fetch_job(job_id: int):
-    #resp = requests.get(f'{root_url}/projects/{project_id}/jobs/{job_id}/artifacts', headers=headers).json()
-    print(resp)
+def strip_prefix(s, prefix):
+    if s.startswith(prefix):
+        return s[len(prefix):]
+    else:
+        return None
 
-def fetch_artifacts(pipeline_id: int):
-    gl = gitlab.Gitlab(host, private_token=token)
+def job_triple(job):
+    return strip_prefix(job.name, 'validate-')
+
+def fetch_artifacts(version: str, pipeline_id: int):
+    gl = gitlab.Gitlab.from_config('ghc')
     proj = gl.projects.get('ghc/ghc')
     pipeline = proj.pipelines.get(pipeline_id)
+    tmpdir = Path("fetch-gitlab")
+    tmpdir.mkdir(exist_ok=True)
     for pipeline_job in pipeline.jobs.list():
         if len(pipeline_job.artifacts) == 0:
             continue
+
         job = proj.jobs.get(pipeline_job.id)
+        triple = job_triple(job)
+        if triple is None:
+            pass
+
         print(job.name)
         #artifactZips = [ artifact
         #                 for artifact in job.artifacts
         #                 if artifact['filename'] == 'artifacts.zip' ]
         try:
-            tmpdir = Path("fetch-gitlab")
-            tmpdir.mkdir(exist_ok=True)
-            zip_name = f"{tmpdir}/{job.name}.zip"
-            with open(zip_name, 'wb') as f:
-                job.artifacts(streamed=True, action=f.write)
-            subprocess.run(['unzip', '-bo', zip_name])
-            print(job.artifacts)
+            destdir = tmpdir / job.name
+            zip_name = Path(f"{tmpdir}/{job.name}.zip")
+            if not zip_name.exists():
+                with open(zip_name, 'wb') as f:
+                    job.artifacts(streamed=True, action=f.write)
+            subprocess.run(['unzip', '-bo', zip_name, '-d', destdir])
+            bindist = destdir / "ghc.tar.xz"
+            if bindist.exists():
+                dest = Path(f'ghc-{version}-{triple}.tar.xz')
+                print(dest)
+                bindist.replace(dest)
         except Exception as e:
             print(e)
             pass
 
-fetch_artifacts(1054)
+def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--pipeline', '-p')
+    parser.add_argument('--version', '-V')
+    args = parser.parse_args()
+    #fetch_artifacts('8.6.4', 1054)
+    fetch_artifacts(args.version, args.pipeline)

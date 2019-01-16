@@ -7,7 +7,7 @@ let
       pname = "fetch-gitlab";
       version = "0.0.1";
       src = ./.;
-      propagatedBuildInputs = [ python3Packages.python-gitlab  ];
+      propagatedBuildInputs = [ python3Packages.python-gitlab unzip ];
     };
 in
 python3Packages.callPackage fetch-gitlab { inherit unzip; }
