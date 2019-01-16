@@ -1,20 +1,24 @@
 #!/usr/bin/env python3
 
-from typing import NewType, NamedTuple, Dict
+from typing import NewType, NamedTuple, Dict, List
 import subprocess
 from subprocess import run, PIPE
 from argparse import ArgumentParser
 from pathlib import Path
-import json
+import pickle
 
-STATE_FILE = Path('.merge.json')
+STATE_FILE = Path('.merge.pickle')
 
 Rev = NewType('Rev', str)
 HEAD = Rev('HEAD')
 CommitSha = NewType('CommitSha', str)
 
 class MergedMR(NamedTuple):
+    mr_id: int
     commit: CommitSha
+
+class State(NamedTuple):
+    merged_mrs: List[MergedMR]
 
 def main() -> None:
     parser = ArgumentParser()
@@ -24,6 +28,9 @@ def main() -> None:
     subparser.add_argument('--squash', '-s', action='store_true',
                            help='Squash commits')
     subparser.set_defaults(mode='merge')
+
+    subparser = subparsers.add_parser('rollback', help='Rollback the last merge')
+    subparser.set_defaults(mode='rollback')
 
     subparser = subparsers.add_parser('show-mr-message', help='Print merge request message')
     subparser.set_defaults(mode='show_mr_message')
@@ -37,6 +44,8 @@ def main() -> None:
     args = parser.parse_args()
     if args.mode == 'merge':
         merge(args.merge_request, args.squash)
+    elif args.mode == 'rollback':
+        rollback()
     elif args.mode == 'show_mr_message':
         show_mr_message()
     elif args.mode == 'finish':
@@ -46,16 +55,32 @@ def main() -> None:
     else:
         raise "uh oh"
 
-def load_state() -> Dict[int, MergedMR]:
+def load_state() -> State:
     if STATE_FILE.exists():
-        return json.load(STATE_FILE.open())
+        return pickle.load(STATE_FILE.open('rb'))
     else:
-        return {}
+        return State(merged_mrs=[])
+
+def save_state(state: State) -> None:
+    pickle.dump(state, STATE_FILE.open('wb'))
 
 def reset() -> None:
-    STATE_FILE.unlink()
-    run(['git', 'checkout', 'wip/merge-queue'])
-    run(['git', 'reset', '--hard', 'origin/master'])
+    print('Resetting state...')
+    if STATE_FILE.exists():
+        STATE_FILE.unlink()
+    run(['git', 'checkout', 'wip/merge-queue'], check=True)
+    run(['git', 'reset', '--hard', 'origin/master'], check=True)
+
+def rollback() -> None:
+    state = load_state()
+    if len(state.merged_mrs) > 1:
+        print(f'Rolling back !{last_mr.mr_id}...')
+        state.merged_mrs = state.merged_mrs[:-1]
+        commit = state.merged_mrs[-2].commit
+        run(['git', 'reset', '--hard', commit])
+        save_state(state)
+    else:
+        reset()
 
 def show_mr_message():
     state = load_state()
@@ -72,47 +97,48 @@ def finish() -> None:
     import gitlab
     gl = gitlab.Gitlab.from_config('ghc')
     proj = gl.projects.get('ghc/ghc')
-    merged = load_state()
-    for mr_num, merged_mr in merged.items():
-        mr = proj.mergerequests.get(mr_num)
-        commit = merged_mr.commit
-        mr.discussions.notes.create({'body': f'Merged in {commit}'})
+    state = load_state()
+    for mmr in state.merged_mrs:
+        mr = proj.mergerequests.get(mmr.mr_id)
+        mr.discussions.notes.create({'body': f'Merged in {mmr.commit}'})
 
         mr.state_event = 'close'
         mr.save()
         print(f'Closed {mr.iid}')
 
 def rev_parse(rev: Rev) -> CommitSha:
-    commit = run(['git', 'rev-parse', rev], stdout=PIPE)
+    commit = run(['git', 'rev-parse', rev], check=True, stdout=PIPE)
     return CommitSha(commit.stdout.decode('UTF-8').strip())
 
 def squash_from(rev: Rev) -> CommitSha:
     commit_msg = run(['git', 'log', '--format=%B', '--reverse', f'{rev}..HEAD'],
-                     stdout=PIPE).stdout
-    run(['git', 'reset', '--soft', 'wip/merge-queue'])
-    run(['git', 'commit', '--edit', '-m', commit_msg])
+                     check=True, stdout=PIPE).stdout
+    run(['git', 'reset', '--soft', 'wip/merge-queue'], check=True)
+    run(['git', 'commit', '--edit', '-m', commit_msg], check=True)
     return rev_parse(HEAD)
 
 def merge(mr: int, squash: bool) -> None:
-    merged = load_state()
+    state = load_state()
 
-    if mr in merged:
-        commit = merged[mr].commit
+    merged_mrs = { mmr.mr_id for mmr in state.merged_mrs } # type: Dict[int, MergedMR]
+
+    if mr in merged_mrs:
+        commit = merged_mrs[mr].commit
         print(f"Merge request !{mr} already merged with commit {commit}.")
         return
 
-    run(['git', 'fetch', 'origin', f'merge-requests/{mr}/head'])
-    run(['git', 'checkout', 'FETCH_HEAD'])
-    run(['git', 'rebase', 'wip/merge-queue'])
+    run(['git', 'fetch', 'origin', f'merge-requests/{mr}/head'], check=True)
+    run(['git', 'checkout', 'FETCH_HEAD'], check=True)
+    run(['git', 'rebase', 'wip/merge-queue'], check=True)
     if squash:
         commit = squash_from(Rev('wip/merge-queue'))
     else:
         commit = rev_parse(HEAD)
-    run(['git', 'checkout', 'wip/merge-queue'])
-    run(['git', 'merge', commit])
+    run(['git', 'checkout', 'wip/merge-queue'], check=True)
+    run(['git', 'merge', commit], check=True)
 
-    merged[mr] = MergedMR(commit=commit)
-    json.dump(merged, STATE_FILE.open('w'))
+    state.merged_mrs.append(MergedMR(mr_id=mr, commit=commit))
+    save_state(state)
     print(f'Merged !{mr}.')
 
 if __name__ == '__main__':
