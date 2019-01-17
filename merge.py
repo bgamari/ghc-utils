@@ -74,8 +74,8 @@ def reset() -> None:
 def rollback() -> None:
     state = load_state()
     if len(state.merged_mrs) > 1:
+        last_mr = state.merged_mrs.pop()
         print(f'Rolling back !{last_mr.mr_id}...')
-        state.merged_mrs = state.merged_mrs[:-1]
         commit = state.merged_mrs[-2].commit
         run(['git', 'reset', '--hard', commit])
         save_state(state)
@@ -84,9 +84,8 @@ def rollback() -> None:
 
 def show_mr_message():
     state = load_state()
-    mr_list = '\n'.join(f' * !{mr}' for mr in state)
-    msg = f'''
-    Bulk merge branch merging the following merge requests:
+    mr_list = '\n'.join(f' * !{mr.mr_id} with {mr.commit}' for mr in state.merged_mrs)
+    msg = f'''Bulk merge branch merging the following merge requests:
 
     {mr_list}
     '''
