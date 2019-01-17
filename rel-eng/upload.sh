@@ -89,7 +89,7 @@ function fetch_s3() {
         out_name="ghc-$ver-$platform.tar.xz"
         if [ ! -e "$out_name" ]; then
             name="${builds[$platform]}"
-            s3cmd get s3://ghc-artifacts/releases/$name/ghc-$rel_name/bindist.tar.xz
+            s3cmd get s3://ghc-artifacts/releases/$name/ghc-$rel_name-release/bindist.tar.xz
             mv bindist.tar.xz $out_name
         fi
     done
