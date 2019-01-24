@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-from typing import NewType, NamedTuple, Dict, List
+from typing import NewType, NamedTuple, Dict, List, Tuple
 import subprocess
 from subprocess import run, PIPE
 from argparse import ArgumentParser
 from pathlib import Path
 import pickle
+import sys
 
 STATE_FILE = Path('.merge.pickle')
 
@@ -16,6 +17,7 @@ CommitSha = NewType('CommitSha', str)
 class MergedMR(NamedTuple):
     mr_id: int
     commit: CommitSha
+    squashed: bool
 
 class State(NamedTuple):
     merged_mrs: List[MergedMR]
@@ -82,6 +84,61 @@ def rollback() -> None:
     else:
         reset()
 
+def replay() -> None:
+    state = load_state()
+    reset()
+
+    gl = gitlab.Gitlab.from_config('ghc')
+    proj = gl.projects.get('ghc/ghc')
+
+    def action_line(mmr):
+        mr = proj.mergerequests.get(mmr.mr_id)
+        title = mr.title
+        action = 'squash' if mmr.squashed else 'merge'
+        return f"{action} {mmr.mr_id}   # {title}"
+
+    def parse_actions(s: str) -> Optional[List[Tuple[int, bool]]]:
+        actions = []
+        for line in s.split('\n'):
+            res = parse_action(line)
+            if res is None:
+                return None
+            else:
+                actions += res
+        return actions
+
+    def parse_action(line: str) -> Optional[Tuple[int, bool]]:
+        parts = line.split()
+        action = parts[0]
+        mr = int(parts[1])
+        if action == 'squash' or action == 's':
+            squash = True
+        elif action == 'merge' or action == 'm':
+            squash = False
+        else:
+            return None
+        return (mr, squash)
+
+    summary = '\n'.join(action_line(mmr) for mmr in state.merged_mrs)
+    import tempfile
+    with tempfile.NamedTemporaryFile('w') as f:
+        f.write(summary)
+        f.close()
+        while True:
+            run('vim', f.path)
+            actions = parse_actions(open(f.path, 'w').read)
+            if actions is not None:
+                break
+
+    for mr_id, squash in actions:
+        try:
+            merge(mr_id, squash)
+        except Exception as e:
+            print(f'Failed with exception: {e}')
+            print('Continue? [y/N]')
+            if raw_input() != 'y':
+                sys.exit(1)
+
 def show_mr_message():
     state = load_state()
     mr_list = '\n'.join(f' * !{mr.mr_id} with {mr.commit}' for mr in state.merged_mrs)
@@ -136,7 +193,7 @@ def merge(mr: int, squash: bool) -> None:
     run(['git', 'checkout', 'wip/merge-queue'], check=True)
     run(['git', 'merge', commit], check=True)
 
-    state.merged_mrs.append(MergedMR(mr_id=mr, commit=commit))
+    state.merged_mrs.append(MergedMR(mr_id=mr, commit=commit, squashed=squash))
     save_state(state)
     print(f'Merged !{mr}.')
 
