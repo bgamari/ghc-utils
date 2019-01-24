@@ -119,7 +119,7 @@ def squash_from(rev: Rev) -> CommitSha:
 def merge(mr: int, squash: bool) -> None:
     state = load_state()
 
-    merged_mrs = { mmr.mr_id for mmr in state.merged_mrs } # type: Dict[int, MergedMR]
+    merged_mrs = { mmr.mr_id: mmr for mmr in state.merged_mrs } # type: Dict[int, MergedMR]
 
     if mr in merged_mrs:
         commit = merged_mrs[mr].commit
