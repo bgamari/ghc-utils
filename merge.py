@@ -2,6 +2,7 @@
 
 from typing import NewType, NamedTuple, Dict, List, Tuple
 import subprocess
+import textwrap
 from subprocess import run, PIPE
 from argparse import ArgumentParser
 from pathlib import Path
@@ -146,7 +147,6 @@ def show_mr_message():
 
     {mr_list}
     '''
-    import textwrap
     print(textwrap.dedent(msg))
 
 def finish() -> None:
@@ -185,7 +185,23 @@ def merge(mr: int, squash: bool) -> None:
 
     run(['git', 'fetch', 'origin', f'merge-requests/{mr}/head'], check=True)
     run(['git', 'checkout', 'FETCH_HEAD'], check=True)
-    run(['git', 'rebase', 'wip/merge-queue'], check=True)
+
+    # Rebase
+    p = run(['git', 'rebase', 'wip/merge-queue'])
+    if p.returncode != 0:
+        print(textwrap.dedent('''
+            It looks like there was a rebasing error. I will drop you into a
+            shell where you will have two options:
+
+            * Fix the conflicts and exit with code 0
+
+            * Abort with any other exit code
+        '''))
+        p = run(['bash'], stdin=sys.stdin)
+        if p.returncode != 0:
+            print('Aborting.')
+            sys.exit(1)
+
     if squash:
         commit = squash_from(Rev('wip/merge-queue'))
     else:
