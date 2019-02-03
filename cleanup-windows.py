@@ -14,8 +14,8 @@ $A = New-ScheduledTaskAction `
 $S = New-TimeSpan -Hour 6
 $T = New-ScheduledTaskTrigger -RepetitionInterval $S -At 3am -Once
 Register-ScheduledTask `
-    -User "gitlab" `
-    -Password {password} `
+    -User "SYSTEM" `
+    -RunLevel "Highest" `
     -TaskName "GitLab Cleanup" `
     -Trigger $T `
     -Action $A
@@ -88,16 +88,13 @@ def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--register', action='store_true')
-    parser.add_argument('--password', type=str)
     parser.add_argument('--unregister', action='store_true')
     parser.add_argument('-n', '--dry-run', action='store_true')
     parser.add_argument('--max-age', default=timedelta(hours=8))
     args = parser.parse_args()
 
     if args.register:
-        if args.password is None:
-            raise RuntimeError("--password is required")
-        run_powershell(registration_script.format(password=args.password))
+        run_powershell(registration_script)
     elif args.unregister:
         run_powershell(unregistration_script)
     else:
