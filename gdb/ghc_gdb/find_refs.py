@@ -174,8 +174,8 @@ def get_nonmoving_segment(ptr: Ptr) -> Optional[Tuple[gdb.Value, int]]:
     bd = get_bdescr(ptr)
     if bd is not None and bd['flags'] & BF_NONMOVING:
         seg_base = ptr.addr() & ~NONMOVING_SEGMENT_MASK
-        block_idx = int(gdb.parse_and_eval('nonmoving_get_block_idx(%s)' % ptr))
-        seg = gdb.parse_and_eval('(struct nonmoving_segment *) %s' % seg_base).dereference()
+        block_idx = int(gdb.parse_and_eval('nonmovingGetBlockIdx(%s)' % ptr))
+        seg = gdb.parse_and_eval('(struct NonmovingSegment *) %s' % seg_base).dereference()
         return (seg, block_idx)
     else:
         return None
