@@ -187,12 +187,18 @@ def refs_dot(edges: List[Edge]) -> str:
     def node_attrs(ref: Edge) -> Dict[str,str]:
         try:
             if ref.referring_closure is not None:
-                itbl = ghc_heap.get_itbl(gdb.parse_and_eval('(StgClosure *) %d' % (ref.referring_closure.addr(),))).dereference()
+                itbl_ptr = ghc_heap.get_itbl(gdb.parse_and_eval('(StgClosure *) %d' % (ref.referring_closure.addr(),)))
+                itbl = itbl_ptr.dereference()
                 closure_type = closureTypeDict.get(int(itbl['type']), 'unknown')
+                closure_name = find_symbol(Ptr(int(itbl_ptr)))
+                if closure_name is None:
+                    closure_name = 'unknown symbol'
             else:
                 closure_type = 'invalid'
+                closure_name = "unknown"
         except gdb.MemoryError:
             closure_type = 'invalid itbl'
+            closure_name = ""
 
         extra = ''
         seg_blkIdx = get_nonmoving_segment(ref.referring_field)
@@ -214,12 +220,19 @@ def refs_dot(edges: List[Edge]) -> str:
 
         # ! means that we couldn't find the start of the containing closure;
         # pointer identifies field
-        label = '\n'.join(["%s (fld %d)" %
-                             (ref.referring_closure,
-                              (ref.referring_field.addr() - ref.referring_closure.addr()) / 8)
-                           if ref.referring_closure is not None
-                           else '! %s' % ref.referring_field,
-                           '%s%s' % (closure_type, extra)])
+        label = []
+        if ref.referring_closure is not None:
+            label += [
+                "%s (fld %d)" % (ref.referring_closure,
+                (ref.referring_field.addr() - ref.referring_closure.addr()) / 8)
+            ]
+        else:
+            label += ['! %s' % ref.referring_field]
+
+        label += ['%s%s' % (closure_type, extra)]
+        label += [closure_name]
+        print(label)
+        label = '\n'.join(label)
         return {'label': label,
                 'fontcolor': color}
 
