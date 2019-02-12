@@ -27,13 +27,16 @@ def main() -> None:
     parser = ArgumentParser()
     subparsers = parser.add_subparsers()
     subparser = subparsers.add_parser('merge', help='land a commit', aliases=['land'])
-    subparser.add_argument('merge_request', type=int, help='merge request to merge')
+    subparser.add_argument('merge_request', type=str, nargs='+', help='merge request to merge')
     subparser.add_argument('--squash', '-s', action='store_true',
                            help='Squash commits')
     subparser.set_defaults(mode='merge')
 
     subparser = subparsers.add_parser('rollback', help='Rollback the last merge')
     subparser.set_defaults(mode='rollback')
+
+    subparser = subparsers.add_parser('replay', help='')
+    subparser.set_defaults(mode='replay')
 
     subparser = subparsers.add_parser('show-mr-message', help='Print merge request message')
     subparser.set_defaults(mode='show_mr_message')
@@ -46,9 +49,18 @@ def main() -> None:
 
     args = parser.parse_args()
     if args.mode == 'merge':
-        merge(args.merge_request, args.squash)
+        for mr in args.merge_request:
+            squash = False
+            if mr[0] == '~':
+                mr = int(mr[1:])
+                squash = True
+            else:
+                mr = int(mr)
+            merge(mr, squash or args.squash)
     elif args.mode == 'rollback':
         rollback()
+    elif args.mode == 'replay':
+        replay()
     elif args.mode == 'show_mr_message':
         show_mr_message()
     elif args.mode == 'finish':
