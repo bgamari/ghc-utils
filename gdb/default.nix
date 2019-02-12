@@ -18,6 +18,7 @@ in with nixpkgs; rec {
     name = "ghc-gdb";
     doCheck = false;
     src = ./.;
+    preferLocalBuild = true;
   };
 
   run-ghc-gdb = writeScriptBin "ghc-gdb" ''
