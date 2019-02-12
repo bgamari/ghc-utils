@@ -187,10 +187,10 @@ def refs_dot(edges: List[Edge]) -> str:
     def node_attrs(ref: Edge) -> Dict[str,str]:
         try:
             if ref.referring_closure is not None:
-                itbl_ptr = ghc_heap.get_itbl(gdb.parse_and_eval('(StgClosure *) %d' % (ref.referring_closure.addr(),)))
+                itbl_ptr = gdb.parse_and_eval('(StgClosure *) %d' % (ref.referring_closure.addr(),)).dereference()['header']['info']
                 itbl = itbl_ptr.dereference()
                 closure_type = closureTypeDict.get(int(itbl['type']), 'unknown')
-                closure_name = find_symbol(Ptr(int(itbl_ptr)))
+                closure_name = find_symbol_name(Ptr(int(itbl_ptr)))
                 if closure_name is None:
                     closure_name = 'unknown symbol'
             else:
@@ -231,7 +231,6 @@ def refs_dot(edges: List[Edge]) -> str:
 
         label += ['%s%s' % (closure_type, extra)]
         label += [closure_name]
-        print(label)
         label = '\n'.join(label)
         return {'label': label,
                 'fontcolor': color}
