@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 import subprocess
 import gitlab
@@ -13,8 +14,8 @@ def strip_prefix(s, prefix):
 def job_triple(job):
     return strip_prefix(job.name, 'validate-')
 
-def fetch_artifacts(version: str, pipeline_id: int):
-    gl = gitlab.Gitlab.from_config('ghc')
+def fetch_artifacts(release: str, pipeline_id: int,
+                    dest_dir: Path, gl: gitlab.Gitlab):
     proj = gl.projects.get('ghc/ghc')
     pipeline = proj.pipelines.get(pipeline_id)
     tmpdir = Path("fetch-gitlab")
@@ -28,7 +29,6 @@ def fetch_artifacts(version: str, pipeline_id: int):
         if triple is None:
             pass
 
-        print(job.name)
         #artifactZips = [ artifact
         #                 for artifact in job.artifacts
         #                 if artifact['filename'] == 'artifacts.zip' ]
@@ -38,21 +38,32 @@ def fetch_artifacts(version: str, pipeline_id: int):
             if not zip_name.exists():
                 with open(zip_name, 'wb') as f:
                     job.artifacts(streamed=True, action=f.write)
+
+            if zip_name.stat().st_size == 0:
+                logging.info(f'artifact archive for job {job.name} is empty')
+                continue
+
             subprocess.run(['unzip', '-bo', zip_name, '-d', destdir])
             bindist = destdir / "ghc.tar.xz"
             if bindist.exists():
-                dest = Path(f'ghc-{version}-{triple}.tar.xz')
-                print(dest)
+                dest = dest_dir / f'ghc-{release}-{triple}.tar.xz'
+                logging.info(f'extracted {job.name} to {dest}')
                 bindist.replace(dest)
+            else:
+                hi
         except Exception as e:
-            print(e)
+            logging.error(f'Error fetching job {job.name}: {e}')
             pass
 
 def main():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--pipeline', '-p')
-    parser.add_argument('--version', '-V')
+    parser.add_argument('--pipeline', '-p', required=True, type=int, help="pipeline id")
+    parser.add_argument('--release', '-r', required=True, type=str, help="release name")
+    parser.add_argument('--output', '-o', default=Path.cwd(), help="output directory")
+    parser.add_argument('--profile', '-P', default='haskell',
+                        help='python-gitlab.cfg profile name')
     args = parser.parse_args()
-    #fetch_artifacts('8.6.4', 1054)
-    fetch_artifacts(args.version, args.pipeline)
+    gl = gitlab.Gitlab.from_config(args.profile)
+    fetch_artifacts(args.release, args.pipeline, 
+                    dest_dir=args.output, gl=gl)
