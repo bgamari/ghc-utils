@@ -5,6 +5,8 @@ import gitlab
 
 project_id = 1
 
+logging.basicConfig(level=logging.INFO)
+
 def strip_prefix(s, prefix):
     if s.startswith(prefix):
         return s[len(prefix):]
@@ -12,7 +14,19 @@ def strip_prefix(s, prefix):
         return None
 
 def job_triple(job):
-    return strip_prefix(job.name, 'validate-')
+    bindists = {
+        'validate-x86_64-darwin': 'x86_64-apple-darwin',
+        'validate-i386-linux-deb9': 'i386-deb9-linux',
+        'validate-x86_64-linux-deb8': 'x86_64-deb8-linux',
+        'validate-x86_64-linux-deb9': 'x86_64-deb9-linux',
+        'release-x86_64-linux-deb9-dwarf': 'x86_64-deb9-linux-dwarf',
+        'validate-x86_64-windows': 'x86_64-unknown-mingw32',
+        'validate-x86_64-linux-fedora27': 'x86_64-fedora27-linux',
+    }
+    if job.name in bindists:
+        return bindists[job.name]
+    else:
+        return strip_prefix(job.name, 'validate-')
 
 def fetch_artifacts(release: str, pipeline_id: int,
                     dest_dir: Path, gl: gitlab.Gitlab):
@@ -50,7 +64,7 @@ def fetch_artifacts(release: str, pipeline_id: int,
                 logging.info(f'extracted {job.name} to {dest}')
                 bindist.replace(dest)
             else:
-                hi
+                print('Bindist already exists')
         except Exception as e:
             logging.error(f'Error fetching job {job.name}: {e}')
             pass
