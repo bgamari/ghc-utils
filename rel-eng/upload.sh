@@ -136,7 +136,7 @@ function verify() {
     for i in *.sig; do
         echo
         echo Verifying $i
-        gpg --verify $i $(basename $i .sig)
+        gpg2 --verify $i $(basename $i .sig)
     done
 }
 
