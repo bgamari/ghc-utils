@@ -5,3 +5,4 @@ bin/
 .cabal-sandbox/
 *.hi
 *.o
+__pycache__

@@ -19,9 +19,9 @@ class PrintNonmovingClosure(CommandWithArgs):
         elif flags & BlockFlags.BF_LARGE:
             print("Large object in the nonmoving heap")
         else:
-            segment = gdb.parse_and_eval('nonmoving_get_segment(%s)' % closure_ptr)
-            block = gdb.parse_and_eval('nonmoving_get_block_idx(%s)' % closure_ptr)
-            block_start = gdb.parse_and_eval('nonmoving_segment_get_block(%s, %d)' %
+            segment = gdb.parse_and_eval('nonmovingGetSegment(%s)' % closure_ptr)
+            block = gdb.parse_and_eval('nonmovingGetBlockIdx(%s)' % closure_ptr)
+            block_start = gdb.parse_and_eval('nonmovingSegmentGetBlock(%s, %d)' %
                                              (segment, block))
             print('Closure %s: segment 0x%x, block %d @ 0x%x' % (closure_ptr, int(segment), int(block), block_start))
             print(segment.dereference())

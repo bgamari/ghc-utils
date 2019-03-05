@@ -386,7 +386,7 @@ def print_stack(sp, max_frames, depth=1):
         if stop:
             break
 
-        size = stack_frame_size(sp.cast(StgClosurePtr))
+        size = stack_frame_size_in_words(sp.cast(StgClosurePtr))
         sp = sp + StgPtr.sizeof * size
 
     return doc
@@ -428,7 +428,7 @@ class PrintGhcThreadsCmd(CommandWithArgs):
             if len(opts.id) > 0 and int(tso['id']) not in opts.id:
                 continue
 
-            print('id=%d\tTSO=0x%08x\tblocked on %s' % (tso['id'], int(tso_ptr.address), why_blocked))
+            print('id=%d\tTSO=0x%08x\tblocked on %s' % (tso['id'], int(tso_ptr), why_blocked))
             sp = tso['stackobj'].dereference()['sp'].cast(StgPtr)
             print(print_stack(sp, max_frames=opts.frames, depth=1).indented())
             print()
@@ -459,14 +459,14 @@ def untag(ptr):
     assert ptr.type == StgClosurePtr
     return (ptr.cast(StgWord) & ~7).cast(StgClosurePtr)
 
-def stack_frame_size(frame):
+def stack_frame_size_in_words(frame):
     assert frame.type == StgClosurePtr
     #return gdb.parse_and_eval('stack_frame_sizeW(0x%x)' % sp)
     info = get_ret_itbl(frame)
     ty = info.dereference()['i']['type']
     if ty == ClosureType.RET_FUN:
         size = frame.cast(StgRetFun.pointer()).dereference()['size']
-        return gdb.parse_and_eval('sizeof(StgRetFun)') + size
+        return (gdb.parse_and_eval('sizeof(StgRetFun)') / StgPtr.sizeof) + size
     elif ty == ClosureType.RET_BIG:
         raise NotImplemented
     elif ty == ClosureType.RET_BCO:
