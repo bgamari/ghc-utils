@@ -30,6 +30,7 @@ def job_triple(job):
 
 def fetch_artifacts(release: str, pipeline_id: int,
                     dest_dir: Path, gl: gitlab.Gitlab):
+    dest_dir.mkdir(exist_ok=True)
     proj = gl.projects.get('ghc/ghc')
     pipeline = proj.pipelines.get(pipeline_id)
     tmpdir = Path("fetch-gitlab")
@@ -74,7 +75,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--pipeline', '-p', required=True, type=int, help="pipeline id")
     parser.add_argument('--release', '-r', required=True, type=str, help="release name")
-    parser.add_argument('--output', '-o', default=Path.cwd(), help="output directory")
+    parser.add_argument('--output', '-o', default=Path.cwd() / "out", help="output directory")
     parser.add_argument('--profile', '-P', default='haskell',
                         help='python-gitlab.cfg profile name')
     args = parser.parse_args()
