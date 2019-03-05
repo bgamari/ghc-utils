@@ -144,7 +144,7 @@ function upload() {
     verify
     chmod ugo+r,o-w -R .
     dir=$(echo $rel_name | sed s/-release//)
-    rsync --progress -aLz $rsync_opts . $host:$dir
+    rsync --progress -aLz $rsync_opts . $host:/www-data/downloads/ghc/$dir
     chmod ugo-w $(ls *.xz *.bz2)
     # Purge CDN cache
     curl -X PURGE http://downloads.haskell.org/~ghc/$dir
