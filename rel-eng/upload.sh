@@ -136,7 +136,7 @@ function verify() {
     for i in *.sig; do
         echo
         echo Verifying $i
-        gpg --verify $i $(basename $i .sig)
+        gpg2 --verify $i $(basename $i .sig)
     done
 }
 
@@ -144,7 +144,7 @@ function upload() {
     verify
     chmod ugo+r,o-w -R .
     dir=$(echo $rel_name | sed s/-release//)
-    rsync --progress -aLz $rsync_opts . $host:public_html/$dir
+    rsync --progress -aLz $rsync_opts . $host:$dir
     chmod ugo-w $(ls *.xz *.bz2)
     # Purge CDN cache
     curl -X PURGE http://downloads.haskell.org/~ghc/$dir
