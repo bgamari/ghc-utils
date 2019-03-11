@@ -192,7 +192,7 @@ def refs_dot(edges: List[Edge]) -> str:
                 closure_type = closureTypeDict.get(int(itbl['type']), 'unknown')
                 closure_name = find_symbol_name(Ptr(int(itbl_ptr)))
                 if closure_name is None:
-                    closure_name = 'unknown symbol'
+                    closure_name = 'unknown symbol %s' % itbl_ptr
             else:
                 closure_type = 'invalid'
                 closure_name = "unknown"
