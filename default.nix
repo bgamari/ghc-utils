@@ -14,8 +14,9 @@ let
       '';
     };
   gdb = import ./gdb;
+  gitlab-utils = import ./gitlab-utils;
 in
   symlinkJoin {
     name = "hi";
-    paths = [ gdb.gdb gdb.run-ghc-gdb gdb.run-ghc-rr gdb.dot2svg rel-eng ];
+    paths = [ gdb.gdb gdb.run-ghc-gdb gdb.run-ghc-rr gdb.dot2svg rel-eng gitlab-utils ];
   }
