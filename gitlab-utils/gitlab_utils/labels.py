@@ -8,6 +8,7 @@ def main():
     parser.add_argument('--project', '-p', type=str, required=True, help='Project name')
     parser.add_argument('--add', '-a', action='append', default=[], type=str, help='Add a label to all issues')
     parser.add_argument('--remove', '-r', action='append', default=[], type=str, help='Remove a label from all issues')
+    parser.add_argument('--dry-run', '-n', action='store_true', help="Don't change anything")
     parser.add_argument('issues', nargs='+', type=int, help='List of issue numbers')
     args = parser.parse_args()
     
@@ -17,9 +18,9 @@ def main():
     proj = gl.projects.get(args.project)
 
     # Make sure all labels exist
-    bad_labels = (add_labels | remove_labels) ^ set(proj.labels.list())
-    if len(bad_labels) > 0:
-        raise RuntimeError(f"Labels don't exist: {bad_labels}")
+    bad_labels = (add_labels | remove_labels).difference(set(proj.labels.list(all=True)))
+    #if len(bad_labels) > 0:
+    #    raise RuntimeError(f"Labels don't exist: {bad_labels}")
 
     issues = []
     fail = False
@@ -36,7 +37,8 @@ def main():
     for issue in issues:
         labels = set(issue.labels)
         labels = (labels ^ remove_labels) | add_labels
-        print(f'#{n}', labels)
+        print(f'#{issue.id}', labels)
         issue.labels = labels
-        issue.save()
+        if not args.dry_run:
+            issue.save()
 
