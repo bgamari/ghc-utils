@@ -43,27 +43,34 @@ class BlockFlags(IntFlag):
     BF_SWEPT      = 256
     BF_COMPACT    = 512
     BF_NONMOVING  = 1024
+    BF_NONMOVING_SWEEPING = 2048
 
 def format_bdescr(bd):
-    assert bd.type == BdescrPtr
+    #assert bd.type == BdescrPtr
     gen = int(bd.dereference()['gen_no'])
     blocks = int(bd.dereference()['blocks'])
     flags = int(bd.dereference()['flags'])
-    flag_desc = ','.join(f.name
+    start = int(bd.dereference()['start'])
+    flag_desc = '|'.join(f.name
                          for f in BlockFlags
                          if flags & f.value)
-    return "Bdescr @ 0x%x { gen=%d, blocks=%d, flags=%s }" % \
-        (int(bd), gen, blocks, flag_desc)
+    return "Bdescr @ 0x%x { start=0x%x, gen=%d, blocks=%d, flags=%s }" % \
+        (int(bd), start, gen, blocks, flag_desc)
 
 class PrintBlock(CommandWithArgs):
     """ Print a block descriptor """
     command_name = "ghc block"
 
     def build_parser(self, parser):
+        parser.add_argument('-d', '--descriptor',
+                            action='store_true', help='address is a descriptor')
         parser.add_argument('closure', type=str)
 
     def run(self, opts, from_tty):
-        bd = gdb.parse_and_eval('Bdescr(%s)' % opts.closure)
+        if opts.descriptor:
+            bd = opts.closure
+        else:
+            bd = gdb.parse_and_eval('Bdescr(%s)' % opts.closure)
         print(format_bdescr(bd))
 
 class PrintBlockChain(CommandWithArgs):
@@ -75,7 +82,7 @@ class PrintBlockChain(CommandWithArgs):
 
     def run(self, opts, from_tty):
         bd = gdb.parse_and_eval(opts.bdescr)
-        assert bd.type == BdescrPtr
+        #assert bd.type == BdescrPtr
         for b in block_chain_elems(bd):
             print(format_bdescr(b))
 

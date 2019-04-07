@@ -33,9 +33,23 @@ in with nixpkgs; rec {
     ${rr}/bin/rr $args
   '';
 
-  gdb = nixpkgs.gdb.override {
-    python = python3;
+  libipt = stdenv.mkDerivation {
+    name = "libipt";
+    nativeBuildInputs = [ cmake ];
+    src = fetchFromGitHub {
+      owner = "01org";
+      repo = "processor-trace";
+      rev = "f7a4ee88b32a0c2d148dd08268b94c4076da43d9";
+      sha256 = "18wc5gk6vby3wr0rx9dgg841zb8yhsw1dbpvs6b1xs8c7j4q08mr";
+    };
+    #sourceRoot = "source/libipt";
   };
+
+  gdb = (nixpkgs.gdb.override {
+    python = python3;
+  }).overrideAttrs (oldAttrs: {
+    buildInputs = oldAttrs.buildInputs ++ [ libipt ]; 
+  });
 
   rr = nixpkgs.rr.overrideAttrs (oldAttrs: {
     src = fetchFromGitHub {
