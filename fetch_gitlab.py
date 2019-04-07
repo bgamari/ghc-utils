@@ -76,7 +76,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--pipeline', '-p', required=True, type=int, help="pipeline id")
     parser.add_argument('--release', '-r', required=True, type=str, help="release name")
-    parser.add_argument('--output', '-o', default=Path.cwd() / "out", help="output directory")
+    parser.add_argument('--output', '-o', type=Path, default=Path.cwd() / "out", help="output directory")
     parser.add_argument('--profile', '-P', default='haskell',
                         help='python-gitlab.cfg profile name')
     args = parser.parse_args()
