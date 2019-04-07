@@ -21,6 +21,7 @@ def job_triple(job):
         'validate-x86_64-linux-deb9': 'x86_64-deb9-linux',
         'release-x86_64-linux-deb9-dwarf': 'x86_64-deb9-linux-dwarf',
         'validate-x86_64-windows': 'x86_64-unknown-mingw32',
+        'validate-i386-windows': 'i386-unknown-mingw32',
         'validate-x86_64-linux-fedora27': 'x86_64-fedora27-linux',
     }
     if job.name in bindists:
