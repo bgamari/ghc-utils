@@ -2,7 +2,7 @@
 
 from distutils.core import setup
 
-setup(name='ben-mail',
+setup(name='fetch-gitlab',
       author='Ben Gamari',
       author_email='ben@smart-cactus.org',
       py_modules=['fetch_gitlab'],
