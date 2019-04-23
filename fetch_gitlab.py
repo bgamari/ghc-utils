@@ -23,6 +23,7 @@ def job_triple(job):
         'validate-x86_64-windows': 'x86_64-unknown-mingw32',
         'validate-i386-windows': 'i386-unknown-mingw32',
         'validate-x86_64-linux-fedora27': 'x86_64-fedora27-linux',
+        'release-x86_64-linux-centos7': 'x86_64-centos7-linux',
     }
     if job.name in bindists:
         return bindists[job.name]
@@ -36,7 +37,7 @@ def fetch_artifacts(release: str, pipeline_id: int,
     pipeline = proj.pipelines.get(pipeline_id)
     tmpdir = Path("fetch-gitlab")
     tmpdir.mkdir(exist_ok=True)
-    for pipeline_job in pipeline.jobs.list():
+    for pipeline_job in pipeline.jobs.list(all=True):
         if len(pipeline_job.artifacts) == 0:
             continue
 
@@ -51,18 +52,22 @@ def fetch_artifacts(release: str, pipeline_id: int,
         try:
             destdir = tmpdir / job.name
             zip_name = Path(f"{tmpdir}/{job.name}.zip")
-            if not zip_name.exists():
+            if not zip_name.exists() or zip_name.stat().st_size == 0:
                 with open(zip_name, 'wb') as f:
                     job.artifacts(streamed=True, action=f.write)
 
             if zip_name.stat().st_size == 0:
-                logging.info(f'artifact archive for job {job.name} is empty')
+                logging.info(f'artifact archive for job {job.name} (job {job.id}) is empty')
+                continue
+
+            dest = dest_dir / f'ghc-{release}-{triple}.tar.xz'
+            if dest.exists():
+                logging.info(f'bindist ${dest} already exists')
                 continue
 
             subprocess.run(['unzip', '-bo', zip_name, '-d', destdir])
             bindist = destdir / "ghc.tar.xz"
             if bindist.exists():
-                dest = dest_dir / f'ghc-{release}-{triple}.tar.xz'
                 logging.info(f'extracted {job.name} to {dest}')
                 bindist.replace(dest)
             else:
