@@ -15,8 +15,16 @@ parseVer s = case [ v | (v,"") <- readP_to_S parseVersion s ] of
     (v:_) -> v
     []    -> error ("parseVer: " ++ show s)
 
-newtype GhcRelease = GhcRelease { getGhcRelease :: String }
-                   deriving (Show, Eq, Ord)
+data GhcRelease = Released Version | HEAD
+                deriving (Show, Eq, Ord)
+
+parseGhcRelease :: String -> GhcRelease
+parseGhcRelease "HEAD" = HEAD
+parseGhcRelease s      = Released (parseVer s)
+
+showGhcRelease :: GhcRelease -> String
+showGhcRelease (Released v) = showVersion v
+showGhcRelease HEAD         = "HEAD"
 
 newtype PackageName = PackageName { getPackageName :: String }
                     deriving (Show, Eq, Ord)
@@ -30,7 +38,7 @@ parseVersions input = M.unionsWith (<>) $ fmap parseLine ls
     ls = map words $ normalizeLines $ lines input
 
     parseLine :: [String] -> M.Map GhcRelease (M.Map PackageName (Visibility, Version))
-    parseLine (gv:pvs) = M.singleton (GhcRelease gv)
+    parseLine (gv:pvs) = M.singleton (parseGhcRelease gv)
         $ M.fromList [ (PackageName pn, (vis, ver))
                      | pnv <- pvs
                      , let (pn, pv) = fmap tail $ break (=='/') pnv
@@ -52,7 +60,7 @@ main = do
         allgvs  = S.toDescList $ M.keysSet vs
 
     let hdr = "<tr><th>" ++ cells ++ "</th></tr>"
-          where cells = intercalate "</th> <th>" $ (" " : [ "<b>" <> getGhcRelease v <> "</b>" | v <- allgvs ]) ++ [""]
+          where cells = intercalate "</th> <th>" $ (" " : [ "<b>" <> showGhcRelease v <> "</b>" | v <- allgvs ]) ++ [""]
     putStrLn "<table>"
     putStrLn hdr
 
