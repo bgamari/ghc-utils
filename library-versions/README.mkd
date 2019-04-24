@@ -10,7 +10,6 @@ of the GHC wiki.
 1. First dump the compiler's global package database: `ghc-pkg list --global > tmp`
 2. Feed this to `pack_pkg_list`: `./pack_pkg_list.hs tmp`
 3. Insert the output of `pkg_pkg_list` into `pkg_versions.txt`
-4. Manually add the `Win32` version at the top of `pkg_versions.txt`
-5. Use `mk_pkg_table` to generate the table: `./mk_pkg_table.hs < pkg_versions.txt`
-
-Don't forget to do this on a Windows machine as well to get the `Win32` version.
+4. Run `./get_win32_version.sh $GHC_VERSION`, e.g. `./get_win32_version.sh 8.6.4` or `.get_win32_version.sh $(ghc --numeric-version)`.
+5. Add the output of `get_win32_version.sh` to the other `Win32` versions at the top of `pkg_versions.txt`
+6. Use `mk_pkg_table` to generate the table: `./mk_pkg_table.hs < pkg_versions.txt`
