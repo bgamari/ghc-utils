@@ -60,7 +60,7 @@ main = do
         allgvs  = S.toDescList $ M.keysSet vs
 
     let hdr = "<tr><th>" ++ cells ++ "</th></tr>"
-          where cells = intercalate "</th> <th>" $ (" " : [ "<b>" <> showGhcRelease v <> "</b>" | v <- allgvs ]) ++ [""]
+          where cells = intercalate "</th> <th>" (" " : [ "<b>" <> showGhcRelease v <> "</b>" | v <- allgvs ])
     putStrLn "<table>"
     putStrLn hdr
 
