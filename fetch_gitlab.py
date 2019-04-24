@@ -19,6 +19,7 @@ def job_triple(job):
         'validate-i386-linux-deb9': 'i386-deb9-linux',
         'validate-x86_64-linux-deb8': 'x86_64-deb8-linux',
         'validate-x86_64-linux-deb9': 'x86_64-deb9-linux',
+        'release-x86_64-linux-deb9': 'x86_64-deb9-linux',
         'release-x86_64-linux-deb9-dwarf': 'x86_64-deb9-linux-dwarf',
         'validate-x86_64-windows': 'x86_64-unknown-mingw32',
         'validate-i386-windows': 'i386-unknown-mingw32',
@@ -28,7 +29,8 @@ def job_triple(job):
     if job.name in bindists:
         return bindists[job.name]
     else:
-        return strip_prefix(job.name, 'validate-')
+        #return strip_prefix(job.name, 'validate-')
+        return None
 
 def fetch_artifacts(release: str, pipeline_id: int,
                     dest_dir: Path, gl: gitlab.Gitlab):
@@ -39,12 +41,14 @@ def fetch_artifacts(release: str, pipeline_id: int,
     tmpdir.mkdir(exist_ok=True)
     for pipeline_job in pipeline.jobs.list(all=True):
         if len(pipeline_job.artifacts) == 0:
+            logging.info(f'job {pipeline_job.name} ({pipeline_job.id}) has no artifacts')
             continue
 
         job = proj.jobs.get(pipeline_job.id)
         triple = job_triple(job)
         if triple is None:
-            pass
+            logging.info(f'ignoring {job.name}')
+            continue
 
         #artifactZips = [ artifact
         #                 for artifact in job.artifacts
@@ -62,16 +66,17 @@ def fetch_artifacts(release: str, pipeline_id: int,
 
             dest = dest_dir / f'ghc-{release}-{triple}.tar.xz'
             if dest.exists():
-                logging.info(f'bindist ${dest} already exists')
+                logging.info(f'bindist {dest} already exists')
                 continue
 
             subprocess.run(['unzip', '-bo', zip_name, '-d', destdir])
-            bindist = destdir / "ghc.tar.xz"
-            if bindist.exists():
+            bindist = list(destdir.glob('ghc*.tar.xz'))
+            if len(bindist) != 0:
+                bindist = bindist[0]
                 logging.info(f'extracted {job.name} to {dest}')
                 bindist.replace(dest)
             else:
-                print('Bindist already exists')
+                logging.warn(f'Bindist {bindist} does not exist')
         except Exception as e:
             logging.error(f'Error fetching job {job.name}: {e}')
             pass
