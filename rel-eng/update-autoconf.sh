@@ -1,7 +1,9 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -e
 
 tmp=`mktemp -d`
-git -C $tmp clone git://git0.savannah.gnu.org/config.git
+git -C $tmp clone git://git.savannah.gnu.org/config.git
 commit=`git -C $tmp/config rev-parse HEAD`
 echo "Updating to $commit..."
 
