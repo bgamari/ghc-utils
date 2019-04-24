@@ -10,7 +10,8 @@ let
         cp ${./debug-ghc} $out/bin/debug-ghc
         chmod ugo+rx $out/bin/debug-ghc
         substituteInPlace $out/bin/debug-ghc \
-          --replace tempfile ${debianutils}/bin/tempfile
+          --replace tempfile ${debianutils}/bin/tempfile \
+          --replace 'PROG="gdb' 'PROG="${gdb.gdb}/bin/gdb'
       '';
     };
   gdb = import ./gdb;
