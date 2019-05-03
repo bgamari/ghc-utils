@@ -6,3 +6,4 @@ bin/
 *.hi
 *.o
 __pycache__
+result
