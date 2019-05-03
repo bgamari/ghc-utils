@@ -180,7 +180,7 @@ def get_nonmoving_segment(ptr: Ptr) -> Optional[Tuple[gdb.Value, int]]:
     else:
         return None
 
-def refs_dot(edges: List[Edge]) -> str:
+def refs_dot(edges: List[Edge], roots: Set[Ptr]) -> str:
     def node_name(ref: Edge) -> str:
         return str(ref.referring_field)
 
@@ -226,25 +226,37 @@ def refs_dot(edges: List[Edge]) -> str:
                 "%s (fld %d)" % (ref.referring_closure,
                 (ref.referring_field.addr() - ref.referring_closure.addr()) / 8)
             ]
+            src = ref.referree_closure
         else:
             label += ['! %s' % ref.referring_field]
+            src = ref.referring_field
 
         label += ['%s%s' % (closure_type, extra)]
         label += [closure_name]
         label = '\n'.join(label)
-        return {'label': label,
-                'fontcolor': color}
+
+        attrs =  {'label': label,
+                  'fontcolor': color}
+        # Highlight roots
+        if e.referring_closure in roots:
+            attrs['fillcolor'] = 'yellow'
+
+        return attrs
 
     def format_attrs(attrs: Dict[str,str]) -> str:
         return ', '.join('"%s"="%s"' % (name, val)
                          for name, val in attrs.items())
 
+    def source_name(e: Edge) -> str:
+        return str(e.referring_closure if e.referring_closure is not None else e.referring_field)
+
     lines  = ['digraph {']
     lines += ['  "%s" -> "%s";' %
-              (e.referring_closure, e.referree_closure)
+              (source_name(e), e.referree_closure)
               for e in edges]
-    lines += ['  "%s" [%s];' % (e.referring_closure, format_attrs(node_attrs(e)))
-                for e in edges]
+    lines += ['  "%s" [%s];' % (source_name(e), format_attrs(node_attrs(e)))
+              for e in edges]
+
     lines += ['}']
     return '\n'.join(lines)
 
@@ -268,15 +280,19 @@ class ExportClosureDepsDot(CommandWithArgs):
                             metavar='FILE', type=str, help='Output dot file path')
         parser.add_argument('-n', '--no-static', action='store_true', help="Don't search static maps")
         parser.add_argument('-S', '--max-closure-size', type=int, help="The maximum distance in words to search for a closure header", default=4*4096)
-        parser.add_argument('closure_ptr', type=str, help='A pointer to a closure')
+        parser.add_argument('closure_ptr', nargs='+', type=str, help='A pointer to a closure')
 
     def run(self, opts, from_tty) -> None:
-        closure_ptr = Ptr(gdb.parse_and_eval(opts.closure_ptr))
-        edges = collect(find_refs_rec(closure_ptr, max_depth=opts.depth,
+        roots = { Ptr(gdb.parse_and_eval(ptr)) for ptr in opts.closure_ptr } # type: Set[Ptr]
+        edges = collect(edge
+                        for root in roots
+                        for edge in find_refs_rec(
+                                      root, max_depth=opts.depth,
                                       include_static=not opts.no_static,
                                       max_closure_size=opts.max_closure_size))
+
         with open(opts.output, 'w') as f:
-            f.write(refs_dot(edges))
+            f.write(refs_dot(edges, roots=roots))
 
         print('Found %d reference edges' % len(edges))
         print('Written to %s' % opts.output)
