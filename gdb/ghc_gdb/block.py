@@ -27,8 +27,11 @@ def get_bdescr(ptr: Ptr) -> Optional[Any]:
     if ptr < heap_start: return None # XXX
 
     if is_heap_alloced(ptr):
-        # _bdescr is only provided by the debug RTS
-        return gdb.parse_and_eval('_bdescr(%d)' % ptr.addr()).dereference()
+        try:
+            # _bdescr is only provided by the debug RTS
+            return gdb.parse_and_eval('_bdescr(%d)' % ptr.addr()).dereference()
+        except gdb.error:
+            return gdb.parse_and_eval('Bdescr(%d)' % ptr.addr()).dereference()
     else:
         return None
 
