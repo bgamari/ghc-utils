@@ -1,5 +1,6 @@
-with (import <nixpkgs> {});
+{ nixpkgs ? (import <nixpkgs> {}) }:
 
+with nixpkgs;
 let
   rel-eng =
     stdenv.mkDerivation {
