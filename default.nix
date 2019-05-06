@@ -5,6 +5,7 @@ let
   rel-eng =
     stdenv.mkDerivation {
       name = "rel-eng-scripts";
+      nativeBuildInputs = [ makeWrapper ];
       buildCommand = ''
         mkdir -p $out/bin
 
@@ -13,6 +14,9 @@ let
         substituteInPlace $out/bin/debug-ghc \
           --replace tempfile ${debianutils}/bin/tempfile \
           --replace 'PROG="gdb' 'PROG="${gdb.gdb}/bin/gdb'
+        
+        makeWrapper ${./parallel-rr.py} $out/bin/parallel-rr \
+          --prefix PATH : ${gdb.rr}/bin
       '';
     };
   gdb = import ./gdb;
