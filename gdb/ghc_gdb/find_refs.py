@@ -221,7 +221,7 @@ def refs_dot(edges: List[Edge], roots: Set[Ptr], mut_list_reachables: Set[Ptr]) 
 
         # ! means that we couldn't find the start of the containing closure;
         # pointer identifies field
-        label = []
+        label = [] # type: List[str]
         if ref.referring_closure is not None:
             label += [
                 "%s (fld %d)" % (ref.referring_closure,
@@ -234,9 +234,8 @@ def refs_dot(edges: List[Edge], roots: Set[Ptr], mut_list_reachables: Set[Ptr]) 
 
         label += ['%s%s' % (closure_type, extra)]
         label += [closure_name]
-        label = '\n'.join(label)
 
-        attrs =  {'label': label,
+        attrs =  {'label': '\n'.join(label),
                   'fontcolor': color}
         # Highlight roots
         if ref.referring_closure in roots:

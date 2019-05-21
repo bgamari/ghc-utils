@@ -91,8 +91,8 @@ class Closure(object):
     def describe(self):
         return r'{type_desc}@{addr}'.format(**self.__dict__)
 
-class Constr(Closure):
-    def __init__(self, addr: Ptr, info_ptr: Ptr, ptrs: List[Ptr], nptrs: List[Word]) -> None:
-        Closure.__init__(self, addr, info_ptr, "Constr(%s)" % constr_name)
-        self.ptrs = ptrs
-        self.nptrs = nptrs
+#class Constr(Closure):
+#    def __init__(self, addr: Ptr, info_ptr: Ptr, ptrs: List[Ptr], nptrs: List[Word]) -> None:
+#        Closure.__init__(self, addr, info_ptr, "Constr(%s)" % constr_name)
+#        self.ptrs = ptrs
+#        self.nptrs = nptrs
