@@ -238,7 +238,7 @@ def refs_dot(edges: List[Edge], roots: Set[Ptr]) -> str:
         attrs =  {'label': label,
                   'fontcolor': color}
         # Highlight roots
-        if e.referring_closure in roots:
+        if ref.referring_closure in roots:
             attrs['fillcolor'] = 'yellow'
 
         return attrs
