@@ -24,3 +24,10 @@ class CommandWithArgs(gdb.Command):
 
     def run(self, opts, from_tty):
         raise NotImplementedError()
+
+def get_num_capabilities():
+    return int(gdb.parse_and_eval('n_capabilities'))
+
+def get_num_generations():
+    return int(gdb.parse_and_eval('RtsFlags.GcFlags.generations'))
+

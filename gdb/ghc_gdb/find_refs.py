@@ -3,7 +3,7 @@ from typing import List, Optional, Tuple, TypeVar, Callable, NamedTuple, Set, Di
 from . import ghc_heap
 from .types import *
 from . import closure
-from .utils import CommandWithArgs
+from .utils import CommandWithArgs, get_num_generations
 from .block import get_bdescr, heap_start, heap_end
 from .mut_list import collect_mut_list
 import gdb
@@ -181,7 +181,7 @@ def get_nonmoving_segment(ptr: Ptr) -> Optional[Tuple[gdb.Value, int]]:
     else:
         return None
 
-def refs_dot(edges: List[Edge], roots: Set[Ptr], mut_list_reachables: Set[Ptr]) -> str:
+def refs_dot(edges: List[Edge], roots: Set[Ptr], mut_list_reachables: Dict[int, Set[Ptr]]) -> str:
     def node_name(ref: Edge) -> str:
         return str(ref.referring_field)
 
@@ -257,6 +257,12 @@ def refs_dot(edges: List[Edge], roots: Set[Ptr], mut_list_reachables: Set[Ptr]) 
     lines += ['  "%s" [%s];' % (source_name(e), format_attrs(node_attrs(e)))
               for e in edges]
 
+    lines += ['  "mut_list%d" [label="mut_list %d" fontcolor="orange"];' % (gen, gen)
+              for gen,_ in mut_list_reachables.items()]
+    lines += ['  "mut_list%d" -> "%s";' % (gen, p)
+              for gen, ptrs in mut_list_reachables.items()
+              for p in ptrs]
+
     lines += ['}']
     return '\n'.join(lines)
 
@@ -292,16 +298,16 @@ class ExportClosureDepsDot(CommandWithArgs):
                                       include_static=not opts.no_static,
                                       max_closure_size=opts.max_closure_size))
 
+        mut_list_reachables = dict() # type: Dict[int, Set[Ptr]]
         if opts.mut_list:
-            mut_list_entries = set(collect_mut_list())
             # Closures reachable from the mutable lsit
-            mut_list_reachables = set() # type: Set[Ptr]
-            for edge in edges:
-                if edge.referring_closure is not None and \
-                        edge.referring_closure in mut_list_entries:
-                    mut_list_reachables.add(edge.referring_closure)
-        else:
-            mut_list_reachables = set()
+            for gen in range(get_num_generations()):
+                mut_list_entries = set(collect_mut_list(gen))
+                mut_list_reachables[gen] = set()
+                for edge in edges:
+                    if edge.referring_closure is not None and \
+                            edge.referring_closure.untagged() in mut_list_entries:
+                        mut_list_reachables[gen].add(edge.referring_closure)
 
         with open(opts.output, 'w') as f:
             f.write(refs_dot(edges, roots=roots, mut_list_reachables = mut_list_reachables))
