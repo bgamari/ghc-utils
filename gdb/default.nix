@@ -16,9 +16,13 @@ in with nixpkgs; rec {
 
   ghc-gdb = pythonPackages.buildPythonPackage {
     name = "ghc-gdb";
-    doCheck = false;
     src = ./.;
     preferLocalBuild = true;
+    checkInputs = [ mypy ];
+    checkPhase =
+      ''
+        mypy --ignore-missing-imports .
+      '';
   };
 
   run-ghc-gdb = writeScriptBin "ghc-gdb" ''
