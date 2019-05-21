@@ -5,6 +5,7 @@ from .types import *
 from . import closure
 from .utils import CommandWithArgs
 from .block import get_bdescr, heap_start, heap_end
+from .mut_list import collect_mut_list
 import gdb
 
 T = TypeVar('T')
@@ -180,7 +181,7 @@ def get_nonmoving_segment(ptr: Ptr) -> Optional[Tuple[gdb.Value, int]]:
     else:
         return None
 
-def refs_dot(edges: List[Edge], roots: Set[Ptr]) -> str:
+def refs_dot(edges: List[Edge], roots: Set[Ptr], mut_list_reachables: Set[Ptr]) -> str:
     def node_name(ref: Edge) -> str:
         return str(ref.referring_field)
 
@@ -280,6 +281,7 @@ class ExportClosureDepsDot(CommandWithArgs):
                             metavar='FILE', type=str, help='Output dot file path')
         parser.add_argument('-n', '--no-static', action='store_true', help="Don't search static maps")
         parser.add_argument('-S', '--max-closure-size', type=int, help="The maximum distance in words to search for a closure header", default=4*4096)
+        parser.add_argument('-m', '--mut-list', action='store_true', help="Look for references in capability mut_lists")
         parser.add_argument('closure_ptr', nargs='+', type=str, help='A pointer to a closure')
 
     def run(self, opts, from_tty) -> None:
@@ -291,8 +293,19 @@ class ExportClosureDepsDot(CommandWithArgs):
                                       include_static=not opts.no_static,
                                       max_closure_size=opts.max_closure_size))
 
+        if opts.mut_list:
+            mut_list_entries = set(collect_mut_list())
+            # Closures reachable from the mutable lsit
+            mut_list_reachables = set() # type: Set[Ptr]
+            for edge in edges:
+                if edge.referring_closure is not None and \
+                        edge.referring_closure in mut_list_entries:
+                    mut_list_reachables.add(edge.referring_closure)
+        else:
+            mut_list_reachables = set()
+
         with open(opts.output, 'w') as f:
-            f.write(refs_dot(edges, roots=roots))
+            f.write(refs_dot(edges, roots=roots, mut_list_reachables = mut_list_reachables))
 
         print('Found %d reference edges' % len(edges))
         print('Written to %s' % opts.output)
