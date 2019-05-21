@@ -24,5 +24,5 @@ let
 in
   symlinkJoin {
     name = "hi";
-    paths = [ gdb.gdb gdb.run-ghc-gdb gdb.run-ghc-rr gdb.dot2svg rel-eng gitlab-utils ];
+    paths = [ gdb.rr gdb.gdb gdb.run-ghc-gdb gdb.run-ghc-rr gdb.dot2svg rel-eng gitlab-utils ];
   }
