@@ -2,9 +2,9 @@
 
 with nixpkgs;
 let
-  rel-eng =
+  misc-scripts =
     stdenv.mkDerivation {
-      name = "rel-eng-scripts";
+      name = "misc-scripts";
       nativeBuildInputs = [ makeWrapper ];
       buildCommand = ''
         mkdir -p $out/bin
@@ -19,10 +19,14 @@ let
           --prefix PATH : ${gdb.rr}/bin
       '';
     };
-  gdb = import ./gdb;
+  gdb = import ./gdb { inherit nixpkgs; };
   gitlab-utils = import ./gitlab-utils;
+  rel-eng = import ./rel-eng { inherit nixpkgs; };
 in
   symlinkJoin {
-    name = "hi";
-    paths = [ gdb.rr gdb.gdb gdb.run-ghc-gdb gdb.run-ghc-rr gdb.dot2svg rel-eng gitlab-utils ];
+    name = "ghc-utils";
+    paths = [
+      gdb.rr gdb.gdb gdb.run-ghc-gdb gdb.run-ghc-rr gdb.dot2svg 
+      #misc-scripts rel-eng gitlab-utils
+    ];
   }
