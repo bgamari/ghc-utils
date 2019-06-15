@@ -10,6 +10,8 @@ others for release management. Some are useful; all are hacky.
  * `push`: A script which I use to look over and push upstream my local branches
  * `review-submodules`: A script for reviewing and optionally reverting
    submodule changes in a commit
+ * `add-upstream-remotes.py`: A script which adds git remotes (named `upstream`)
+   to all submodules pointing to the upstream repository.
 
 ## Development tools
 

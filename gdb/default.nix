@@ -11,14 +11,19 @@ let
   };
   nixpkgs = import baseNixpkgs {};
 
-in with nixpkgs; rec {
+in { nixpkgs ? nixpkgs }:
+with nixpkgs; rec {
   pythonPackages = python3Packages;
 
   ghc-gdb = pythonPackages.buildPythonPackage {
     name = "ghc-gdb";
-    doCheck = false;
     src = ./.;
     preferLocalBuild = true;
+    checkInputs = [ mypy ];
+    checkPhase =
+      ''
+        mypy --ignore-missing-imports .
+      '';
   };
 
   run-ghc-gdb = writeScriptBin "ghc-gdb" ''
@@ -46,7 +51,7 @@ in with nixpkgs; rec {
   };
 
   gdb = (nixpkgs.gdb.override {
-    python = python3;
+    python3 = python3;
   }).overrideAttrs (oldAttrs: {
     buildInputs = oldAttrs.buildInputs ++ [ libipt ]; 
   });

@@ -445,13 +445,15 @@ class PrintGhcInfoTableCmd(gdb.Command):
 
         info = info_ptr.dereference()
         layout = info['layout']
+
         layout_doc = Hang(Text('Layout'))
         layout_doc += Text('Heap: %d pointers, %d non-pointers' %
                            (layout['payload']['ptrs'],
                             layout['payload']['nptrs']))
+        layout_doc += Text('SRT: %d' % (info['srt']))
         layout_doc += Text('Stack: %s' % list(iter_small_bitmap(layout['bitmap'])))
 
-        docs = Hang(print_addr(info_ptr))
+        docs = Hang(Text('Info table @ %s' % print_addr(info_ptr)))
         docs += layout_doc
         print(docs)
 
