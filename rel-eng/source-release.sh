@@ -2,10 +2,12 @@
 
 set -e
 
-grep TBA libraries/*/changelog.md && (
-    echo "Error: Found TBAs in changelogs."
-    exit 1
-)
+if [ -z "$FORCE" ]; then
+    grep TBA libraries/*/changelog.md && (
+        echo "Error: Found TBAs in changelogs."
+        exit 1
+    )
+fi
 
 make distclean
 if [[ $(git clean -dn | wc -l) > 1 ]]; then
