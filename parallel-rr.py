@@ -9,6 +9,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-j', '--jobs', type=int, default=1, help="Number of parallel jobs")
+    parser.add_argument('--rr-record', type=str, default='rr record', help="rr command")
     parser.add_argument('cmdline', nargs='+', help="Command to run")
     args = parser.parse_args()
 
@@ -20,7 +21,7 @@ def main():
         nonlocal n, stop
         while not stop:
             out_path = base_path / f"out-{n}"
-            cmdline = ['rr', 'record', '-o', out_path] + args.cmdline
+            cmdline = args.rr_record.split() + ['-o', out_path] + args.cmdline
             p = subprocess.run(cmdline)
             if p.returncode != 0:
                 print(out_path)
