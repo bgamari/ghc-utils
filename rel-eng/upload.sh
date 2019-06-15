@@ -147,6 +147,8 @@ function upload() {
     rsync --progress -aLz $rsync_opts . $host:/www-data/downloads/ghc/$dir
     chmod ugo-w $(ls *.xz *.bz2)
     # Purge CDN cache
+    curl -X PURGE http://downloads.haskell.org/ghc/$dir
+    curl -X PURGE http://downloads.haskell.org/ghc/$dir/
     curl -X PURGE http://downloads.haskell.org/~ghc/$dir
     curl -X PURGE http://downloads.haskell.org/~ghc/$dir/
     for i in *; do
@@ -168,7 +170,7 @@ function prepare_docs() {
         exit 1
     fi
     windows_bindist="$(ls ghc-$ver-x86_64-unknown-mingw32.tar.xz | head -n1)"
-    linux_bindist="$(ls ghc-$ver-x86_64-deb8-linux.tar.xz | head -n1)"
+    linux_bindist="$(ls ghc-$ver-x86_64-deb9-linux.tar.xz | head -n1)"
     echo "Windows bindist: $windows_bindist"
     echo "Linux bindist: $linux_bindist"
     $ENTER_FHS_ENV $mkdocs $linux_bindist $windows_bindist
