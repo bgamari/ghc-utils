@@ -147,6 +147,8 @@ function upload() {
     rsync --progress -aLz $rsync_opts . $host:/www-data/downloads/ghc/$dir
     chmod ugo-w $(ls *.xz *.bz2)
     # Purge CDN cache
+    curl -X PURGE http://downloads.haskell.org/ghc/
+    curl -X PURGE http://downloads.haskell.org/~ghc/
     curl -X PURGE http://downloads.haskell.org/ghc/$dir
     curl -X PURGE http://downloads.haskell.org/ghc/$dir/
     curl -X PURGE http://downloads.haskell.org/~ghc/$dir
