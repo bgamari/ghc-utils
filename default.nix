@@ -6,6 +6,7 @@ let
     stdenv.mkDerivation {
       name = "misc-scripts";
       nativeBuildInputs = [ makeWrapper ];
+      preferLocalBuild = true;
       buildCommand = ''
         mkdir -p $out/bin
 
@@ -25,8 +26,11 @@ let
 in
   symlinkJoin {
     name = "ghc-utils";
+    preferLocalBuild = true;
     paths = [
       gdb.rr gdb.gdb gdb.run-ghc-gdb gdb.run-ghc-rr gdb.dot2svg 
-      #misc-scripts rel-eng gitlab-utils
+      misc-scripts 
+      rel-eng
+      gitlab-utils
     ];
   }

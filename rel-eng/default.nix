@@ -19,6 +19,7 @@ let
   scripts = stdenv.mkDerivation {
     name = "rel-eng-scripts";
     nativeBuildInputs = [ makeWrapper ];
+    preferLocalBuild = true;
     buildCommand = ''
       mkdir -p $out/bin
 
@@ -40,5 +41,6 @@ let
 in
   symlinkJoin {
     name = "ghc-rel-eng";
+    preferLocalBuild = true;
     paths = [ scripts fetch-gitlab-artifacts ];
   }
