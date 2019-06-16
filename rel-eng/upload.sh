@@ -159,8 +159,12 @@ function upload() {
 }
 
 function purge_file() {
+    curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/$i
     curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/$i/
     curl -X PURGE http://downloads.haskell.org/~ghc/$rel_name/$i/docs/
+    curl -X PURGE http://downloads.haskell.org/ghc/$rel_name/$i
+    curl -X PURGE http://downloads.haskell.org/ghc/$rel_name/$i/
+    curl -X PURGE http://downloads.haskell.org/ghc/$rel_name/$i/docs/
 }
 
 function prepare_docs() {
