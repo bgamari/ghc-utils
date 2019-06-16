@@ -52,7 +52,7 @@ in with nixpkgs; rec {
   gdb = (nixpkgs.gdb.override {
     python = python3;
   }).overrideAttrs (oldAttrs: {
-    buildInputs = oldAttrs.buildInputs ++ [ libipt ]; 
+    buildInputs = oldAttrs.buildInputs ++ [ libipt ];
   });
 
   rr = nixpkgs.rr.overrideAttrs (oldAttrs: {
@@ -69,7 +69,7 @@ in with nixpkgs; rec {
   env = symlinkJoin {
     name = "gdb-with-ghc-gdb";
     paths = [
-      gdb pythonEnv gdbinit rr dot2svg 
+      gdb pythonEnv gdbinit rr dot2svg
       run-ghc-gdb run-ghc-rr
     ];
   };
