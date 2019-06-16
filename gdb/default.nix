@@ -13,9 +13,7 @@ let
 
 in { nixpkgs ? nixpkgs }:
 with nixpkgs; rec {
-  pythonPackages = python3Packages;
-
-  ghc-gdb = pythonPackages.buildPythonPackage {
+  ghc-gdb = python3Packages.buildPythonPackage {
     name = "ghc-gdb";
     src = ./.;
     preferLocalBuild = true;
@@ -88,7 +86,7 @@ with nixpkgs; rec {
     name = "gdbinit";
     destination = "/gdbinit";
     text = ''
-      python sys.path = ["${pythonEnv}/lib/python3.6/site-packages"] + sys.path
+      python sys.path = ["${pythonEnv}/lib/python${python3.pythonVersion}/site-packages"] + sys.path
       python
       if 'ghc_gdb' in globals():
           import importlib
