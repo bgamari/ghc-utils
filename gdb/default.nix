@@ -26,7 +26,7 @@ in with nixpkgs; rec {
   };
 
   run-ghc-gdb = writeScriptBin "ghc-gdb" ''
-    ${gdb}/bin/gdb -x ${gdbinit}/gdbinit
+    ${gdb}/bin/gdb -x ${gdbinit}/gdbinit "$@"
   '';
 
   run-ghc-rr = writeScriptBin "ghc-rr" ''
