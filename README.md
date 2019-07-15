@@ -3,6 +3,11 @@ There are utilities that I find useful while working on GHC. It's quite a mixed
 bag; a few are for performance analysis, some for general development, and
 others for release management. Some are useful; all are hacky.
 
+# Usage
+
+You can build the scripts using `nix-build .` and enter into a shell where
+the scripts are available using `nix-shell`.
+
 ## Day-to-day maintenance
 
  * `land`: A script which I use to merge and clean up Phabricator differential

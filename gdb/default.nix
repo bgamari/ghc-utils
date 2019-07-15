@@ -25,7 +25,7 @@ with nixpkgs; rec {
   };
 
   run-ghc-gdb = writeScriptBin "ghc-gdb" ''
-    ${gdb}/bin/gdb -x ${gdbinit}/gdbinit
+    ${gdb}/bin/gdb -x ${gdbinit}/gdbinit "$@"
   '';
 
   run-ghc-rr = writeScriptBin "ghc-rr" ''
@@ -51,7 +51,7 @@ with nixpkgs; rec {
   gdb = (nixpkgs.gdb.override {
     python3 = python3;
   }).overrideAttrs (oldAttrs: {
-    buildInputs = oldAttrs.buildInputs ++ [ libipt ]; 
+    buildInputs = oldAttrs.buildInputs ++ [ libipt ];
   });
 
   rr = nixpkgs.rr.overrideAttrs (oldAttrs: {
@@ -68,7 +68,7 @@ with nixpkgs; rec {
   env = symlinkJoin {
     name = "gdb-with-ghc-gdb";
     paths = [
-      gdb pythonEnv gdbinit rr dot2svg 
+      gdb pythonEnv gdbinit rr dot2svg
       run-ghc-gdb run-ghc-rr
     ];
   };
