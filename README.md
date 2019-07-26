@@ -34,6 +34,9 @@ the scripts are available using `nix-shell`.
    my-program.verbose-core2core`)
  * `compare-ticks/`: A hack for comparing reports from GHC's ticky-ticky
    profiler.
+ * `compare-stats.py`: Utility for comparing output from GHC's `+RTS -t
+   --machine-readable` output.
+
 
 ## Release engineering
 

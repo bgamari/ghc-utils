@@ -15,9 +15,11 @@ let
         substituteInPlace $out/bin/debug-ghc \
           --replace tempfile ${debianutils}/bin/tempfile \
           --replace 'PROG="gdb' 'PROG="${gdb.gdb}/bin/gdb'
-        
+
         makeWrapper ${./parallel-rr.py} $out/bin/parallel-rr \
           --prefix PATH : ${gdb.rr}/bin
+
+        makeWrapper ${./compare-stats.py} $out/bin/compare-stats
       '';
     };
   gdb = import ./gdb { inherit nixpkgs; };
@@ -28,8 +30,8 @@ in
     name = "ghc-utils";
     preferLocalBuild = true;
     paths = [
-      gdb.rr gdb.gdb gdb.run-ghc-gdb gdb.run-ghc-rr gdb.dot2svg 
-      misc-scripts 
+      gdb.rr gdb.gdb gdb.run-ghc-gdb gdb.run-ghc-rr gdb.dot2svg
+      misc-scripts
       rel-eng
       gitlab-utils
     ];
