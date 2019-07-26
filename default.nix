@@ -20,11 +20,14 @@ let
           --prefix PATH : ${gdb.rr}/bin
 
         makeWrapper ${./compare-stats.py} $out/bin/compare-stats
+        makeWrapper ${./review-submodules} $out/bin/review-submodules
+        makeWrapper ${./split-core2core.py} $out/bin/split-core2core
       '';
     };
   gdb = import ./gdb { inherit nixpkgs; };
   gitlab-utils = import ./gitlab-utils;
   rel-eng = import ./rel-eng { inherit nixpkgs; };
+  compare-ticks = haskellPackages.callCabal2nix "compare-ticks" ./compare-ticks {};
 in
   symlinkJoin {
     name = "ghc-utils";
@@ -34,5 +37,6 @@ in
       misc-scripts
       rel-eng
       gitlab-utils
+      compare-ticks
     ];
   }
