@@ -24,9 +24,11 @@ data TickyStats = TickyStats { entries   :: Integer
                              }
                 deriving (Show, Eq)
 
+instance Semigroup TickyStats where
+    TickyStats a b c <> TickyStats x y z = TickyStats (a+x) (b+y) (c+z)
+
 instance Monoid TickyStats where
     mempty = TickyStats 0 0 0
-    TickyStats a b c `mappend` TickyStats x y z = TickyStats (a+x) (b+y) (c+z)
 
 -- | The name of a module
 data ModuleName = ModName { modulePackage :: String
