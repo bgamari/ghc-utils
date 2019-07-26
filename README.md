@@ -10,8 +10,6 @@ the scripts are available using `nix-shell`.
 
 ## Day-to-day maintenance
 
- * `land`: A script which I use to merge and clean up Phabricator differential
-   revisions (e.g. `ghc-utils/land D1234`)
  * `push`: A script which I use to look over and push upstream my local branches
  * `review-submodules`: A script for reviewing and optionally reverting
    submodule changes in a commit
