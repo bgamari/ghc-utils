@@ -19,7 +19,7 @@ let
         makeWrapper ${./parallel-rr.py} $out/bin/parallel-rr \
           --prefix PATH : ${gdb.rr}/bin
 
-        makeWrapper ${./compare-stats.py} $out/bin/compare-stats
+        makeWrapper ${./rts_stats.py} $out/bin/rts-stats
         makeWrapper ${./review-submodules} $out/bin/review-submodules
         makeWrapper ${./split-core2core.py} $out/bin/split-core2core
       '';

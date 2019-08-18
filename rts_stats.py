@@ -32,6 +32,7 @@ Example:
 import re
 import sys
 import ast
+import json
 
 def read_rts_stats(f) -> dict:
     f.readline()
@@ -46,24 +47,35 @@ def main() -> None:
         epilog=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument('-s', '--stat', type=str, action='append', default=[], metavar='METRIC',
-                        help='Specify the runtime metrics to compare.')
-    parser.add_argument('-o', '--output', type=argparse.FileType('w'), default=sys.stdout,
-                        help='Where to write the output (stdout by default)')
-    parser.add_argument('reference', type=argparse.FileType('r'), metavar="REF",
-                        help='The reference log')
-    parser.add_argument('inputs', type=argparse.FileType('r'), nargs='+', metavar="FILE",
-                        help='The logs to compare')
+    subparsers = parser.add_subparsers()
+    subparser = subparsers.add_parser('compare',
+                                      help="Compare output from GHC's +RTS -t --machine-readable output")
+    subparser.add_argument('-s', '--stat', type=str, action='append', default=[], metavar='METRIC',
+                           help='Specify the runtime metrics to compare.')
+    subparser.add_argument('-o', '--output', type=argparse.FileType('w'), default=sys.stdout,
+                           help='Where to write the output (stdout by default)')
+    subparser.add_argument('reference', type=argparse.FileType('r'), metavar="REF",
+                           help='The reference log')
+    subparser.add_argument('inputs', type=argparse.FileType('r'), nargs='+', metavar="FILE",
+                           help='The logs to compare')
+    subparser.set_defaults(func=compare)
+
+    subparser = subparsers.add_parser('to-json')
+    subparser.add_argument('-o', '--output', type=argparse.FileType('w'), default=sys.stdout,
+                           help='Where to write the output (stdout by default)')
+    subparser.add_argument('inputs', type=argparse.FileType('r'), nargs='+', metavar="FILE",
+                           help='The logs to compare')
+    subparser.set_defaults(func=to_json)
+
     args = parser.parse_args()
+    args.func(args)
 
-    stats = args.stat
-    if stats == []:
-        stats = ['allocated_bytes', 'total_cpu_seconds']
+def to_json(args):
+    files = { f.name: read_rts_stats(f) for f in args.inputs }
+    json.dump(files, args.output)
 
+def compare(args):
     ref = read_rts_stats(args.reference)
-    for stat in stats:
-        print(f'{args.reference.name}    {stat}:    {ref[stat]}')
-
     for f in args.inputs:
         parsed = read_rts_stats(f)
         for stat in stats:
