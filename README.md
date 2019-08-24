@@ -10,8 +10,6 @@ the scripts are available using `nix-shell`.
 
 ## Day-to-day maintenance
 
- * `land`: A script which I use to merge and clean up Phabricator differential
-   revisions (e.g. `ghc-utils/land D1234`)
  * `push`: A script which I use to look over and push upstream my local branches
  * `review-submodules`: A script for reviewing and optionally reverting
    submodule changes in a commit
@@ -34,6 +32,9 @@ the scripts are available using `nix-shell`.
    my-program.verbose-core2core`)
  * `compare-ticks/`: A hack for comparing reports from GHC's ticky-ticky
    profiler.
+ * `compare-stats.py`: Utility for comparing output from GHC's `+RTS -t
+   --machine-readable` output.
+
 
 ## Release engineering
 
