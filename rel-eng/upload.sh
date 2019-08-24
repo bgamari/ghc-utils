@@ -7,7 +7,7 @@ set -e
 # Usage,
 #   1. Update $ver
 #   2. Set $signing_key to your key id (prefixed with '=')
-#   3. Update $ghc_tree to point at a source working tree of the version being
+#   3. Update $GHC_TREE to point at a source working tree of the version being
 #      released.
 #   4. Create a directory and place the source and binary tarballs there
 #   5. Run this script from that directory
@@ -30,11 +30,6 @@ set -e
 signing_key="=Benjamin Gamari <ben@well-typed.com>"
 
 
-# A working directory of the version being packaged
-if [ -z "$ghc_tree" ]; then
-    ghc_tree=/opt/exp/ghc/ghc-7.10
-fi
-
 # Infer release name from directory name
 if [ -z "$rel_name" ]; then
     rel_name="$(basename $(pwd))"
@@ -49,7 +44,7 @@ fi
 host="downloads.haskell.org"
 
 usage() {
-    echo "Usage: [rel_name=<name>] ver=7.10.3-rc2 ghc_tree=/path/to/ghc/tree $0 <action>"
+    echo "Usage: [rel_name=<name>] ver=7.10.3-rc2 GHC_TREE=/path/to/ghc/tree $0 <action>"
     echo
     echo "where,"
     echo "  ghc-tree           gives the location of GHC source tree"
@@ -168,11 +163,17 @@ function purge_file() {
 }
 
 function prepare_docs() {
+    local tmp
     rm -Rf docs
-    mkdocs="$ghc_tree/distrib/mkDocs/mkDocs"
+    if [ -z "$GHC_TREE" ]; then
+        tmp=$(mktemp -d)
+        tar -xf ghc-$ver-src.tar.xz -C $tmp
+        GHC_TREE=$tmp/ghc-$ver
+    fi
+    mkdocs="$GHC_TREE/distrib/mkDocs/mkDocs"
     if [ ! -e $mkdocs ]; then
         echo "Couldn't find GHC mkDocs at $mkdocs."
-        echo "Perhaps you need to override ghc_tree?"
+        echo "Perhaps you need to override GHC_TREE?"
         exit 1
     fi
     windows_bindist="$(ls ghc-$ver-x86_64-unknown-mingw32.tar.xz | head -n1)"
@@ -180,6 +181,7 @@ function prepare_docs() {
     echo "Windows bindist: $windows_bindist"
     echo "Linux bindist: $linux_bindist"
     $ENTER_FHS_ENV $mkdocs $linux_bindist $windows_bindist
+    if [ -d $tmp ]; then rm -Rf $tmp; fi
 
     mkdir -p docs/html
     tar -Jxf $linux_bindist
