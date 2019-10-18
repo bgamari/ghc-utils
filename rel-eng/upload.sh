@@ -6,7 +6,7 @@ set -e
 #
 # Usage,
 #   1. Update $ver
-#   2. Set $signing_key to your key id (prefixed with '=')
+#   2. Set $SIGNING_KEY to your key id (prefixed with '=')
 #   3. Update $GHC_TREE to point at a source working tree of the version being
 #      released.
 #   4. Create a directory and place the source and binary tarballs there
@@ -27,7 +27,9 @@ set -e
 #
 # Prerequisites: moreutils
 
-signing_key="=Benjamin Gamari <ben@well-typed.com>"
+if [ -z "$SIGNING_KEY" ]; then
+    SIGNING_KEY="=Benjamin Gamari <ben@well-typed.com>"
+fi
 
 
 # Infer release name from directory name
@@ -118,7 +120,7 @@ function sign() {
         fi
         echo "Signing $i"
         rm -f $i.sig
-        gpg2 --use-agent --detach-sign --local-user="$signing_key" $i
+        gpg2 --use-agent --detach-sign --local-user="$SIGNING_KEY" $i
     done
 }
 
