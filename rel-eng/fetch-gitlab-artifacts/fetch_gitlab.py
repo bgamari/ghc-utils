@@ -15,6 +15,7 @@ def strip_prefix(s, prefix):
 
 def job_triple(job):
     bindists = {
+        'validate-aarch64-linux-deb9': 'aarch64-deb9-linux',
         'validate-x86_64-darwin': 'x86_64-apple-darwin',
         'validate-i386-linux-deb9': 'i386-deb9-linux',
         'release-x86_64-linux-deb8': 'x86_64-deb8-linux',
@@ -22,9 +23,12 @@ def job_triple(job):
         'release-x86_64-linux-deb9': 'x86_64-deb9-linux',
         'release-x86_64-linux-deb9-dwarf': 'x86_64-deb9-linux-dwarf',
         'release-x86_64-windows': 'x86_64-unknown-mingw32',
-        'validate-i386-windows': 'i386-unknown-mingw32',
+        'release-i386-windows': 'i386-unknown-mingw32',
+        'validate-x86_64-windows': 'x86_64-unknown-mingw32',
+        #'validate-i386-windows': 'i386-unknown-mingw32',
         'validate-x86_64-linux-fedora27': 'x86_64-fedora27-linux',
         'release-x86_64-linux-centos7': 'x86_64-centos7-linux',
+        'source-tarball': 'src',
     }
     if job.name in bindists:
         return bindists[job.name]
@@ -57,6 +61,7 @@ def fetch_artifacts(release: str, pipeline_id: int,
             destdir = tmpdir / job.name
             zip_name = Path(f"{tmpdir}/{job.name}.zip")
             if not zip_name.exists() or zip_name.stat().st_size == 0:
+                logging.info(f'downloading archive {zip_name} for job {job.name} (job {job.id})...')
                 with open(zip_name, 'wb') as f:
                     job.artifacts(streamed=True, action=f.write)
 
@@ -70,13 +75,20 @@ def fetch_artifacts(release: str, pipeline_id: int,
                 continue
 
             subprocess.run(['unzip', '-bo', zip_name, '-d', destdir])
-            bindist = list(destdir.glob('ghc*.tar.xz'))
-            if len(bindist) != 0:
-                bindist = bindist[0]
+            bindist_files = list(destdir.glob('ghc*.tar.xz'))
+            if len(bindist_files) == 0:
+                logging.warn(f'Bindist {bindist} does not exist')
+                continue
+
+            if job.name == 'source-tarball':
+                for f in bindist_files:
+                    dest = dest_dir / f.name
+                    logging.info(f'extracted {job.name} to {dest}')
+                    f.replace(dest)
+            else:
+                bindist = bindist_files[0]
                 logging.info(f'extracted {job.name} to {dest}')
                 bindist.replace(dest)
-            else:
-                logging.warn(f'Bindist {bindist} does not exist')
         except Exception as e:
             logging.error(f'Error fetching job {job.name}: {e}')
             pass

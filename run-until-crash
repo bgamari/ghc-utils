@@ -1,0 +1,102 @@
+#!/usr/bin/python
+
+from typing import List, Optional
+import subprocess
+import threading
+import time
+
+def main() -> None:
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-j', '--jobs', type=int, default=1,
+                        help='Number of concurrent processes')
+    parser.add_argument('-F', '--n-failures', type=int, default=1,
+                        help='Number of failures to run until')
+    parser.add_argument('-N', '--max-runs', type=int,
+                        help='Maximum number of runs to try')
+    parser.add_argument('-q', '--quiet', action='store_true',
+                        help='Suppress status messages')
+    parser.add_argument('-I', '--replace', type=str,
+                        help='String to replace with the job number')
+    parser.add_argument('command')
+    parser.add_argument('args', nargs=argparse.REMAINDER)
+    args = parser.parse_args()
+    
+    command = [args.command] + args.args
+    run(command, n_failures=args.n_failures,
+        max_runs=args.max_runs, jobs=args.jobs,
+        quiet=args.quiet, replace_str=args.replace)
+
+def run(command: List[str],
+        jobs: int,
+        n_failures: int,
+        max_runs: Optional[int],
+        replace_str: Optional[str],
+        quiet: bool):
+    n = 0 # type: int
+    failures = 0 # type: int
+    start = time.time()
+
+    def should_stop() -> bool:
+        nonlocal failures
+        nonlocal n
+
+        if failures >= n_failures:
+            return True
+        elif max_runs is not None and n >= max_runs:
+            return True
+        else:
+            return False
+
+    def worker(thread_n: int) -> None:
+        nonlocal failures
+        nonlocal n
+
+        my_command = command
+        if replace_str is not None:
+            my_command = [part.replace(replace_str, str(thread_n))
+                          for part in my_command]
+
+        while not should_stop():
+            code = subprocess.call(my_command)
+            report_status()
+            if code != 0:
+                print(f'Process failed with code {code}')
+                failures += 1
+
+            n += 1
+
+    def report_status() -> None:
+        nonlocal failures
+        nonlocal n
+
+        max_str = max_runs if max_runs is not None else "∞"
+        print(f'\rRun {n} / {max_str} ({failures} failures)')
+
+    def status_worker() -> None:
+        while not should_stop():
+            report_status()
+            time.sleep(1)
+
+    if not quiet:
+        status_thread = threading.Thread(target=status_worker, daemon=True)
+        status_thread.start()
+
+    threads = [ threading.Thread(target=worker, args=(i,)) for i in range(jobs) ]
+
+    for t in threads:
+        t.start()
+
+    try:
+        for t in threads:
+            t.join()
+    except KeyboardInterrupt:
+        pass
+
+    percent = 100.0 * float(failures) / n if n > 0 else 0
+    end = time.time()
+    diff = end - start
+    print(f'Ran {n} times in {diff:1.1} seconds, saw {failures} failures ({percent:2.1}% failure rate)')
+
+if __name__ == '__main__':
+    main()
