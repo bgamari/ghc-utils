@@ -22,6 +22,8 @@ let
         makeWrapper ${./rts_stats.py} $out/bin/rts-stats
         makeWrapper ${./review-submodules} $out/bin/review-submodules
         makeWrapper ${./split-core2core.py} $out/bin/split-core2core
+        makeWrapper ${./eventlog-sort.sh} $out/bin/eventlog-sort \
+          --prefix PATH : ${haskellPackages.ghc-events}/bin:${gawk}/bin
       '';
     };
   gdb = import ./gdb { inherit nixpkgs; };
