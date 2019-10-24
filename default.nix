@@ -24,6 +24,8 @@ let
         makeWrapper ${./split-core2core.py} $out/bin/split-core2core
         makeWrapper ${./eventlog-sort.sh} $out/bin/eventlog-sort \
           --prefix PATH : ${haskellPackages.ghc-events}/bin:${gawk}/bin
+        makeWrapper ${./run-until-crash} $out/bin/run-until-crash \
+          --prefix PATH : ${python3}/bin
       '';
     };
   gdb = import ./gdb { inherit nixpkgs; };
