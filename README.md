@@ -18,6 +18,8 @@ the scripts are available using `nix-shell`.
 
 ## Development tools
 
+ * `run-until-crash`: A tool to run a process until it crashes; useful for
+   reproducing and collecting core dumps from hard-to-trigger crashers.
  * `make-ghc-tags.sh`: A script for generating emacs `TAGS` files for a GHC tree
    (e.g. `ghc-utils/make-ghc-tags.sh`)
  * `debug-ghc`: A script for running an in-place installation of GHC (e.g.
@@ -34,6 +36,8 @@ the scripts are available using `nix-shell`.
    profiler.
  * `compare-stats.py`: Utility for comparing output from GHC's `+RTS -t
    --machine-readable` output.
+ * `eventlog-sort`: A hack to dump the events from a GHC eventlog with relative
+   timestamps (in milliseconds).
 
 
 ## Release engineering
@@ -52,3 +56,8 @@ the scripts are available using `nix-shell`.
  * `library-versions`: A set of scripts used to generate the
    `Commentary/Libraries/VersionHistory` page on the GHC Wiki. See
    `library-versions/README.mkd`.
+
+## Other
+
+ * `new-contribs.hs`: A tool I use to generate new-contributor statistics for
+   GHC community status updates.
