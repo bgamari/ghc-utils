@@ -2,16 +2,20 @@
 
 from pathlib import Path
 import subprocess
+import re
 
 IGNORE = 1 # ignore submodule
 GITHUB_HASKELL = 2 # in the haskell github org
 ORIGIN = 3 # upstream remote == origin remote
 
-def github(owner, name):
+def github(owner: str, name: str) -> str:
     return f'https://github.com/{owner}/{name}'
 
-def github_haskell(name):
+def github_haskell(name: str) -> str:
     return github('haskell', name)
+
+def gitlab_ssh(owner: str, name: str) -> str:
+    return f'git@gitlab.haskell.org:{owner}/{name}'
 
 upstreams = {
     '.arc-linters/arcanist-external-json-linter': IGNORE,
@@ -59,34 +63,59 @@ packages = {
     if line.split()[3] != '-'
 }
 
-for submod in all_submods:
-    print(submod)
-    upstream = None
-    if submod in upstreams:
-        upstream = upstreams[submod]
-    elif submod in packages:
-        upstream = packages[submod]
-
-    if upstream == ORIGIN:
-        upstream = subprocess.check_output(['git', '-C', submod, 'remote', 'get-url', 'origin'], encoding='UTF-8').strip()
-    elif upstream == GITHUB_HASKELL:
-        upstream = github_haskell(Path(submod).name)
-    elif upstream == IGNORE:
-        continue
-
-    if upstream is None:
-        print(f'Unknown upstream for {submod}')
-        raise ValueError('unknown upstream')
+def get_remote_url(submod: str, remote: str):
+    p = subprocess.run(['git', '-C', submod, 'remote', 'get-url', remote],
+                       encoding='UTF-8',
+                       stdout=subprocess.PIPE,
+                       stderr=subprocess.DEVNULL)
+    if p.returncode == 0:
+        return p.stdout
     else:
-        print(f'Upstream of {submod} is {upstream}')
-        p = subprocess.run(['git', '-C', submod, 'remote', 'get-url', 'upstream'], encoding='UTF-8', stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-        if p.returncode == 0:
-            if p.stdout == upstream:
-                continue
-            else:
-                subprocess.call(['git', '-C', submod, 'remote', 'set-url', 'upstream', upstream])
+        return None
+
+def add_remote(submod: str, remote: str, url: str):
+    old_url = get_remote_url(submod, remote)
+    if old_url is None:
+        subprocess.call(['git', '-C', submod, 'remote', 'add', remote, url])
+    elif old_url == url:
+        return
+    else:
+        subprocess.call(['git', '-C', submod, 'remote', 'set-url', remote, url])
+
+    update_remote(submod, remote)
+
+def update_remote(submod: str, remote: str):
+    subprocess.check_call(['git', '-C', submod, 'remote', 'update', remote])
+
+def main():
+    for submod in all_submods:
+        print(submod)
+        upstream = None
+        if submod in upstreams:
+            upstream = upstreams[submod]
+        elif submod in packages:
+            upstream = packages[submod]
+
+        if upstream == ORIGIN:
+            upstream = subprocess.check_output(['git', '-C', submod, 'remote', 'get-url', 'origin'], encoding='UTF-8').strip()
+        elif upstream == GITHUB_HASKELL:
+            upstream = github_haskell(Path(submod).name)
+        elif upstream == IGNORE:
+            continue
+
+        if upstream is None:
+            print(f'Unknown upstream for {submod}')
+            raise ValueError('unknown upstream')
         else:
-            subprocess.call(['git', '-C', submod, 'remote', 'add', 'upstream', upstream])
+            print(f'Upstream of {submod} is {upstream}')
+            add_remote(submod, 'upstream', upstream)
 
-        subprocess.check_call(['git', '-C', submod, 'remote', 'update', 'upstream'])
+        origin = get_remote_url(submod, 'origin')
+        m = re.match('https://gitlab.haskell.org/(.*)', origin)
+        if m is not None:
+            push = f'git@gitlab.haskell.org:{m.group(1)}'
+            print(f'origin-push of {submod} is {push}')
+            add_remote(submod, 'origin-push', push)
 
+if __name__ == '__main__':
+    main()
