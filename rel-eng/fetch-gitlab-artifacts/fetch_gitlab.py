@@ -16,6 +16,7 @@ def strip_prefix(s, prefix):
 def job_triple(job):
     bindists = {
         'validate-aarch64-linux-deb9': 'aarch64-deb9-linux',
+        'validate-armv7-linux-deb9': 'armv7-deb9-linux',
         'validate-x86_64-darwin': 'x86_64-apple-darwin',
         'validate-i386-linux-deb9': 'i386-deb9-linux',
         'release-x86_64-linux-deb8': 'x86_64-deb8-linux',
@@ -24,7 +25,7 @@ def job_triple(job):
         'release-x86_64-linux-deb9-dwarf': 'x86_64-deb9-linux-dwarf',
         'release-x86_64-windows': 'x86_64-unknown-mingw32',
         'release-i386-windows': 'i386-unknown-mingw32',
-        'validate-x86_64-windows': 'x86_64-unknown-mingw32',
+        #'validate-x86_64-windows': 'x86_64-unknown-mingw32',
         #'validate-i386-windows': 'i386-unknown-mingw32',
         'validate-x86_64-linux-fedora27': 'x86_64-fedora27-linux',
         'release-x86_64-linux-centos7': 'x86_64-centos7-linux',
