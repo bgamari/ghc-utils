@@ -14,7 +14,7 @@ Label = NewType('Label', List[str])
 
 DEFAULT_EVENTS = 'cycles instructions cache-misses branches branch-misses'.split()
 
-def read_rts_stats(f: typing.TextIO) -> dict:
+def read_rts_stats(f: typing.TextIO) -> Dict[str, float]:
     """ shamelessly copied from rts_stats.py """
     import ast
     import re
@@ -23,7 +23,7 @@ def read_rts_stats(f: typing.TextIO) -> dict:
     parsed = { key: float(value) for key, value in raw }
     return parsed
 
-def read_perf_stats(f: typing.TextIO) -> dict:
+def read_perf_stats(f: typing.TextIO) -> Dict[str, float]:
     import csv
     out = {}
     for row in csv.reader(f):
@@ -32,7 +32,7 @@ def read_perf_stats(f: typing.TextIO) -> dict:
         if row[0].startswith('#'):
             continue
 
-        out[row[2]] = int(row[0])
+        out[row[2]] = float(row[0])
 
     return out
 
