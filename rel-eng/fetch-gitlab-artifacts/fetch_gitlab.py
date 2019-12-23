@@ -3,8 +3,6 @@ from pathlib import Path
 import subprocess
 import gitlab
 
-project_id = 1
-
 logging.basicConfig(level=logging.INFO)
 
 def strip_prefix(s, prefix):
