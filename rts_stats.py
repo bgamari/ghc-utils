@@ -33,8 +33,9 @@ import re
 import sys
 import ast
 import json
+import typing
 
-def read_rts_stats(f) -> dict:
+def read_rts_stats(f: typing.TextIO) -> dict:
     f.readline()
     raw = ast.literal_eval(re.sub('^ +', '', f.read()))
     parsed = { key: float(value) for key, value in raw }

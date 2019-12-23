@@ -20,13 +20,15 @@ let
           --prefix PATH : ${gdb.rr}/bin
 
         makeWrapper ${./add-upstream-remotes.py} $out/bin/add-upstream-remotes
-        makeWrapper ${./rts_stats.py} $out/bin/rts-stats
         makeWrapper ${./review-submodules} $out/bin/review-submodules
         makeWrapper ${./split-core2core.py} $out/bin/split-core2core
         makeWrapper ${./eventlog-sort.sh} $out/bin/eventlog-sort \
           --prefix PATH : ${haskellPackages.ghc-events}/bin:${gawk}/bin
         makeWrapper ${./run-until-crash} $out/bin/run-until-crash \
           --prefix PATH : ${python3}/bin
+
+        makeWrapper ${./rts_stats.py} $out/bin/rts-stats
+        makeWrapper ${./ghc_perf.py} $out/bin/ghc-perf
       '';
     };
   gdb = import ./gdb { inherit nixpkgs; };

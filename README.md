@@ -28,14 +28,17 @@ the scripts are available using `nix-shell`.
 
 ## Understanding performance
 
+ * `ghc_perf.py`: A handy utility for collecting runtime and `perf` statistics
+   from programs compiled by GHC (with the `-rtsopts` flag).
+ * `rts_stats.py`: A handy utility for comparing statistics from the GHC
+   runtime's `+RTS -t --machine-readable` output (which requires that the
+   program have been built with GHC's `-rtsopts` flag)
  * `split-core2core.py`: An extremely useful script for splitting up the output
    of GHC's `-dverbose-core2core` dump option, placing the output of each pass
    in a separate file (e.g. `ghc-utils/split-core2core.py
    my-program.verbose-core2core`)
  * `compare-ticks/`: A hack for comparing reports from GHC's ticky-ticky
    profiler.
- * `compare-stats.py`: Utility for comparing output from GHC's `+RTS -t
-   --machine-readable` output.
  * `eventlog-sort`: A hack to dump the events from a GHC eventlog with relative
    timestamps (in milliseconds).
 
