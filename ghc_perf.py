@@ -17,6 +17,7 @@ DEFAULT_EVENTS = 'cycles instructions cache-misses branches branch-misses'.split
 def read_rts_stats(f: typing.TextIO) -> dict:
     """ shamelessly copied from rts_stats.py """
     import ast
+    import re
     f.readline()
     raw = ast.literal_eval(re.sub('^ +', '', f.read()))
     parsed = { key: float(value) for key, value in raw }
@@ -109,14 +110,19 @@ def main() -> None:
         stdin=Path(args.stdin.name) if args.stdin else None)
 
     json.dump(metrics, output)
+
     if args.summarize:
-        print("Summary:")
+        print("")
+        print(f"Summary ({args.repeat} repetitions)")
+        print( "====================================")
         print("")
         for k,vs in sorted(group_metrics(metrics).items()):
             mu = mean(vs)
             stderr = std(vs) / sqrt(len(vs)) / mu * 100 if mu != 0 else 0
             print(f'{k:60s}   {mu:<8.2g} +/- {stderr:>4.1f}%')
 
+    print("")
+    print(f'Metrics from {args.repeat} repetitions saved in {output.name}')
 
 def std(xs: List[float]) -> float:
     mu = mean(xs)
