@@ -109,7 +109,7 @@ def main() -> None:
         repeat=args.repeat,
         stdin=Path(args.stdin.name) if args.stdin else None)
 
-    json.dump(metrics, output)
+    json.dump(metrics, output, indent=2)
 
     if args.summarize:
         print("")
