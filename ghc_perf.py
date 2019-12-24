@@ -32,7 +32,12 @@ def read_perf_stats(f: typing.TextIO) -> Dict[str, float]:
         if row[0].startswith('#'):
             continue
 
-        out[row[2]] = float(row[0])
+        metric = row[2]
+        value = row[0]
+        if value == '<not supported>':
+            continue
+
+        out[metric] = float(value)
 
     return out
 
