@@ -14,6 +14,8 @@ revision is made).
 
 import subprocess
 import re
+from pathlib import Path
+from typing import List, Tuple
 
 # Things that aren't releasable
 non_released = {
@@ -41,25 +43,34 @@ def is_release_tag(tag: str) -> bool:
     else:
         return None
 
-def main() -> None:
-    #subprocess.run(['git', 'submodule', 'foreach', 'git', 'remote', 'update', 'upstream'], check=True)
+def list_submodules(repo: Path) -> List[Tuple[Path, str]]:
     p = subprocess.run(['git', 'submodule'], capture_output=True, encoding='UTF-8')
+    result = []
     for line in p.stdout.split('\n'):
         parts = line.split()
         if len(parts) == 0:
             continue
         path = parts[1]
+        rev = parts[2]
+        result.append((path, rev))
+
+    return result
+
+def main() -> None:
+    #subprocess.run(['git', 'submodule', 'foreach', 'git', 'remote', 'update', 'upstream'], check=True)
+    for path, rev in list_submodules('.'):
         if path in non_released \
                 or path in ghc_maintained \
                 or path in non_installed:
             continue
-        tag = re.match('\((.*)\)', parts[2]).group(1)
+        tag = re.match('\((.*)\)', rev).group(1)
         version = is_release_tag(tag)
         print('   * [{mark}] `{path}`: {version}'.format(
             mark = 'x' if version is not None else ' ',
             path = path,
             version = f'version {version}' if version is not None else f'*todo* (on `{tag}`)'
         ))
+
 
 if __name__ == '__main__':
     main()
