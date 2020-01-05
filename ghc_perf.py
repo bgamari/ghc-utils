@@ -77,14 +77,16 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--name', type=str,
                         help='test name')
-    parser.add_argument('-o', '--output', type=argparse.FileType('w'),
+    parser.add_argument('-o', '--output', type=str,
                         help='output file name (default: PROG.perf.json)')
+    parser.add_argument('-a', '--append', action='store_true',
+                        help='append rather than overwrite output file')
     parser.add_argument('-r', '--repeat', type=int, default=1,
                         help='run N times')
-    parser.add_argument('-E', '--perf', action='store_true',
-                        help='run under perf with default event set ({})'.format(DEFAULT_EVENTS))
     parser.add_argument('-e', '--events', type=str, nargs='*', default=[],
                         help='perf events to count (in addition to default set, if --perf is given)')
+    parser.add_argument('-E', '--perf', action='store_true',
+                        help='shorthand for --events="{}"'.format(','.join(DEFAULT_EVENTS)))
     parser.add_argument('-s', '--summarize', action='store_true',
                         help='show summary after run')
     parser.add_argument('--stdin', type=argparse.FileType('rb'),
@@ -93,9 +95,15 @@ def main() -> None:
                         help='command line to run')
     args = parser.parse_args()
 
-    output = args.output
-    if output is None:
-        output = open('{}.perf.json'.format(args.cmdline[0]), 'w')
+    if args.output is None:
+        output_path = Path('{}.perf.json'.format(args.cmdline[0]))
+    else:
+        output_path = Path(args.output)
+
+    if args.append and output_path.is_file():
+        old_metrics = json.load(open(output_path))
+    else:
+        old_metrics = []
 
     events = []
     events += args.events
@@ -103,13 +111,14 @@ def main() -> None:
         events += DEFAULT_EVENTS
 
     metrics = run(
-        name=args.name if args.name else args.cmdline[0],
+        name=args.name if args.name else Path(args.cmdline[0]).name,
         cmdline=args.cmdline,
         events=events,
         repeat=args.repeat,
         stdin=Path(args.stdin.name) if args.stdin else None)
 
-    json.dump(metrics, output, indent=2)
+    output = open(output_path, 'w')
+    json.dump(old_metrics+metrics, output, indent=2)
 
     if args.summarize:
         print("")
@@ -122,7 +131,7 @@ def main() -> None:
             print(f'{k:60s}   {mu:<8.2g} +/- {stderr:>4.1f}%')
 
     print("")
-    print(f'Metrics from {args.repeat} repetitions saved in {output.name}')
+    print(f'Metrics from {args.repeat} repetitions saved in {output_path}')
 
 def std(xs: List[float]) -> float:
     mu = mean(xs)
