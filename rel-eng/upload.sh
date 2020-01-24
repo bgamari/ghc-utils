@@ -15,7 +15,7 @@ set -e
 # You can also invoke the script with an argument to perform only
 # a subset of the usual release,
 #
-#   upload.sh compress_to_xz         produce xz tarballs from bzip2 tarballs
+#   upload.sh compress_to_lzip       produce lzip tarballs from xz tarballs
 #
 #   upload.sh gen_hashes             generate signed hashes of the release
 #                                    tarballs
@@ -57,7 +57,7 @@ usage() {
     echo "and <action> is one of,"
     echo "  fetch_s3           fetch artifacts from S3"
     echo "  [nothing]          do everything below"
-    echo "  compress_to_xz     produce xz tarballs from bzip2 tarballs"
+    echo "  compress_to_lzip   produce lz tarballs from lzip tarballs"
     echo "  gen_hashes         generated hashes of the release tarballs"
     echo "  sign               sign hashes of the release tarballs"
     echo "  prepare_docs       prepare the documentation directory"
@@ -179,7 +179,7 @@ function prepare_docs() {
         exit 1
     fi
     windows_bindist="$(ls ghc-$ver-x86_64-unknown-mingw32.tar.xz | head -n1)"
-    linux_bindist="$(ls ghc-$ver-x86_64-deb9-linux.tar.xz | head -n1)"
+    linux_bindist="$(ls ghc-$ver-x86_64-deb9-linux-dwarf.tar.xz | head -n1)"
     echo "Windows bindist: $windows_bindist"
     echo "Linux bindist: $linux_bindist"
     $ENTER_FHS_ENV $mkdocs $linux_bindist $windows_bindist
@@ -195,10 +195,10 @@ function prepare_docs() {
     mv docs/index.html docs/html
 }
 
-function compress_to_xz() {
-    for f in $(combine <(basename -s .bz2 *.bz2) not <(basename -s .xz *.xz)); do
-        echo "Recompressing $f.bz2 to $f.xz"
-        bunzip2 -c $f.bz2 | xz -c - > $f.xz
+function compress_to_lz() {
+    for f in $(combine <(basename -s .xz *.xz) not <(basename -s .lz *.lz)); do
+        echo "Recompressing $f.xz to $f.lz"
+        unxz -c $f.xz | lzip -c - > $f.lz
     done
 }
 

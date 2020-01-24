@@ -24,6 +24,7 @@ let
       mkdir -p $out/bin
 
       makeWrapper ${./upload.sh} $out/bin/upload.sh \
+        --prefix PATH : ${lzip}/bin \
         --prefix PATH : ${s3cmd}/bin \
         --prefix PATH : ${gnupg}/bin \
         --set ENTER_FHS_ENV ${bindistPrepEnv}/bin/enter-fhs \
