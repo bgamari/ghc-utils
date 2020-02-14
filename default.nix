@@ -26,6 +26,8 @@ let
           --prefix PATH : ${haskellPackages.ghc-events}/bin:${gawk}/bin
         makeWrapper ${./run-until-crash} $out/bin/run-until-crash \
           --prefix PATH : ${python3}/bin
+        makeWrapper ${./make-ghc-tags.sh} $out/bin/make-ghc-tags \
+          --prefix PATH : ${haskellPackages.fast-tags}/bin
 
         makeWrapper ${./rts_stats.py} $out/bin/rts-stats
         makeWrapper ${./ghc_perf.py} $out/bin/ghc-perf
