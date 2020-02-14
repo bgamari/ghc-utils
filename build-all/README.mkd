@@ -1,0 +1,32 @@
+# build-all
+
+`build-all` is a small hack I use to automate building and testing of multiple
+GHC branches (e.g. various steps of a larger refactoring).
+
+
+## Usage
+
+`build-all` expects to be invoked in a directory with a `ghc` tree containing
+all of the git refs to be built. It also expects a file, `branches.txt` listing
+the branches to be tested. For instance,
+
+```
+$ mkdir testing
+$ git clone git@gitlab.haskell.org:ghc/ghc
+$ git -C ghc branch branch1
+$ git -C ghc branch branch2
+$ git -C ghc branch branch3
+$ cat >branches.txt <<EOF
+wip/branch1
+wip/branch2
+wip/branch3
+EOF
+$ cabal new-run /path/to/Run.hs
+```
+There are a variety of parameters in `Run.hs` which can be edited to suite the
+setting. These include,
+
+ * `cores`: how many cores the machine doing the builds has
+ * `nofibRepeats`: how may times to run each nofib test
+ * `ghcUtilsPath`: the path to the `ghc-utils` repository (used to find `ghc_perf.py`)
+ * `perfEvents`: which `perf` events to capture (using `perf stat`)
