@@ -110,9 +110,20 @@ def run(name: str,
             cmd = ['perf', 'stat', '-x,', '-o', perf_out.name] + \
                 ['-e', ','.join(events)] + ['--'] + cmd
 
-        #print(cmd)
-        subprocess.check_call(cmd,
-                              stdin=stdin.open('rb') if stdin else None)
+        p = subprocess.Popen(cmd, stdin=stdin.open('rb') if stdin else None)
+        import signal
+        def handle_sigint(sig, frame):
+            p.send_signal(signal.SIGINT)
+        signal.signal(signal.SIGINT, handle_sigint)
+
+        try:
+            errcode = p.wait()
+            if errcode != 0:
+                print(f'"{" ".join(cmd)}" failed with exit code {errcode}')
+                raise subprocess.CalledProcessError(returncode=errcode, cmd=cmd)
+        except KeyboardInterrupt:
+            print('Interrupted...')
+            p.send_signal(signal.SIGINT)
 
         rts_stats = read_rts_stats(rts_out)
         for k,v in rts_stats.items():
@@ -173,7 +184,7 @@ def main() -> None:
         stdin=Path(args.stdin.name) if args.stdin else None)
 
     new_metrics = old_metrics + metrics
-    if args.output.endswith('.json'):
+    if output_path.suffix == '.json':
         new_metrics.write_json(output_path.open('w'))
     else:
         new_metrics.write_tsv(output_path.open('w'))
