@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from math import sqrt
-from typing import List, Tuple, Dict, NewType, Optional
+from typing import List, Tuple, Dict, NewType, Optional, TextIO, DefaultDict
 import typing
 from pathlib import Path
 import io
@@ -13,6 +13,55 @@ import json
 Label = NewType('Label', List[str])
 
 DEFAULT_EVENTS = 'cycles instructions cache-misses branches branch-misses'.split()
+
+def parse_label(lbl: str) -> Label:
+    return Label(lbl.split('//'))
+
+def pack_label(lbl: Label) -> str:
+    return '//'.join(lbl)
+
+class Metrics:
+    metrics: List[Tuple[Label, float]]
+
+    def __init__(self, metrics: List[Tuple[Label, float]]):
+        self.metrics = metrics
+
+    @staticmethod
+    def read_tsv(f: TextIO) -> "Metrics":
+        import csv
+        reader = csv.reader(f, delimiter='\t')
+        return Metrics([ (parse_label(lbl), float(v)) for (lbl, v) in reader ])
+
+    def write_tsv(self, f: TextIO):
+        import csv
+        writer = csv.writer(f, delimiter='\t')
+        for lbl, v in self.metrics:
+            writer.writerow((pack_label(lbl), v))
+
+    @staticmethod
+    def read_json(f: TextIO) -> "Metrics":
+        return Metrics(json.load(f))
+
+    def write_json(self, f: TextIO) -> None:
+        json.dump(self.metrics, f, indent=2)
+
+    def __add__(self, other: "Metrics") -> "Metrics":
+        return Metrics(self.metrics + other.metrics)
+
+    def __getitem__(self, lbl: Label) -> List[float]:
+        return [v for l,v in self.metrics if lbl == l]
+
+    def grouped(self) -> Dict[Label, List[float]]:
+        import collections
+        grouped = collections.defaultdict(lambda: []) # type: DefaultDict[Label, List[float]]
+        for k,v in self.metrics:
+            grouped[k].append(v)
+
+        return grouped
+
+    def add(self, lbl: Label, value: float) -> None:
+        self.metrics.append((lbl, value))
+
 
 def read_rts_stats(f: typing.TextIO) -> Dict[str, float]:
     """ shamelessly copied from rts_stats.py """
@@ -46,9 +95,9 @@ def run(name: str,
         events: List[str] = [],
         repeat: int = 1,
         stdin: Optional[Path] = None
-        ) -> List[Tuple[Label,float]]:
+        ) -> Metrics:
 
-    metrics = [] # type: List[Tuple[Label,float]]
+    metrics = Metrics([]) # type: Metrics
     for i in range(repeat):
         rts_out = tempfile.NamedTemporaryFile(mode='r')
         perf_out = tempfile.NamedTemporaryFile(mode='r')
@@ -66,14 +115,13 @@ def run(name: str,
                               stdin=stdin.open('rb') if stdin else None)
 
         rts_stats = read_rts_stats(rts_out)
-        metrics += [ (Label([name] + ['run', 'rts', k]), v)
-                     for k,v in rts_stats.items()
-                   ]
+        for k,v in rts_stats.items():
+            metrics.add(Label([name] + ['run', 'rts', k]), v)
+
         if events is not None:
             perf_stats = read_perf_stats(perf_out)
-            metrics += [ (Label([name] + ['run', 'perf', k]), v)
-                         for k,v in perf_stats.items()
-                       ]
+            for k,v in perf_stats.items():
+                metrics.add(Label([name] + ['run', 'perf', k]), v)
 
     return metrics
 
@@ -100,17 +148,19 @@ def main() -> None:
                         help='command line to run')
     args = parser.parse_args()
 
-    if args.output is None:
-        output_path = Path('{}.perf.json'.format(args.cmdline[0]))
-    else:
+    output_path = Path('{}.perf.json'.format(args.cmdline[0]))
+    if args.output is not None:
         output_path = Path(args.output)
 
     if args.append and output_path.is_file():
-        old_metrics = json.load(open(output_path))
+        if output_path.suffix == '.json':
+            old_metrics = Metrics.read_json(output_path.open())
+        else:
+            old_metrics = Metrics.read_tsv(output_path.open())
     else:
-        old_metrics = []
+        old_metrics = Metrics([])
 
-    events = []
+    events = []  # type: List[str]
     events += args.events
     if args.perf:
         events += DEFAULT_EVENTS
@@ -122,15 +172,18 @@ def main() -> None:
         repeat=args.repeat,
         stdin=Path(args.stdin.name) if args.stdin else None)
 
-    output = open(output_path, 'w')
-    json.dump(old_metrics+metrics, output, indent=2)
+    new_metrics = old_metrics + metrics
+    if args.output.endswith('.json'):
+        new_metrics.write_json(output_path.open('w'))
+    else:
+        new_metrics.write_tsv(output_path.open('w'))
 
     if args.summarize:
         print("")
         print(f"Summary ({args.repeat} repetitions)")
         print( "====================================")
         print("")
-        for k,vs in sorted(group_metrics(metrics).items()):
+        for k,vs in sorted(metrics.grouped().items()):
             mu = mean(vs)
             stderr = std(vs) / sqrt(len(vs)) / mu * 100 if mu != 0 else 0
             print(f'{k:60s}   {mu:<8.2g} +/- {stderr:>4.1f}%')
@@ -144,15 +197,6 @@ def std(xs: List[float]) -> float:
 
 def mean(xs: List[float]) -> float:
     return sum(xs) / len(xs)
-
-def group_metrics(metrics: List[Tuple[Label, float]]) -> Dict[Label, List[float]]:
-    import collections
-    grouped = collections.defaultdict(lambda: [])
-    for k,v in metrics:
-        name = '//'.join(k)
-        grouped[name].append(v)
-
-    return grouped
 
 if __name__ == '__main__':
     main()
